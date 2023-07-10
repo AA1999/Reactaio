@@ -1,1 +1,1 @@
-DISCORD_TOKEN = "ODI1NDcyNjE0MjIyNTI4NTYy.YF-bRw.H0OwExwhFgegmKypu7ek8egpKzY"
+DISCORD_TOKEN = "it's a dead token anyways"
