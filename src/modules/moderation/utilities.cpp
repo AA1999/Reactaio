@@ -2,6 +2,7 @@
 // Created by arshia on 4/12/22.
 //
 
+#include "dpp/role.h"
 #include "moderation.h"
 #include "../../exceptions/missing_permissions.h"
 #include "../../exceptions/owner_exception.h"
@@ -34,4 +35,15 @@ void moderation::kick_perms_check(const guild_member& author, const snowflake& c
 	auto author_perms = guild->base_permissions(author_user);
     if(!(author_perms & p_kick_members))
         throw missing_permissions{"You do not have permission to kick members."};
+    
+}
+
+void ban_perms_check(const guild_member& author, const snowflake& channel_id) {
+    auto guild = find_guild(author.guild_id);
+    auto author_user = find_user(author.user_id);
+    
+    auto author_perms = guild->base_permissions(author_user);
+    if(!(author_perms & p_kick_members))
+        throw missing_permissions{"You do not have permission to kick members."};
+    
 }

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
-project(reactaio)
+
+project(Reactaio)
 
 add_subdirectory(lib/DPP)
 add_subdirectory(lib/spdlog)
@@ -40,6 +41,6 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
 target_precompile_headers(${PROJECT_NAME} PRIVATE lib/ctre/include/ctre.hpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-        CXX_STANDARD 23
-        CXX_STANDARD_REQUIRED ON
-        )
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
