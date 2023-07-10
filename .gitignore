@@ -2,3 +2,4 @@ src/token.h
 .cache
 .trunk
 build
+.idea
