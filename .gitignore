@@ -1,0 +1,6 @@
+.idea
+.cache
+build
+cmake-build-debug
+.vscode
+.clang-formatold
