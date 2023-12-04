@@ -31,14 +31,12 @@ protected:
 	bool cancel_operation{false};
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permissions
-	 *	@throw std::compile_error -  Compile error if called from an instance of the base class or the other base children.
+	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission. This is an abstract function.
 	 */
 	virtual void check_permissions() = 0;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
-	 *	@throw std::compile_error -  Compile error if called from an instance of the base class or the other base children.
+	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed. This is an abstract function.
 	 */
 	virtual void wrapper_function() = 0;
 
@@ -68,9 +66,8 @@ public:
 	[[nodiscard]] virtual bool are_all_errors() const = 0;
 
 	/**
-	 * @brief error - Gives the error message of the
+	 * @brief error - Gives the error message of the wrapper result. This is an abstract function.
 	 * @return The full error message if is_error() is true
-	 * @throw std::compile_error - Compile error if called from an instance of the base class or the other base children.
 	 */
 	[[nodiscard]] std::optional<dpp::message> error() const;
 };
