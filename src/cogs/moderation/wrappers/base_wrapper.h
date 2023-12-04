@@ -15,7 +15,11 @@
 #include <utility>
 #include <vector>
 
-class base_wrapper { // Base functor for all moderation punishments.
+/**
+ * \brief base_wrapper - The base abstract functor class for all moderation actions. This class is only supposed to be used as a base class and not have direct instances
+ */
+
+class base_wrapper {
 
 protected:
 	std::optional<duration> duration;
@@ -26,17 +30,47 @@ protected:
 	bool are_errors{false};
 	bool cancel_operation{false};
 
-	virtual void check_permissions();
+	/**
+	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permissions
+	 *	@throw std::compile_error -  Compile error if called from an instance of the base class or the other base children.
+	 */
+	virtual void check_permissions() = 0;
+
+	/**
+	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 *	@throw std::compile_error -  Compile error if called from an instance of the base class or the other base children.
+	 */
 	virtual void wrapper_function() = 0;
 
 
 public:
 	virtual ~base_wrapper() = default;
+
+	/**
+	 *
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	explicit base_wrapper(moderation_command command)
 	    : command(std::move(command)), duration(parse_human_time(command.duration)) {}
 
 	virtual void operator()() final;
+
+	/**
+	 * @brief is_error - Checks for any errors in the process.
+	 * @return Whether there is any error when performing the specified instructions.
+	 */
 	[[nodiscard]] bool is_error() const;
+
+	/**
+	 * @brief are_all_errors - Checks if every item has encountered an error.
+	 * @return Whether if every single item given to the wrapper has encountered an error.
+	 */
 	[[nodiscard]] virtual bool are_all_errors() const = 0;
+
+	/**
+	 * @brief error - Gives the error message of the
+	 * @return The full error message if is_error() is true
+	 * @throw std::compile_error - Compile error if called from an instance of the base class or the other base children.
+	 */
 	[[nodiscard]] std::optional<dpp::message> error() const;
 };
