@@ -31,18 +31,20 @@ protected:
 	bool cancel_operation{false};
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission. This is an abstract function.
+	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@note This is an abstract function.
 	 */
 	virtual void check_permissions() = 0;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed. This is an abstract function.
+	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@note This is an abstract function.
 	 */
 	virtual void wrapper_function() = 0;
 
 
 public:
-	virtual ~base_wrapper() = default;
+	virtual ~base_wrapper() = 0;
 
 	/**
 	 *
@@ -66,7 +68,8 @@ public:
 	[[nodiscard]] virtual bool are_all_errors() const = 0;
 
 	/**
-	 * @brief error - Gives the error message of the wrapper result. This is an abstract function.
+	 * @brief error - Gives the error message of the wrapper result.
+	 * @note This is an abstract function.
 	 * @return The full error message if is_error() is true
 	 */
 	[[nodiscard]] std::optional<dpp::message> error() const;
