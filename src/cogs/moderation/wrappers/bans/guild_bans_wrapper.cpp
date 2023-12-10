@@ -6,9 +6,6 @@
 #include "ban_processor.h"
 #include "../../../base/consts.h"
 
-void guild_bans_wrapper::wrapper_function() {
-	user_wrapper::wrapper_function();
-}
 
 void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 	command.bot->guild_get_bans(command.guild->id, 0, after, max_guild_ban_fetch, [this, after](const auto completion){
@@ -35,11 +32,14 @@ void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 }
 
 
-void guild_bans_wrapper::process_response() {
+ban_vector guild_bans_wrapper::guild_bans() const {
+	return bans;
 }
 
-
-void guild_bans_wrapper::check_permissions() {
-	user_wrapper::check_permissions();
+std::vector<std::string> guild_bans_wrapper::what() const {
+	return errors;
 }
 
+bool guild_bans_wrapper::is_error() const {
+	return !errors.empty();
+}

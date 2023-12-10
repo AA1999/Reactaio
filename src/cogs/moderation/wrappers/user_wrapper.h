@@ -36,5 +36,5 @@ protected:
 public:
 	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): users(users), base_wrapper(std::move(command)){}
 
-	~user_wrapper() = 0;
+	~user_wrapper() override = 0;
 };

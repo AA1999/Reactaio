@@ -3,21 +3,31 @@
 //
 
 #pragma once
-#include "../user_wrapper.h"
+#include "../../modules/moderation_command.h"
 #include "ban_processor.h"
 
+/**
+ * @brief guild_bans_wrapper - A wrapper used for getting all the bans from a guild.
+ * @note This was originally inherited from user_wrapper but for a lot of reasons like no requirement for a message the class was changed
+ */
 
-class guild_bans_wrapper: public user_wrapper {
+class guild_bans_wrapper {
 	ban_vector bans;
+	moderation_command command;
+	std::vector<std::string> errors;
 
-	void wrapper_function() override;
-	void check_permissions() override;
+	bool are_errors{false};
 
 	void get_all_guild_bans(dpp::snowflake after = 1);
-	void process_response();
-
-	bool invalid_user{false};
-
 public:
-	using user_wrapper::user_wrapper;
+	explicit guild_bans_wrapper(moderation_command& command): command(std::move(command)){
+		get_all_guild_bans();
+	}
+
+	~guild_bans_wrapper() = default;
+
+	ban_vector guild_bans() const;
+	std::vector<std::string> what() const;
+	bool is_error() const;
+
 };

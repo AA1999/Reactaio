@@ -12,7 +12,7 @@ namespace reactaio::internal {
 		ban() = delete;
 		~ban() = default;
 		ban(dpp::guild* guild, const dpp::ban& ban): _guild(guild), _reason(ban.reason), _user_id(ban.user_id){}
-		
+
 		[[nodiscard]] dpp::guild* guild() const;
 		[[nodiscard]] dpp::snowflake user_id() const;
 		[[nodiscard]] std::string_view reason() const;
