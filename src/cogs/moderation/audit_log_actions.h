@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <dpp/dpp.h>
+
 #include "../base/datatypes/fifo_map.h"
+
 
 extern inline const reactaio::internal::fifo_map<std::string, dpp::audit_type> audit_log_events{
 		{"guild_update", dpp::audit_type::aut_guild_update},
@@ -58,5 +61,7 @@ extern inline const reactaio::internal::fifo_map<std::string, dpp::audit_type> a
 		{"automod_rule_update", dpp::audit_type::aut_automod_rule_update},
 		{"automod_rule_delete", dpp::audit_type::aut_automod_rule_delete},
 		{"automod_block_message", dpp::audit_type::aut_automod_block_message},
-		{"automod_user_communication_disabled", dpp::audit_type::aut_automod_user_communication_disabled }
+		{"automod_user_communication_disabled", dpp::audit_type::aut_automod_user_communication_disabled },
+		{"creator_monetization_request_created", dpp::audit_type::aut_creator_monetization_request_created},
+		{"creator_monetization_terms_accepted", dpp::audit_type::aut_creator_monetization_terms_accepted}
 };

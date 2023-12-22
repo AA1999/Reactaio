@@ -18,6 +18,10 @@ class guild_bans_wrapper {
 
 	bool are_errors{false};
 
+	/**
+	 * @brief get_all_guild_bans - Fetches all the bans from a guild recursively.
+	 * @param after The snowflake matching the search. Defaults to 1 because all snowflakes will certainly be bigger than 1.
+	 */
 	void get_all_guild_bans(dpp::snowflake after = 1);
 public:
 	explicit guild_bans_wrapper(moderation_command& command): command(std::move(command)){
@@ -26,8 +30,22 @@ public:
 
 	~guild_bans_wrapper() = default;
 
+	/**
+	 * @brief guild_bans - Returns all the guild bans.
+	 * @return A vector of all the bans in the guild.
+	 */
 	ban_vector guild_bans() const;
+
+	/**
+	 * @brief what - Returns all the errors caught in the process.
+	 * @return All the errors in the process.
+	 */
 	std::vector<std::string> what() const;
+
+	/**
+	 * @brief is_error - Checks if there was any error in the operation.
+	 * @return true if any errors occured, false otherwise.
+	 */
 	bool is_error() const;
 
 };
