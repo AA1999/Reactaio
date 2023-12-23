@@ -2,6 +2,8 @@
 // Created by arshia on 11/6/23.
 //
 
+#include <format>
+
 #include "guild_bans_wrapper.h"
 #include "ban_processor.h"
 #include "../../../base/consts.h"

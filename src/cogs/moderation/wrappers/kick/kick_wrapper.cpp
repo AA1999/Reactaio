@@ -6,7 +6,6 @@
 
 #include "../../../base/colors.h"
 #include "../../../base/consts.h"
-#include "../../../base/helpers.h"
 #include "../../../base/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 

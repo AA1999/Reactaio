@@ -6,12 +6,31 @@
 
 #include "../hybrid_wrapper.h"
 
-
+/**
+ * @brief ban_wrapper - Functor that processes the ban operation for a list of dpp::guild_member or dpp::user* objects.
+ * @note This is only for the normal ban operation. Softban/Hardban operations have a different wrapper.
+ */
 class ban_wrapper: public hybrid_wrapper {
+	/**
+	 * @brief wrapper_function - Function called when the () operator is called. Bans all the given members/users from the guild and returns any errors/success message.
+	 */
 	void wrapper_function() override;
+
+	/**
+	 * @brief check_permissions - Checks if the command invoker has the permission to ban anyone from the guild (including the bot).
+	 * @note This function works internally and returns all error to the wrapper_function() function.
+	 */
 	void check_permissions() override;
 
+	/**
+	 * @brief process_bans - Bans the list of users/members from the guild and returns errors/success message.
+	 * @note This function works internally and returns all error to the wrapper_function() function.
+	 */
 	void process_bans();
+
+	/**
+	 * @brief process_response - Sends the resulting response to the wrapper message object as embed(s).
+	 */
 	void process_response();
 
 	bool invalid_user{false};
