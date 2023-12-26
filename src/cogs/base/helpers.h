@@ -15,11 +15,11 @@
 #include <string_view>
 #include <pqxx/pqxx>
 #include <sstream>
-#include <fmt/format.h>
+#include <format>
 
 template <typename T>
-	requires std::ranges::range<T> bool
-includes(const T& vector, const typename T::value_type& key) {
+requires std::ranges::range<T>
+bool includes(const T& vector, const typename T::value_type& key) {
 	return std::find(std::ranges::begin(vector), std::ranges::end(vector), key) != std::ranges::end(vector);
 }
 
@@ -34,12 +34,12 @@ member_t bot_members(dpp::guild* guild);
 constexpr std::string ordinal(ullong number) {
 	ushort const last_digit = number % 10;
 	if (last_digit == 1 && number != 11)
-		return fmt::format("{}st", number);
+		return std::format("{}st", number);
 	if (last_digit == 2 && number != 12)
-		return fmt::format("{}nd", number);
+		return std::format("{}nd", number);
 	if (last_digit == 3 && number != 13)
-		return fmt::format("{}rd", number);
-	return fmt::format("{}th", number);
+		return std::format("{}rd", number);
+	return std::format("{}th", number);
 }
 
 constexpr std::string join(const std::vector<std::string>& vector, std::string_view separator) {

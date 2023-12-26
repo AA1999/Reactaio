@@ -3,8 +3,10 @@
 //
 
 #include "message_paginator.h"
+#include "../helpers.h"
 
 #include <stdexcept>
+#include <format>
 
 std::size_t message_paginator::size() const {
 	return pages.size();
@@ -22,6 +24,12 @@ void message_paginator::add_page(const std::string& page) {
 		messages.push_back(page);
 	else
 		throw std::invalid_argument{"Cannot have a mix of embeds and texts in the paginator."};
+}
+
+void message_paginator::remove_page(std::size_t page) {
+	if(page >= size())
+		throw std::out_of_range{std::format("Page {} does not exist in embed. Page number can only be between 0-{}.", page, size())};
+	pages.erase(pages.begin() + page);
 }
 
 void message_paginator::start() {

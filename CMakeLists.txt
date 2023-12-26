@@ -12,7 +12,6 @@ target_link_libraries(${PROJECT_NAME}
         dpp
         spdlog
         pqxx
-        fmt
         )
 
 set(CMAKE_CXX_STANDARD 20)

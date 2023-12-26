@@ -4,6 +4,9 @@
 #include <string_view>
 
 namespace reactaio::internal {
+	/**
+	 * @brief ban - A wrapper for a guild ban. It stores the id, the guild pointer and the reason for the ban.
+	 */
 	class ban {
 		dpp::snowflake _user_id;
 		dpp::guild* _guild;
