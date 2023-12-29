@@ -5,10 +5,9 @@
 #include "helpers.h"
 
 #include <algorithm>
-#include <cstddef>
-#include <fmt/format.h>
 #include <string>
 #include <vector>
+#include <ranges>
 
 bool is_all_digit(std::string_view string) {
 	return std::all_of(string.begin(), string.end(), ::isdigit);
