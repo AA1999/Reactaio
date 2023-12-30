@@ -24,6 +24,11 @@ class guild_bans_wrapper {
 	 */
 	void get_all_guild_bans(dpp::snowflake after = 1);
 public:
+
+	/**
+	 * @brief The constructor used to get the ban data from the command.
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	explicit guild_bans_wrapper(moderation_command& command): command(std::move(command)){
 		get_all_guild_bans();
 	}

@@ -46,8 +46,10 @@ protected:
 public:
 	virtual ~base_wrapper() = 0;
 
+	base_wrapper() = delete;
+
 	/**
-	 *
+	 * @brief The constructor for the wrapper.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
 	explicit base_wrapper(moderation_command command)

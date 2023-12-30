@@ -34,6 +34,11 @@ protected:
 	[[nodiscard]] bool are_all_errors() const override;
 
 public:
+	/**
+	 * @brief The constructor used to recive the data from the command.
+	 * @param users The list of dpp::user* objects.
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): users(users), base_wrapper(std::move(command)){}
 
 	~user_wrapper() override = 0;

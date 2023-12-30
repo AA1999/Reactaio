@@ -21,6 +21,13 @@ class ban_processor {
 	ban_vector bans;
 
 public:
+
+
+	/**
+	 * @brief The constructor used to receive the data from the command.
+	 * @param guild The guild representing the bans.
+	 * @param bans The list of banned users.
+	 */
 	explicit ban_processor(dpp::guild* guild, dpp::ban_map& bans): guild(guild), bans() {
 		for(const auto& [key, ban]: bans)
 			this->bans.emplace_back(guild, ban);

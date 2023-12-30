@@ -32,6 +32,12 @@ protected:
 public:
 	~member_wrapper() override = 0;
 
+
+	/**
+	 * @brief The main constructor of the class used to fetch data from the
+	 * @param members The list of the guild members
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	member_wrapper(const std::vector<dpp::guild_member>& members, moderation_command& command): members(members), base_wrapper(std::move(command)){}
 
 	/**

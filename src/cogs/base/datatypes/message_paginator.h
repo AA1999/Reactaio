@@ -61,6 +61,12 @@ class message_paginator {
 public:
 	~message_paginator();
 	message_paginator() = delete;
+
+	/**
+	 * @brief One of the two constructors used to create the message paginator using an existing message with embeds.
+	 * @param message The message to get the embeds from.
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	message_paginator(const dpp::message& message, base_command& command): pages(message.embeds), message(message),
 	                  command(command), action_row(), use_embeds{true},
 	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
@@ -70,6 +76,13 @@ public:
 	{
 		id++;
 	}
+
+	/**
+	 * @brief Constructor for creating a paginator from a list of message contents with an existing message to be edited later.
+	 * @param message The message to edit with the paginator in it.
+	 * @param messages The series of messages to put inside the paginator.
+	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
+	 */
 	message_paginator(const dpp::message& message, const std::vector<std::string>& messages ,base_command& command): message(message),
 	                  messages(messages), command(command), action_row(), use_embeds{false},
 	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
