@@ -11,6 +11,7 @@
 #include <dpp/dpp.h>
 #include <format>
 #include <algorithm>
+#include <chrono>
 
 
 void ban_wrapper::wrapper_function() {
@@ -136,18 +137,18 @@ void ban_wrapper::process_bans() {
 					auto time_delta = duration->to_seconds();
 					auto future = time_now + time_delta;
 					std::string time_now_str = dpp::utility::current_date_time();
-					auto future_str = std::format("{}", future);
+					auto future_str = std::format("{:%Y-%m-%d %X}", future);
 					transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
 					                          std::to_string(command.author.user_id), time_now_str, future_str,
 											  command.reason);
 					transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
-					                          reactaio::internal::mod_action_name::ban, duration->to_string(),
+					                          reactaio::internal::mod_action_name["ban"], duration->to_string(),
 					                          std::to_string(command.author.user_id), std::to_string(user->id),
 					                          command.reason);
 				}
 				else {
 					transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-					                          reactaio::internal::mod_action_name::ban, std::to_string(
+					                          reactaio::internal::mod_action_name["ban"], std::to_string(
 													  command.author.user_id), std::to_string(user->id), command
 													  .reason);
 				}
@@ -405,7 +406,7 @@ void ban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-		                          reactaio::internal::mod_action_name::ban, dpp::utility::current_date_time());
+		                          reactaio::internal::mod_action_name["ban"], dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else

@@ -89,19 +89,19 @@ void mute_wrapper::check_permissions() {
 					               return role->get_mention();
 				               });
 				std::string role_mentions_str = join(role_mentions, " , ");
-				errors.push_back(fmt::format("❌ Member has the protected roles: {}. Cannot mute.", role_mentions_str));
+				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot mute.", role_mentions_str));
 			}
 		}
 
 		if(member_top_role->position > bot_top_role->position) {
-			errors.push_back(fmt::format("❌ {} has a higher role than the bot. Unable to mute. Please "
+			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to mute. Please "
 			                             "move the bot role above the members and below your staff roles.",
 			                             member.get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
-			errors.push_back(fmt::format("❌ {} has a higher role than you do. You can't mute them.",
+			errors.push_back(std::format("❌ {} has a higher role than you do. You can't mute them.",
 			                             member.get_mention()));
 			cancel_operation = true;
 		}
@@ -173,7 +173,7 @@ void mute_wrapper::process_mutes() {
 							auto error = completion.get_error();
 							are_errors = true;
 							members_with_errors.push_back(member);
-							errors.push_back(fmt::format("❌ Error code {}: {}", error.code, error.message));
+							errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 						}
 						else {
 							auto now = std::chrono::system_clock::now();
@@ -182,7 +182,7 @@ void mute_wrapper::process_mutes() {
 							auto future_ms = future.time_since_epoch().count();
 							std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																					   dpp::utility::time_format::tf_relative_time);
-							std::string dm_message = fmt::format("You have been timed out in {} by {} until {}. Reason: {}",
+							std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
 																 command.guild->name, command.author.get_user()->format_username(),
 																 time_future_relative, command.reason);
 							command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
@@ -198,7 +198,7 @@ void mute_wrapper::process_mutes() {
 						auto error = completion.get_error();
 						are_errors = true;
 						members_with_errors.push_back(member);
-						errors.push_back(fmt::format("❌ Error code {}: {}", error.code, error.message));
+						errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 					}
 					else {
 						auto transaction = pqxx::work{*command.connection};
@@ -217,7 +217,7 @@ void mute_wrapper::process_mutes() {
 						transaction.commit();
 						std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																				   dpp::utility::time_format::tf_relative_time);
-						std::string dm_message = fmt::format("You have been timed out in {} by {} until {}. Reason: {}",
+						std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
 															 command.guild->name, command.author.get_user()->format_username(),
 															 time_future_relative, command.reason);
 						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
@@ -245,7 +245,7 @@ void mute_wrapper::process_mutes() {
 				if(completion.is_error()) {
 					are_errors = true;
 					auto error = completion.get_error();
-					errors.push_back(fmt::format("❌ Error code {}: {}", error.code, error.message));
+					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 					members_with_errors.push_back(member);
 				}
 				else {
@@ -263,7 +263,7 @@ void mute_wrapper::process_mutes() {
 						auto future_ms = future.time_since_epoch().count();
 						std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																				   dpp::utility::time_format::tf_relative_time);
-						std::string dm_message = fmt::format("You have been muted in {} by {} until {}. Reason: {}",
+						std::string dm_message = std::format("You have been muted in {} by {} until {}. Reason: {}",
 															 command.guild->name, command.author.get_user()->format_username(),
 															 time_future_relative, command.reason);
 						transaction.exec_prepared("tempmute", mute_id, std::to_string(member.user_id), std::to_string(command.guild->id), now_ms, future_ms);
@@ -271,7 +271,7 @@ void mute_wrapper::process_mutes() {
 						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
 					}
 					else {
-						std::string dm_message = fmt::format("You have been muted in {} by {} permanently. Reason: {}",
+						std::string dm_message = std::format("You have been muted in {} by {} permanently. Reason: {}",
 															 command.guild->name, command.author.get_user()->format_username(),
 															 command.reason);
 						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
@@ -348,7 +348,7 @@ void mute_wrapper::process_response() {
 
 		std::transform(muted_members.begin(), muted_members.end(), std::back_inserter(muted_usernames),
 					   [=](dpp::guild_member const& member) {
-						   return fmt::format("**{}**", member.get_user()->format_username());
+						   return std::format("**{}**", member.get_user()->format_username());
 					   });
 
 		std::transform(muted_members.begin(), muted_members.end(), std::back_inserter(muted_mentions),
@@ -365,12 +365,12 @@ void mute_wrapper::process_response() {
 
 		if (muted_members.size() == 1) {
 			title		= "Muted";
-			description = fmt::format("{} has been muted.", usernames);
+			description = std::format("{} has been muted.", usernames);
 			gif_url		= "https://tenor.com/view/neo-mouthshut-matrix-blue-pill-gif-22455602";
 		}
 		else {
 			title		= "Mass muted";
-			description = fmt::format("{} have been muted.", usernames);
+			description = std::format("{} have been muted.", usernames);
 			gif_url		= "https://canary.discord.com/channels/1011029958740684841/1012300461384138842/1019704810267750440";
 		}
 
@@ -410,7 +410,7 @@ void mute_wrapper::process_response() {
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
-									.set_description(fmt::format("{} have been muted.", usernames))
+									.set_description(std::format("{} have been muted.", usernames))
 									.add_field("Moderator: ", command.author.get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
@@ -433,7 +433,7 @@ void mute_wrapper::process_response() {
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
-									.set_description(fmt::format("{} have been muted.", usernames))
+									.set_description(std::format("{} have been muted.", usernames))
 									.add_field("Moderator: ", command.author.get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
@@ -450,7 +450,7 @@ void mute_wrapper::process_response() {
 		}
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		cstring action_name = use_timeout ? reactaio::internal::mod_action_name::timeout : reactaio::internal::mod_action_name::mute;
+		cstring action_name = use_timeout ? reactaio::internal::mod_action_name["timeout"] : reactaio::internal::mod_action_name["mute"];
 
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
 								  action_name, dpp::utility::current_date_time());

@@ -19,8 +19,8 @@ namespace reactaio::internal {
 	 */
 	template <typename K, typename V>
 	class fifo_map {
-		std::vector<K> _keys;
-		std::vector<V> _values;
+		std::vector<K> m_keys;
+		std::vector<V> m_values;
 
 		/**
 		 * @brief find - Finds the element associated with the given key.
@@ -28,8 +28,8 @@ namespace reactaio::internal {
 		 * @return The element that matches the key. If it doesn't exist, returns std::nullopt instead.
 		 */
 		std::optional<std::ptrdiff_t> find(const K& key) const {
-			const auto iterator = std::find(begin(_keys), end(_keys), key);
-			return iterator != end(_keys) ? std::optional(std::distance(begin(_keys), iterator)) : std::nullopt;
+			const auto iterator = std::find(begin(m_keys), end(m_keys), key);
+			return iterator != end(m_keys) ? std::optional(std::distance(begin(m_keys), iterator)) : std::nullopt;
 		}
 
 
@@ -49,11 +49,11 @@ namespace reactaio::internal {
 		void insert(const K& key, const V & value) {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
-				_values[index] = value;
+				m_values[index] = value;
 			}
 			else {
-				_keys.push_back(key);
-				_values.push_back(value);
+				m_keys.push_back(key);
+				m_values.push_back(value);
 			}
  		}
 
@@ -65,8 +65,8 @@ namespace reactaio::internal {
 		std::optional<K> pop(const K& key) {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
-				_keys.erase(index);
-				return _values.erase(index);
+				m_keys.erase(index);
+				return m_values.erase(index);
 			}
 			return std::nullopt;
 		}
@@ -76,7 +76,7 @@ namespace reactaio::internal {
 		 * @return An integer that's the length of this map.
 		 */
 		[[nodiscard]] std::size_t size() const {
-			return _keys.size();
+			return m_keys.size();
 		}
 
 		/**
@@ -87,7 +87,7 @@ namespace reactaio::internal {
 		const V & operator[](const K& key) const {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
-				return _values[index];
+				return m_values[index];
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace reactaio::internal {
 		const V& at(const K& key) const {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
-				return _values.at(index);
+				return m_values.at(index);
 			}
 			throw std::out_of_range{std::format("Lookup of key {} failed, key doesn't exist in map.", key)};
 		}
@@ -110,7 +110,7 @@ namespace reactaio::internal {
 		 * @return A std::vector consisting of all the keys in this map.
 		 */
 		std::vector<K> keys() const {
-			return _keys;
+			return m_keys;
 		}
 
 		/**
@@ -118,7 +118,7 @@ namespace reactaio::internal {
 		 * @return A std::vector consisting of all the keys in this map.
 		 */
 		std::vector<V> values() const {
-			return _values;
+			return m_values;
 		}
 
 	};

@@ -4,30 +4,38 @@
 
 #pragma once
 
-#include "../base/aliases.h"
+//#include "../base/aliases.h"
+
+#include "../base/datatypes/fixed_map.h"
+#include <initializer_list>
 
 namespace reactaio::internal {
-	struct mod_action_name {
-		constexpr static cstring kick = "Kick";
-		constexpr static cstring ban = "Ban";
-		constexpr static cstring softban = "Soft ban";
-		constexpr static cstring hardban = "Hard ban";
-		constexpr static cstring warn = "Warning";
-		constexpr static cstring mute = "Mute";
-		constexpr static cstring timeout = "Timeout";
-		constexpr static cstring unban = "Unban";
-		constexpr static cstring delwarn = "Delete warn";
-		constexpr static cstring clearwarn = "Clear warnings";
-		constexpr static cstring globalclear = "Guild warns cleared";
-		constexpr static cstring lock = "Lock channel";
-		constexpr static cstring unlock = "Unlock channel";
-		constexpr static cstring lockdown = "Guild lockdown";
-		constexpr static cstring lockdown_end = "Lockdown End";
-		constexpr static cstring duration = "Change action duration";
-		constexpr static cstring reason = "Change modcase reason";
-		constexpr static cstring view_case = "View modcase";
-		constexpr static cstring view_warns = "View member warnings";
-		constexpr static cstring view_audit = "View audit log entry";
-		constexpr static cstring ban_list = "View guild bans list";
+	/**
+	 * @brief mod_action_name - A string enum used to insert moderation action names into a SQL query with no typo.
+	 * @note This is implemented as a map with fixed size.
+	 */
+	std::size_t const MOD_ACTION_NAME_SIZE = 20;
+	extern inline const reactaio::internal::fixed_map<std::string_view, std::string_view, MOD_ACTION_NAME_SIZE> mod_action_name {
+			{"kick", "Kick"},
+			{"ban", "Ban"},
+			{"softban", "Softban"},
+			{"hardban", "hardban"},
+			{"warn", "Warning"},
+			{"mute", "Mute"},
+			{"timeout", "timeout"},
+			{"unban", "Unban"},
+			{"delwarn", "Delete warn"},
+			{"clearwarn", "Clear warnings"},
+			{"globalclear", "Guild warnings cleared"},
+			{"lock", "Lock channel"},
+			{"unlock", "Unlock channel"},
+			{"lockdown", "Lockdown start"},
+			{"lockdown_end", "Lockdown end"},
+			{"duration", "Change action duration"},
+			{"reason", "Change action reason"},
+			{"view_case", "View moderation case"},
+			{"view_warns", "View warnings"},
+			{"view_audit", "View audit log entry"},
+			{"ban_list", "View guild bans list"}
 	};
 }
