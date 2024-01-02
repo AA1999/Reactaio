@@ -137,7 +137,7 @@ void ban_wrapper::process_bans() {
 					auto time_delta = duration->to_seconds();
 					auto future = time_now + time_delta;
 					std::string time_now_str = dpp::utility::current_date_time();
-					auto future_str = std::format("{:%Y-%m-%d %X}", future);
+					auto future_str = std::format("{}", future);
 					transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
 					                          std::to_string(command.author.user_id), time_now_str, future_str,
 											  command.reason);

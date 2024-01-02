@@ -8,19 +8,10 @@
 #include <chrono>
 #include <string>
 #include <vector>
-
 using namespace std::literals;
 namespace chr = std::chrono;
 
-// enum time {
-//     seconds = 0,
-//     minutes = 1,
-//     hours = 2,
-//     days = 3,
-//     weeks = 4,
-//     months = 5,
-//     years = 6
-// };
+ushort const TIME_PARTS_COUNT = 7;
 
 enum time: std::uint8_t {
 	years = 0,
@@ -45,7 +36,7 @@ const static std::vector<std::pair<chr::seconds, std::vector<std::string>>> unit
 // clang-format on
 
 struct duration {
-	std::array<int, 7> values{0};
+	std::array<int, TIME_PARTS_COUNT> values{0};
 
 	/**
 	 * @brief years - Returns the years of a duration.
