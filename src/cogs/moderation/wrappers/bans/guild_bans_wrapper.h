@@ -16,8 +16,6 @@ class guild_bans_wrapper {
 	moderation_command command;
 	std::vector<std::string> errors;
 
-	bool are_errors{false};
-
 	/**
 	 * @brief get_all_guild_bans - Fetches all the bans from a guild recursively.
 	 * @param after The snowflake matching the search. Defaults to 1 because all snowflakes will certainly be bigger than 1.
@@ -48,7 +46,7 @@ public:
 	std::vector<std::string> what() const;
 
 	/**
-	 * @brief is_error - Checks if there was any error in the operation.
+	 * @brief has_error - Checks if there was any error in the operation.
 	 * @return true if any errors occured, false otherwise.
 	 */
 	bool is_error() const;

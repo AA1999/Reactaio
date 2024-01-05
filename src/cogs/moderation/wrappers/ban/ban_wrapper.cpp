@@ -122,7 +122,6 @@ void ban_wrapper::process_bans() {
 
 		command.bot->guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
 			if (completion.is_error()) {
-				are_errors = true;
 				auto error = completion.get_error();
 				errors.push_back(std::format("❌ Unable to ban user **{}**. Error code {}: {}.",
 				                             user->format_username(), error.code, error.message));
@@ -163,7 +162,7 @@ void ban_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
-	if (is_error()) {
+	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()

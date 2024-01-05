@@ -37,7 +37,6 @@ void kick_wrapper::process_kicks() {
 		command.bot->set_audit_reason(std::string{command.reason}).guild_member_kick(command.guild->id,
 																					 member.user_id,[this, member](auto const& completion) {
 			if (completion.is_error()) {
-				are_errors = true;
 				auto error = completion.get_error();
 				errors.push_back(fmt::format("❌ Unable to kick user **{}**. Error code {}: {}.",
 											 member.get_user()->format_username(), error.code, error.message));
@@ -60,7 +59,7 @@ void kick_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
-	if (is_error()) {
+	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed	= dpp::embed()

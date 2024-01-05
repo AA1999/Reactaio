@@ -4,13 +4,13 @@
 
 #include "base_wrapper.h"
 
-bool base_wrapper::is_error() const {
-	return are_errors;
+bool base_wrapper::has_error() const {
+	return !errors.empty();
 }
 
 
 std::optional<dpp::message> base_wrapper::error() const {
-	if (!is_error())
+	if (!has_error())
 		return std::nullopt;
 	return error_message;
 }

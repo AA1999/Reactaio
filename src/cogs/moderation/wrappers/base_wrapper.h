@@ -23,11 +23,14 @@ class base_wrapper {
 
 protected:
 	std::optional<duration> duration;
+
 	std::vector<std::string> errors{};
 	std::vector<dpp::embed> embeds;
+
 	moderation_command command;
+
 	dpp::message error_message;
-	bool are_errors{false};
+
 	bool cancel_operation{false};
 
 	/**
@@ -58,10 +61,10 @@ public:
 	virtual void operator()() final;
 
 	/**
-	 * @brief is_error - Checks for any errors in the process.
+	 * @brief has_error - Checks for any errors in the process.
 	 * @return Whether there is any error when performing the specified instructions.
 	 */
-	[[nodiscard]] bool is_error() const;
+	[[nodiscard]] virtual bool has_error() const final;
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.
@@ -72,7 +75,7 @@ public:
 	/**
 	 * @brief error - Gives the error message of the wrapper result.
 	 * @note This is an abstract function.
-	 * @return The full error message if is_error() is true
+	 * @return The full error message if has_error() is true
 	 */
 	[[nodiscard]] std::optional<dpp::message> error() const;
 };

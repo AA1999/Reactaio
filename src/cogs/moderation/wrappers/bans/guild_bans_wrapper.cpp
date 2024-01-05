@@ -12,7 +12,6 @@
 void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 	command.bot->guild_get_bans(command.guild->id, 0, after, max_guild_ban_fetch, [this, after](const auto completion){
 		if(completion.is_error()) {
-			are_errors = true;
 			auto error = completion.get_error();
 			errors.push_back(std::format("❌ Error {}: {}", error.code, error.message));
 		}

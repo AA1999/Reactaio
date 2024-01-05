@@ -26,13 +26,11 @@ void unban_wrapper::check_permissions() {
 	auto* bot_top_role = *bot_roles.begin();
 
 	if(!bot_top_role->has_ban_members()) {
-		are_errors = true;
 		cancel_operation = true;
 		errors.emplace_back("❌ The bot does not have ban_members permission. Please fix this and try again.");
 	}
 
 	if(author_top_role->position < bot_top_role->position) {
-		are_errors = true;
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot top role is below your role. Please move the bot role above the top role");
 	}
@@ -43,8 +41,8 @@ void unban_wrapper::check_permissions() {
 
 	for(auto* user: users) {
 		if(includes(hard_bans, std::to_string(user->id)) && command.guild->owner_id != command.author.user_id) {
-			are_errors = true;
 			errors.emplace_back(std::format("❌ cannot unban user {} that's hardbanned unless you're the server owner.", user->get_mention()));
+			users_with_errors.push_back(user);
 		}
 	}
 	transaction.abort();
@@ -56,7 +54,6 @@ void unban_wrapper::process_unbans() {
 		command.bot->set_audit_reason(std::string(command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
 			if(completion.is_error()) {
 				auto error = completion.get_error();
-				are_errors = true;
 				errors.emplace_back(std::format("❌ Error {}: {}", error.code, error.message));
 				users_with_errors.push_back(user);
 				return;

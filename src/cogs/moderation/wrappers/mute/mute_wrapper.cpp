@@ -169,7 +169,7 @@ void mute_wrapper::process_mutes() {
 				auto future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
 					command.bot->guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
-						if(completion.is_error()) {
+						if(completion.has_error()) {
 							auto error = completion.get_error();
 							are_errors = true;
 							members_with_errors.push_back(member);
@@ -194,7 +194,7 @@ void mute_wrapper::process_mutes() {
 		else {
 			for(auto const& member: members) {
 				command.bot->guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
-					if(completion.is_error()) {
+					if(completion.has_error()) {
 						auto error = completion.get_error();
 						are_errors = true;
 						members_with_errors.push_back(member);
@@ -236,14 +236,12 @@ void mute_wrapper::process_mutes() {
 		auto mute_role_id = mute_role_id_query["mute_role"].as<snowflake_t>();
 		auto mute_role = dpp::find_role(mute_role_id);
 		if(mute_role == nullptr) {
-			are_errors = true;
 			errors.emplace_back("❌ No mute role set. Either set one or use the timeout feature.");
 			return;
 		}
 		for(auto const& member: members) {
 			command.bot->set_audit_reason(std::string{command.reason}).guild_member_add_role(command.guild->id, member.user_id, mute_role_id, [this, member](auto& completion){
 				if(completion.is_error()) {
-					are_errors = true;
 					auto error = completion.get_error();
 					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 					members_with_errors.push_back(member);
@@ -286,7 +284,7 @@ void mute_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
-	if (is_error()) {
+	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()

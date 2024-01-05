@@ -8,7 +8,7 @@
 #include "../../../base/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
-#include <fmt/format.h>
+
 #include <algorithm>
 #include <dpp/dpp.h>
 
@@ -28,13 +28,12 @@ void warn_wrapper::process_warnings() {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 			command.bot->direct_message_create(
 					member.user_id,
-					dpp::message(fmt::format("You have been warned in {} by {}. Reason: {}.", command.guild->name,
+					dpp::message(std::format("You have been warned in {} by {}. Reason: {}.", command.guild->name,
 					                         member.get_user()->format_username(), command.reason)), [this, member]
 											 (auto const& completion){
 
 						if(completion.is_error()) {
-							are_errors = true;
-							errors.push_back(fmt::format("Unable to DM user **{}**. Warning registered.",
+							errors.push_back(std::format("Unable to DM user **{}**. Warning registered.",
 							                             member.get_user()->format_username()));
 							members_with_errors.push_back(member);
 						}
@@ -54,7 +53,7 @@ void warn_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
-	if (is_error()) {
+	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
@@ -116,7 +115,7 @@ void warn_wrapper::process_response() {
 
 		std::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_usernames),
 		               [=](dpp::guild_member const& member) {
-			               return fmt::format("**{}**", member.get_user()->format_username());
+			               return std::format("**{}**", member.get_user()->format_username());
 		               });
 
 		std::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_mentions),
@@ -133,12 +132,12 @@ void warn_wrapper::process_response() {
 
 		if (warned_members.size() == 1) {
 			title		= "Warned";
-			description = fmt::format("{} has been warned.", usernames);
+			description = std::format("{} has been warned.", usernames);
 			gif_url		= "https://tenor.com/view/will-smith-chris-rock-jada-pinkett-smith-oscars2022-smack-gif-25234614";
 		}
 		else {
 			title		= "Mass warned";
-			description = fmt::format("{} have been warned.", usernames);
+			description = std::format("{} have been warned.", usernames);
 			gif_url		= "https://gfycat.com/agitatedincomparableicelandicsheepdog";
 		}
 
@@ -178,7 +177,7 @@ void warn_wrapper::process_response() {
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
-					.set_description(fmt::format("{} have been warned.", usernames))
+					.set_description(std::format("{} have been warned.", usernames))
 					.add_field("Moderator: ", command.author.get_mention())
 					.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
@@ -201,7 +200,7 @@ void warn_wrapper::process_response() {
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
-					.set_description(fmt::format("{} have been warned.", usernames))
+					.set_description(std::format("{} have been warned.", usernames))
 					.add_field("Moderator: ", command.author.get_mention())
 					.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
@@ -295,19 +294,19 @@ void warn_wrapper::check_permissions() {
 								   return role->get_mention();
 							   });
 				std::string role_mentions_str = join(role_mentions, " , ");
-				errors.push_back(fmt::format("❌ Member has the protected roles: {}. Cannot warn.", role_mentions_str));
+				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot warn.", role_mentions_str));
 			}
 		}
 
 		if(member_top_role->position > bot_top_role->position) {
-			errors.push_back(fmt::format("❌ {} has a higher role than the bot. Unable to warn. Please "
+			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to warn. Please "
 										 "move the bot role above the members and below your staff roles.",
 										 member.get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
-			errors.push_back(fmt::format("❌ {} has a higher role than you do. You can't warn them.",
+			errors.push_back(std::format("❌ {} has a higher role than you do. You can't warn them.",
 										 member.get_mention()));
 			cancel_operation = true;
 		}
