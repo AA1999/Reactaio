@@ -22,20 +22,12 @@ std::string remove_non_alnum(std::string_view string) {
 }
 
 member_t non_bot_members(dpp::guild* guild) {
-//	return std::count_if(guild->members.begin(), guild->members.end(),
-//						 [](const std::pair<dpp::snowflake, dpp::guild_member>& pair) {
-//							 return !pair.second.get_user()->is_bot();
-//						 });
 	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
 		return !member.get_user()->is_bot();
 	});
 }
 
 member_t bot_members(dpp::guild* guild) {
-//	return std::count_if(guild->members.begin(), guild->members.end(),
-//						 [](const std::pair<dpp::snowflake, dpp::guild_member>& pair) {
-//							 return pair.second.get_user()->is_bot();
-//						 });
 	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
 		return member.get_user()->is_bot();
 	});

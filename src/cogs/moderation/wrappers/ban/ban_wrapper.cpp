@@ -443,6 +443,10 @@ void ban_wrapper::check_permissions() {
 				});
 	}
 
+	if(!bot_top_role->has_ban_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the Ban Members permission is enabled.");
+	}
 
 	for(auto const& member: members) {
 		auto member_roles = get_member_roles_sorted(member);
@@ -450,23 +454,23 @@ void ban_wrapper::check_permissions() {
 
 		if(command.author.user_id == member.user_id) { // If for some reason you decided to ban yourself lol
 			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
-				errors.emplace_back("Why are you banning yourself, server owner? lmfao");
+				errors.emplace_back("❌ Why are you banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
 			else {
-				errors.emplace_back("You can't ban yourself lmao.");
+				errors.emplace_back("❌ You can't ban yourself lmao.");
 			}
 			cancel_operation = true;
 		}
 
 		if(!ignore_owner_repeat && member.user_id == command.guild->owner_id) { // Banning the server owner lmfao
-			errors.emplace_back("You can't ban the server owner lmfao.");
+			errors.emplace_back("❌ You can't ban the server owner lmfao.");
 			cancel_operation = true;
 		}
 
 
 		if(command.bot->me.id == member.user_id) { // If you decided to ban the bot (ReactAIO)
-			errors.emplace_back("Can't ban myself lmfao.");
+			errors.emplace_back("❌ Can't ban myself lmfao.");
 			cancel_operation = true;
 		}
 
@@ -484,7 +488,7 @@ void ban_wrapper::check_permissions() {
 					return role->get_mention();
 				});
 				std::string role_mentions_str = join(role_mentions, " , ");
-				errors.push_back(std::format("Member has the protected roles: {}. Cannot ban.", role_mentions_str));
+				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot ban.", role_mentions_str));
 			}
 		}
 

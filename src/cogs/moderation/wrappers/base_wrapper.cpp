@@ -4,10 +4,10 @@
 
 #include "base_wrapper.h"
 
+
 bool base_wrapper::has_error() const {
 	return !errors.empty();
 }
-
 
 std::optional<dpp::message> base_wrapper::error() const {
 	if (!has_error())

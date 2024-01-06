@@ -241,6 +241,10 @@ void warn_wrapper::check_permissions() {
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
 
+	if(!bot_top_role->has_moderate_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Moderate Members permission.");
+	}
 
 	std::vector<dpp::role*> protected_roles;
 

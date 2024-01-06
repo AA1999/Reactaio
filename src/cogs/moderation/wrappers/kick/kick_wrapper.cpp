@@ -279,6 +279,10 @@ void kick_wrapper::check_permissions() {
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
 
+	if(!bot_top_role->has_kick_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Kick Members permission.");
+	}
 
 	std::vector<dpp::role*> protected_roles;
 
@@ -287,8 +291,8 @@ void kick_wrapper::check_permissions() {
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
 		std::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
 		               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-					return dpp::find_role(role_id);
-				});
+							return dpp::find_role(role_id);
+					   });
 	}
 
 

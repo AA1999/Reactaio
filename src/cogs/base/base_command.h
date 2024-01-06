@@ -8,7 +8,6 @@
 #include <optional>
 #include <pqxx/pqxx>
 #include <string_view>
-#include <utility>
 
 /**
  * @brief base_command - The base wrapper for a called bot command that contains all the required information to pass into the wrapper.

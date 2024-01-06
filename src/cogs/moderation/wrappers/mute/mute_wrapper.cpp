@@ -36,6 +36,10 @@ void mute_wrapper::check_permissions() {
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
 
+	if(!bot_top_role->has_moderate_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Moderate Members permission.");
+	}
 
 	std::vector<dpp::role*> protected_roles;
 
@@ -169,9 +173,8 @@ void mute_wrapper::process_mutes() {
 				auto future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
 					command.bot->guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
-						if(completion.has_error()) {
+						if(completion.is_error()) {
 							auto error = completion.get_error();
-							are_errors = true;
 							members_with_errors.push_back(member);
 							errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 						}
@@ -194,9 +197,8 @@ void mute_wrapper::process_mutes() {
 		else {
 			for(auto const& member: members) {
 				command.bot->guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
-					if(completion.has_error()) {
+					if(completion.is_error()) {
 						auto error = completion.get_error();
-						are_errors = true;
 						members_with_errors.push_back(member);
 						errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 					}
@@ -208,7 +210,7 @@ void mute_wrapper::process_mutes() {
 							timeout_id = id_query["timeout_id"].as<case_t>() + 1;
 						}
 						auto now = std::chrono::system_clock::now();
-						auto time_delta = std::chrono::days{28};
+						auto time_delta = std::chrono::days{max_timeout_days};
 						auto future = now + time_delta;
 						auto future_ms = future.time_since_epoch().count();
 						transaction.exec_prepared("permanent_timeout", timeout_id, std::to_string(member.user_id),
@@ -229,7 +231,6 @@ void mute_wrapper::process_mutes() {
 	else {
 		auto mute_role_id_query = transaction.exec_prepared1("get_mute_role", std::to_string(command.guild->id));
 		if(mute_role_id_query["mute_role"].is_null()) {
-			are_errors = true;
 			errors.emplace_back("❌ No mute role set. Either set one or use the timeout feature.");
 			return;
 		}
@@ -448,7 +449,7 @@ void mute_wrapper::process_response() {
 		}
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		cstring action_name = use_timeout ? reactaio::internal::mod_action_name["timeout"] : reactaio::internal::mod_action_name["mute"];
+		auto action_name = use_timeout ? reactaio::internal::mod_action_name["timeout"] : reactaio::internal::mod_action_name["mute"];
 
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
 								  action_name, dpp::utility::current_date_time());
