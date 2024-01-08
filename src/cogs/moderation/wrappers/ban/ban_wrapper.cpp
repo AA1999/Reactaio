@@ -37,7 +37,7 @@ void ban_wrapper::wrapper_function() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 				.set_title("❌ Error while banning member(s): ")
-				.set_color(error_color)
+				.set_color(color::ERROR_COLOR)
 				.set_timestamp(time_now);
 		if(split.size() == 1) {
 			base_embed.set_description(split[0]);
@@ -167,7 +167,7 @@ void ban_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 				.set_title("Error while banning member(s): ")
-				.set_color(error_color)
+				.set_color(color::ERROR_COLOR)
 				.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -222,18 +222,18 @@ void ban_wrapper::process_response() {
 		auto banned_users	  = std::vector<dpp::user*>{};
 		auto banned_usernames = std::vector<std::string>{};
 		auto banned_mentions  = std::vector<std::string>{};
-		std::set_symmetric_difference(users.begin(), users.end(), users_with_errors.begin(),
+		std::ranges::set_symmetric_difference(users.begin(), users.end(), users_with_errors.begin(),
 		                              users_with_errors.end(), std::back_inserter(banned_users),
 		                              [](dpp::user const* user1, dpp::user const* user2) {
 			                              return user1->id != user2->id;
 		                              });
 
-		std::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_usernames),
+		std::ranges::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_usernames),
 		               [=](dpp::user const* user) {
 			               return std::format("**{}**", user->format_username());
 		               });
 
-		std::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_mentions),
+		std::ranges::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_mentions),
 		               [](dpp::user const* member) {
 			               return member->get_mention();
 		               });
@@ -271,7 +271,7 @@ void ban_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-				.set_color(response_color)
+				.set_color(color::RESPONSE_COLOR)
 				.set_title(title)
 				.set_description(description)
 				.set_image(gif_url)
@@ -312,7 +312,7 @@ void ban_wrapper::process_response() {
 				description.append(".");
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(log_color)
+					.set_color(color::LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -349,7 +349,7 @@ void ban_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(log_color)
+					.set_color(color::LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -383,7 +383,7 @@ void ban_wrapper::process_response() {
 				description.append(".");
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(log_color)
+					.set_color(color::LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -437,7 +437,7 @@ void ban_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
+		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
 		               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
 					return dpp::find_role(role_id);
 				});
@@ -477,13 +477,13 @@ void ban_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			std::vector<dpp::role*> member_protected_roles;
-			std::set_intersection(protected_roles.begin(), protected_roles.end(), member_roles.begin(),
+			std::ranges::set_intersection(protected_roles.begin(), protected_roles.end(), member_roles.begin(),
 			                      member_roles.end(), std::back_inserter(member_protected_roles));
 
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
-				std::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
+				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
 						(role_mentions), [](dpp::role* role){
 					return role->get_mention();
 				});
@@ -511,7 +511,7 @@ void ban_wrapper::check_permissions() {
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 		                          .set_title("Error while banning member(s): ")
-		                          .set_color(error_color)
+		                          .set_color(color::ERROR_COLOR)
 		                          .set_timestamp(time_now);
 		if (organized_errors.size() == 1) {
 			base_embed.set_description(organized_errors[0]);

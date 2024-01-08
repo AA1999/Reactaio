@@ -14,6 +14,8 @@
 #include <string_view>
 #include <pqxx/pqxx>
 #include <format>
+#include <ranges>
+#include <vector>
 
 /**
  * @brief includes - Whether if the specific element exists in the map.
@@ -37,6 +39,21 @@ bool includes(const T& vector, const typename T::value_type& key) {
  * @return false otherwise
  */
 bool includes(std::string_view string, std::string_view find);
+
+
+/**
+ * @brief common_element - Finds the common element between two ranges.
+ * @tparam A Type of the first range.
+ * @tparam B Type of the second range.
+ * @param range_a First range
+ * @param range_b Second range
+ * @return The common element if found. An empty std::optional object if not
+ */
+template <std::ranges::input_range A, std::ranges::input_range B>
+std::optional<std::ranges::range_value_t<A>> common_element(A const&& range_a, B const&& range_b) {
+	auto it = std::ranges::find_first_of(std::forward<A>(range_a), std::forward<B>(range_b));
+	return it != it.end() ? *it : std::optional<std::ranges::range_value_t<A>>{};
+}
 
 /**
  * @brief find_all_off - Find all instances of a string inside another string.
@@ -63,11 +80,11 @@ std::vector<std::size_t> find_index_all(std::string_view string, std::string_vie
 bool is_all_digit(std::string_view string);
 
 /**
- * @brief remove_non_alnum - Removes all non-numeric and alphabetic characters (0-9, Aa-Zz) from a string.
+ * @brief remove_non_alphanumeric - Removes all non-numeric and alphabetic characters (0-9, Aa-Zz) from a string.
  * @param string The string to have the characters removed from.
  * @return The resulting string with only 0-9 and Aa-zZ characters.
  */
-std::string remove_non_alnum(std::string_view string);
+std::string remove_non_alphanumeric(std::string_view string);
 
 /**
  * @brief non_bot_members - Counts all the dpp::guild_members from a guild if they're not a bot account.

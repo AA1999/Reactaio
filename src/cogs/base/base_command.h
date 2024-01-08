@@ -32,8 +32,12 @@ struct base_command {
 	 * @param interaction The slash command interaction (if called from a slash command)
 	 */
 	base_command(dpp::cluster* bot, pqxx::connection* connection, dpp::guild* guild, dpp::guild_member  author,
-				 const dpp::snowflake& channel_id, const std::optional<dpp::slashcommand_t>& interaction)
-		: bot(bot), connection(connection), guild(guild), author(std::move(author)), channel_id(channel_id), interaction(interaction) {}
+				 const dpp::snowflake& channel_id, const std::optional<dpp::slashcommand_t>& interaction) : bot(bot),
+																											connection(connection),
+																											guild(guild),
+																											author(std::move(author)),
+																											channel_id(channel_id),
+																											interaction(interaction) {}
 	
 	base_command(base_command&& command) noexcept = default;
 	base_command(base_command& command) = default;

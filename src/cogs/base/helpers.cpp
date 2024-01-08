@@ -6,14 +6,12 @@
 
 #include <algorithm>
 #include <string>
-#include <vector>
-#include <ranges>
 
 bool is_all_digit(std::string_view string) {
 	return std::all_of(string.begin(), string.end(), ::isdigit);
 }
 
-std::string remove_non_alnum(std::string_view string) {
+std::string remove_non_alphanumeric(std::string_view string) {
 	std::string result;
 	std::copy_if(string.begin(), string.end(), std::back_inserter(result), [](const char chr) {
 		return std::isalnum(chr);
@@ -103,7 +101,7 @@ std::vector<std::string> get_tokens(std::string_view string) {
 
 std::optional<duration> parse_human_time(std::string_view string) {
 	duration res{};
-	auto tokens = get_tokens(remove_non_alnum(string));
+	auto tokens = get_tokens(remove_non_alphanumeric(string));
 
 	if (tokens.size() % 2 == 0) // size must be even
 		return std::nullopt;

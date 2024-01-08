@@ -36,16 +36,19 @@ void unban_wrapper::check_permissions() {
 	}
 
 	auto transaction = pqxx::transaction{*command.connection};
-	auto grab_hard_bans = transaction.exec_prepared1("hardban_get", std::to_string(command.guild->id));
-	auto hard_bans = parse_psql_array<std::string>(grab_hard_bans[0]);
-
-	for(auto* user: users) {
-		if(includes(hard_bans, std::to_string(user->id)) && command.guild->owner_id != command.author.user_id) {
-			errors.emplace_back(std::format("❌ cannot unban user {} that's hardbanned unless you're the server owner.", user->get_mention()));
-			users_with_errors.push_back(user);
-		}
-	}
+	auto hard_bans_query = transaction.exec_prepared("hardban_get", std::to_string(command.guild->id));
 	transaction.abort();
+
+	std::vector<std::string> hard_bans;
+	for(auto const& row: hard_bans_query)
+		hard_bans.push_back(row["user_id"].as<std::string>());
+	std::vector<std::string> user_ids;
+	std::ranges::transform(users.begin(), users.end(), std::back_inserter(user_ids), [](dpp::user const* user){
+		return std::to_string(user->id);
+	});
+
+
+
 }
 
 void unban_wrapper::process_unbans() {
