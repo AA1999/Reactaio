@@ -167,7 +167,7 @@ void kick_wrapper::process_kicks() {
 																					 member.user_id,[this, member](auto const& completion) {
 			if (completion.is_error()) {
 				auto error = completion.get_error();
-				errors.push_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.",
+				errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.",
 											 member.get_user()->format_username(), error.code, error.message));
 				members_with_errors.push_back(member);
 			}

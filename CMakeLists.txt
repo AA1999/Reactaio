@@ -4,7 +4,8 @@ project(Reactaio VERSION 1.0 DESCRIPTION "A multi-purpose AIO discord bot writte
 file(GLOB_RECURSE sources src/*.cpp src/*.h)
 
 add_executable(${PROJECT_NAME}
-        ${sources})
+        ${sources}
+        src/cogs/moderation/wrappers/test.h)
 
 find_package(nlohmann_json 3.11.2 REQUIRED)
 

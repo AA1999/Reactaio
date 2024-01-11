@@ -130,13 +130,13 @@ std::vector<dpp::role*> get_guild_roles_sorted(dpp::guild* guild, bool descendin
 	for(auto const& role_id: guild_roles)
 		roles.emplace_back(dpp::find_role(role_id));
 	if(descending) {
-		std::sort(roles.begin(), roles.end(), [](dpp::role* role1, dpp::role* role2){
-			return role1->position > role2->position;
+		std::ranges::sort(roles.begin(), roles.end(), std::ranges::greater{}, [](dpp::role* role){
+			return role->position;
 		});
 	}
 	else {
-		std::sort(roles.begin(), roles.end(), [](dpp::role* role1, dpp::role* role2){
-			return role1->position < role2->position;
+		std::ranges::sort(roles.begin(), roles.end(), std::ranges::less{}, [](dpp::role* role){
+			return role->position;
 		});
 	}
 	return roles;
@@ -149,13 +149,13 @@ std::vector<dpp::role*> get_member_roles_sorted(const dpp::guild_member& member,
 for(auto const& role_id: member_roles)
 		roles.emplace_back(dpp::find_role(role_id));
 	if(descending) {
-		std::sort(roles.begin(), roles.end(), [](dpp::role* role1, dpp::role* role2){
-			return role1->position < role2->position;
+		std::ranges::sort(roles.begin(), roles.end(), std::ranges::greater{}, [](dpp::role* role){
+			return role->position;
 		});
 	}
 	else {
-		std::sort(roles.begin(), roles.end(), [](dpp::role* role1, dpp::role* role2){
-			return role1->position > role2->position;
+		std::ranges::sort(roles.begin(), roles.end(), std::ranges::less{}, [](dpp::role* role){
+			return role->position;
 		});
 	}
 	return roles;
