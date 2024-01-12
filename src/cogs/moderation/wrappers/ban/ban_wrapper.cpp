@@ -219,24 +219,21 @@ void ban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		auto banned_users	  = std::vector<dpp::user*>{};
-		auto banned_usernames = std::vector<std::string>{};
-		auto banned_mentions  = std::vector<std::string>{};
-		std::ranges::set_symmetric_difference(users.begin(), users.end(), users_with_errors.begin(),
-		                              users_with_errors.end(), std::back_inserter(banned_users),
-		                              [](dpp::user const* user1, dpp::user const* user2) {
-			                              return user1->id != user2->id;
-		                              });
+		std::vector<dpp::user*> banned_users;
+		std::vector<std::string> banned_usernames;
+		std::vector<std::string> banned_mentions;
 
-		std::ranges::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_usernames),
-		               [=](dpp::user const* user) {
-			               return std::format("**{}**", user->format_username());
-		               });
+		std::ranges::copy_if(users, std::back_inserter(banned_users), [this](dpp::user* user){
+			return !includes(users_with_errors, user);
+		});
 
-		std::ranges::transform(banned_users.begin(), banned_users.end(), std::back_inserter(banned_mentions),
-		               [](dpp::user const* member) {
-			               return member->get_mention();
-		               });
+		std::ranges::transform(banned_users, std::back_inserter(banned_usernames), [](dpp::user const* user) {
+			return std::format("**{}**", user->format_username());
+		});
+
+		std::ranges::transform(banned_users, std::back_inserter(banned_mentions), [](dpp::user const* member) {
+            return member->get_mention();
+		});
 
 		auto usernames = join(banned_usernames, ", ");
 		auto mentions  = join(banned_mentions, ", ");

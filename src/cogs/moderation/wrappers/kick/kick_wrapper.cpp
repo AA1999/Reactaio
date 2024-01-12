@@ -6,6 +6,7 @@
 
 #include "../../../base/colors.h"
 #include "../../../base/consts.h"
+#include "../../../base/helpers.h"
 #include "../../../base/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
@@ -247,24 +248,21 @@ void kick_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		auto kicked_members	  = std::vector<dpp::guild_member>{};
-		auto kicked_usernames = std::vector<std::string>{};
-		auto kicked_mentions  = std::vector<std::string>{};
-		std::ranges::set_symmetric_difference(members.begin(), members.end(), members_with_errors.begin(),
-									  members_with_errors.end(), std::back_inserter(kicked_members),
-									  [](dpp::guild_member const& member1, dpp::guild_member const& member2) {
-										  return member1.user_id != member2.user_id;
-									  });
+		std::vector<dpp::guild_member> kicked_members;
+		std::vector<std::string> kicked_usernames;
+		std::vector<std::string> kicked_mentions;
 
-		std::ranges::transform(kicked_members.begin(), kicked_members.end(), std::back_inserter(kicked_usernames),
-					   [=](dpp::guild_member const& member) {
-						   return std::format("**{}**", member.get_user()->format_username());
-					   });
+		std::ranges::copy_if(members, std::back_inserter(kicked_members), [this](dpp::guild_member const& member){
+			return !includes(members_with_errors, member);
+		});
 
-		std::ranges::transform(kicked_members.begin(), kicked_members.end(), std::back_inserter(kicked_mentions),
-					   [](dpp::guild_member const& member) {
-						   return member.get_mention();
-					   });
+		std::ranges::transform(kicked_members, std::back_inserter(kicked_usernames), [](dpp::guild_member const& member) {
+			return std::format("**{}**", member.get_user()->format_username());
+		});
+
+		std::ranges::transform(kicked_members, std::back_inserter(kicked_mentions), [](dpp::guild_member const& member) {
+			return member.get_mention();
+		});
 
 		auto usernames = join(kicked_usernames, ", ");
 		auto mentions  = join(kicked_mentions, ", ");
@@ -317,7 +315,7 @@ void kick_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(color::MEMBER_REMOVE_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)

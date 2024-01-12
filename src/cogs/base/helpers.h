@@ -28,7 +28,7 @@
 template <typename T>
 requires std::ranges::range<T>
 bool includes(const T& vector, const typename T::value_type& key) {
-	return std::find(std::ranges::begin(vector), std::ranges::end(vector), key) != std::ranges::end(vector);
+	return std::ranges::find(vector, key) != std::ranges::end(vector);
 }
 
 /**

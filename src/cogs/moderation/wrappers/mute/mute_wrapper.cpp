@@ -338,21 +338,18 @@ void mute_wrapper::process_response() {
 		auto muted_members = std::vector<dpp::guild_member>{};
 		auto muted_usernames = std::vector<std::string>{};
 		auto muted_mentions = std::vector<std::string>{};
-		std::ranges::set_symmetric_difference(members.begin(), members.end(), members_with_errors.begin(),
-									  members_with_errors.end(), std::back_inserter(muted_members),
-									  [](dpp::guild_member const& member1, dpp::guild_member const& member2) {
-										  return member1.user_id != member2.user_id;
-									  });
 
-		std::ranges::transform(muted_members.begin(), muted_members.end(), std::back_inserter(muted_usernames),
-					   [=](dpp::guild_member const& member) {
-						   return std::format("**{}**", member.get_user()->format_username());
-					   });
+		std::ranges::copy_if(members, std::back_inserter(muted_members), [this](dpp::guild_member const& member){
+			return !includes(members_with_errors, member);
+		});
 
-		std::ranges::transform(muted_members.begin(), muted_members.end(), std::back_inserter(muted_mentions),
-					   [](dpp::guild_member const& member) {
-						   return member.get_mention();
-					   });
+		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](dpp::guild_member const& member) {
+			return std::format("**{}**", member.get_user()->format_username());
+		});
+
+		std::ranges::transform(muted_members, std::back_inserter(muted_mentions), [](dpp::guild_member const& member) {
+			return member.get_mention();
+		});
 
 		auto usernames = join(muted_usernames, ", ");
 		auto mentions  = join(muted_mentions, ", ");

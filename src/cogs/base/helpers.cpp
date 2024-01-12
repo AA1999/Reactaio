@@ -8,14 +8,12 @@
 #include <string>
 
 bool is_all_digit(std::string_view string) {
-	return std::all_of(string.begin(), string.end(), ::isdigit);
+	return std::ranges::all_of(string, ::isdigit);
 }
 
 std::string remove_non_alphanumeric(std::string_view string) {
 	std::string result;
-	std::copy_if(string.begin(), string.end(), std::back_inserter(result), [](const char chr) {
-		return std::isalnum(chr);
-	});
+	std::ranges::copy_if(string, std::back_inserter(result), ::isalnum);
 	return result;
 }
 
