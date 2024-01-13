@@ -273,7 +273,7 @@ void unban_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-									.set_color(color::LOG_COLOR)
+									.set_color(color::UNBAN_COLOR)
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)

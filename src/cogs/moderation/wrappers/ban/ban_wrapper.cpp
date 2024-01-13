@@ -411,8 +411,11 @@ void ban_wrapper::process_response() {
 
 void ban_wrapper::check_permissions() {
 
-	if(members.empty()) // No point in all this if there's no member in that vector
+	if(members.empty() && users.empty()) {// No point in all this if there's no member/user in that vector
+		cancel_operation = true;
+		errors.emplace_back("❌ Error while parsing the list. It's possible that the provided ids were all invalid.");
 		return;
+	}
 
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
@@ -434,10 +437,9 @@ void ban_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
-		               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-					return dpp::find_role(role_id);
-				});
+		std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
+			return dpp::find_role(role_id);
+		});
 	}
 
 	if(!bot_top_role->has_ban_members()) {
@@ -513,7 +515,8 @@ void ban_wrapper::check_permissions() {
 		if (organized_errors.size() == 1) {
 			base_embed.set_description(organized_errors[0]);
 			error_message.add_embed(base_embed);
-		} else {
+		}
+		else {
 			for (auto const &error: organized_errors) {
 				auto embed{base_embed};
 				embed.set_description(error);
