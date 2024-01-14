@@ -1,9 +1,8 @@
 //
-// Created by arshia on 1/13/24.
+// Created by arshia on 1/14/24.
 //
 
-#include "hardban_wrapper.h"
-
+#include "softban_wrapper.h"
 #include "../../../base/colors.h"
 #include "../../../base/consts.h"
 #include "../../../base/helpers.h"
@@ -11,7 +10,7 @@
 #include "../../mod_action.h"
 
 
-void hardban_wrapper::wrapper_function() {
+void softban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
 			members.push_back(*member_ptr);
@@ -33,7 +32,7 @@ void hardban_wrapper::wrapper_function() {
 		error_message = dpp::message(command.channel_id, "");
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
-								  .set_title("❌ Error while hard banning member(s): ")
+								  .set_title("❌ Error while soft banning member(s): ")
 								  .set_color(color::ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(split.size() == 1) {
@@ -75,33 +74,26 @@ void hardban_wrapper::wrapper_function() {
 	check_permissions();
 	if(cancel_operation)
 		return;
-	process_hardbans();
+	process_softbans();
 	process_response();
 }
 
-void hardban_wrapper::check_permissions() {
-
-	if(members.empty() && users.empty()) { // No point if no member/user are there.
+void softban_wrapper::check_permissions() {
+	if(members.empty() && users.empty()) {// No point in all this if there's no member/user in that vector
 		cancel_operation = true;
 		errors.emplace_back("❌ Error while parsing the list. It's possible that the provided ids were all invalid.");
 		return;
 	}
 
-	auto* author_user = command.author.get_user();
-
-	if(command.guild->owner_id != author_user->id) {
-		cancel_operation = true;
-		errors.emplace_back("❌ Can't hard ban anyone unless you're the server owner. This is a hardcoded condition and cannot be changed.");
-		return; // If you're not the server owner, the other errors don't matter.
-	}
-
-	auto* bot_user = &command.bot->me;
-	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
+	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_member_roles_sorted(bot_member);
 	auto bot_top_role = *bot_roles.begin();
 
+	auto author_roles = get_member_roles_sorted(command.author);
+	auto author_top_role = *author_roles.begin();
 
+	bool ignore_owner_repeat{false};
 
 	pqxx::work transaction{*command.connection};
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
@@ -127,12 +119,25 @@ void hardban_wrapper::check_permissions() {
 		auto member_roles = get_member_roles_sorted(member);
 		auto member_top_role = *member_roles.begin();
 
-		if(member.user_id == author_user->id) { // If for some reason you felt like hardbanning yourself, being the server owner.
+		if(command.author.user_id == member.user_id) { // If for some reason you decided to soft ban yourself lol
+			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
+				errors.emplace_back("❌ Why are you soft banning yourself, server owner? lmfao");
+				ignore_owner_repeat = true;
+			}
+			else {
+				errors.emplace_back("❌ You can't soft ban yourself lmao.");
+			}
 			cancel_operation = true;
-			errors.emplace_back("❌ Why are you trying to hard ban yourself, server owner? lmfao");
 		}
-		if(command.bot->me.id == member.user_id) { // If you decided to ban the bot (ReactAIO)
-			errors.emplace_back("❌ Can't hard ban myself lmfao.");
+
+		if(!ignore_owner_repeat && member.user_id == command.guild->owner_id) { // Banning the server owner lmfao
+			errors.emplace_back("❌ You can't soft ban the server owner lmfao.");
+			cancel_operation = true;
+		}
+
+
+		if(command.bot->me.id == member.user_id) { // If you decided to soft ban the bot (ReactAIO)
+			errors.emplace_back("❌ Can't soft ban myself lmfao.");
 			cancel_operation = true;
 		}
 
@@ -150,21 +155,29 @@ void hardban_wrapper::check_permissions() {
 										   return role->get_mention();
 									   });
 				std::string role_mentions_str = join(role_mentions, " , ");
-				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot hard ban.", role_mentions_str));
+				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot soft ban.", role_mentions_str));
 			}
 		}
 
 		if(member_top_role->position > bot_top_role->position) {
-			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to hard ban. Please "
-										 "move the bot role above the members and below your staff roles.", member.get_mention()));
+			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to soft ban. Please "
+										 "move the bot role above the members and below your staff roles.",
+										 member.get_mention()));
+			cancel_operation = true;
+		}
+
+		if(member_top_role->position > author_top_role->position) {
+			errors.push_back(std::format("❌ {} has a higher role than you do. You can't soft ban them.",
+										 member.get_mention()));
 			cancel_operation = true;
 		}
 	}
+
 	if(cancel_operation) {
 		auto organized_errors = join_with_limit(errors, bot_max_embed_chars);
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
-								  .set_title("Error while hard banning member(s): ")
+								  .set_title("Error while soft banning member(s): ")
 								  .set_color(color::ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if (organized_errors.size() == 1) {
@@ -205,54 +218,61 @@ void hardban_wrapper::check_permissions() {
 	}
 }
 
-void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
+void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
-		errors.push_back(std::format("❌ Unable to hard ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
+		errors.push_back(std::format("❌ Unable to soft ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
 		users_with_errors.push_back(user);
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
-		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name["hardban"],
-								  std::to_string(command.author.user_id), std::to_string(user->id), command.reason);
+
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
+								  reactaio::internal::mod_action_name["softban"], std::to_string(command.author.user_id),
+								  std::to_string(user->id), command.reason);
 		transaction.commit();
 	}
 }
 
-void hardban_wrapper::process_hardbans() {
+void softban_wrapper::process_softbans() {
 	uint ban_remove_days{0};
 	constexpr uint TO_SECONDS = 24 * 3600;
 
-	pqxx::work transaction{*command.connection};
-	auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
-	transaction.commit();
-	if(!ban_remove_days_query.empty()) {
-		ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
-		ban_remove_days *= TO_SECONDS;
+	if(command.delete_message_days == 0) {
+		pqxx::work transaction{*command.connection};
+		auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
+		transaction.commit();
+		if(!ban_remove_days_query.empty()) {
+			ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
+			ban_remove_days *= TO_SECONDS;
+		}
+		else {
+			errors.emplace_back("❌ Cannot have delete message days set to 0 in a soft ban command. Either set it in the config or specify it in the command.");
+			return;
+		}
 	}
+	else
+		ban_remove_days = command.delete_message_days;
 
 	auto* author_user = command.author.get_user();
 
-	for (auto* user : users) {
-		if (command.interaction) { // If this was done in automod, DMing lots of users WILL result in a rate limit
+	for (auto* user: users) {
+		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 
-			std::string dm_message;
-
-			dm_message = std::format("You have been hard banned from {} by {}. Reason: {}. Only they can unban you.", command.guild->name,
-										 author_user->format_username(), command.reason);
+			std::string dm_message = std::format("You have been soft banned from {} by {}. Reason: {}.", command.guild->name,
+									 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-
-
 		command.bot->guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});
+
 	}
 }
 
-void hardban_wrapper::process_response() {
+void softban_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
@@ -260,7 +280,7 @@ void hardban_wrapper::process_response() {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
-								  .set_title("Error while hard banning member(s): ")
+								  .set_title("Error while soft banning member(s): ")
 								  .set_color(color::ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
@@ -313,50 +333,39 @@ void hardban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::user*> hard_banned_users;
-		std::vector<std::string> hard_banned_usernames;
-		std::vector<std::string> hard_banned_mentions;
+		std::vector<dpp::user*> softbanned_users;
+		std::vector<std::string> softbanned_usernames;
+		std::vector<std::string> softbanned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(hard_banned_users), [this](dpp::user* user){
+		std::ranges::copy_if(users, std::back_inserter(softbanned_users), [this](dpp::user* user){
 			return !includes(users_with_errors, user);
 		});
 
-		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_usernames), [](dpp::user const* user) {
+		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_usernames), [](dpp::user const* user) {
 			return std::format("**{}**", user->format_username());
 		});
 
-		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_mentions), [](dpp::user const* member) {
+		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_mentions), [](dpp::user const* member) {
 			return member->get_mention();
 		});
 
-		auto usernames = join(hard_banned_usernames, ", ");
-		auto mentions  = join(hard_banned_mentions, ", ");
+		auto usernames = join(softbanned_usernames, ", ");
+		auto mentions  = join(softbanned_mentions, ", ");
 
 		std::string title;
 		std::string description;
 		std::string gif_url;
 
-		if (hard_banned_users.size() == 1) {
-			title		= "Hard banned";
-			description = std::format("{} has been hard banned", usernames);
+		if (softbanned_users.size() == 1) {
+			title		= "Soft Banned";
+			description = std::format("{} has been soft banned.", usernames);
 			gif_url		= "https://media3.giphy.com/media/LOoaJ2lbqmduxOaZpS/giphy.gif";
 		}
 		else {
-			title		= "Hard banned";
-			description = std::format("{} have been hard banned", usernames);
+			title		= "Soft Banned";
+			description = std::format("{} have been soft banned.", usernames);
 			gif_url		= "https://i.gifer.com/1Daz.gif";
 		}
-
-		if(duration) {
-			auto time_now = std::chrono::system_clock::now();
-			auto time_delta = duration->to_seconds();
-			auto future = time_now + time_delta;
-			std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
-																	   dpp::utility::time_format::tf_relative_time);
-			description.append(std::format(" until {}.", time_future_relative));
-		}
-		else
-			description.append(".");
 
 		auto time_now	= std::time(nullptr);
 		auto reason_str = std::string{command.reason};
@@ -382,15 +391,14 @@ void hardban_wrapper::process_response() {
 		if(!member_ban_webhook_url.is_null()) {
 			auto member_ban_webhook = dpp::webhook{member_ban_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;
-			if(hard_banned_users.size() > 1)
-				embed_title = "Users hard banned: ";
+			if(softbanned_users.size() > 1)
+				embed_title = "Users soft banned: ";
 			else {
-				embed_title = "Users hard banned: ";
-				embed_image_url = hard_banned_users.at(0)->get_avatar_url();
+				embed_title = "Users soft banned: ";
+				embed_image_url = softbanned_users.at(0)->get_avatar_url();
 			}
 
-			description = std::format("{} have been hard banned.", usernames);
-
+			description = std::format("{} have been soft banned.", usernames);
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
 								   .set_color(color::LOG_COLOR)
@@ -409,14 +417,14 @@ void hardban_wrapper::process_response() {
 		if(!modlog_webhook_url.is_null()) {
 			auto modlog_webhook = dpp::webhook{modlog_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;
-			if(hard_banned_users.size() > 1)
-				embed_title = "Users hard banned: ";
+			if(softbanned_users.size() > 1)
+				embed_title = "Users banned: ";
 			else {
-				embed_title = "User hard banned: ";
-				embed_image_url = hard_banned_users.at(0)->get_avatar_url();
+				embed_title = "User banned: ";
+				embed_image_url = softbanned_users.at(0)->get_avatar_url();
 			}
 
-			description = std::format("{} have been hard banned.", usernames);
+			description = std::format("{} have been soft banned.", usernames);
 
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
@@ -435,13 +443,13 @@ void hardban_wrapper::process_response() {
 		if(!public_modlog_webhook_url.is_null()) {
 			auto public_modlog_webhook = dpp::webhook{public_modlog_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;
-			if(hard_banned_users.size() > 1)
-				embed_title = "Users hard banned: ";
+			if(softbanned_users.size() > 1)
+				embed_title = "Users soft banned: ";
 			else {
-				embed_title = "User hard banned: ";
-				embed_image_url = hard_banned_users.at(0)->get_avatar_url();
+				embed_title = "User soft banned: ";
+				embed_image_url = softbanned_users.at(0)->get_avatar_url();
 			}
-			description = std::format("{} have been hard banned.", usernames);
+			description = std::format("{} have been soft banned.", usernames);
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
 								   .set_color(color::LOG_COLOR)
@@ -466,9 +474,10 @@ void hardban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-								  reactaio::internal::mod_action_name["hardban"], dpp::utility::current_date_time());
+								  reactaio::internal::mod_action_name["softban"], dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
 		command.bot->message_create(message);
 }
+

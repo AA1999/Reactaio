@@ -100,22 +100,26 @@ void unban_wrapper::check_permissions() {
 	}
 }
 
+void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
+	if(completion.is_error()) {
+		auto error = completion.get_error();
+		errors.emplace_back(std::format("❌ Error {}: {}", error.code, error.message));
+		users_with_errors.push_back(user);
+		return;
+	}
+	auto transaction = pqxx::transaction{*command.connection};
+	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+	auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
+	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
+							  reactaio::internal::mod_action_name["unban"], std::to_string(command.author.user_id), std::to_string(user->id),
+							  command.reason);
+	transaction.commit();
+}
+
 void unban_wrapper::process_unbans() {
 	for(auto* user: users) {
 		command.bot->set_audit_reason(std::string(command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
-			if(completion.is_error()) {
-				auto error = completion.get_error();
-				errors.emplace_back(std::format("❌ Error {}: {}", error.code, error.message));
-				users_with_errors.push_back(user);
-				return;
-			}
-			auto transaction = pqxx::transaction{*command.connection};
-			auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-			auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-			transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-									  reactaio::internal::mod_action_name["unban"], std::to_string(command.author.user_id), std::to_string(user->id),
-									  command.reason);
-			transaction.commit();
+			lambda_callback(completion, user);
 		});
 	}
 }

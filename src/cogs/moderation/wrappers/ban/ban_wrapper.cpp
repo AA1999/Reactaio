@@ -84,18 +84,57 @@ void ban_wrapper::wrapper_function() {
 	process_response();
 }
 
+void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user* user) {
+	if (completion.is_error()) {
+		auto error = completion.get_error();
+		errors.push_back(std::format("❌ Unable to ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
+		users_with_errors.push_back(user);
+	}
+	else {
+		auto transaction = pqxx::work{*command.connection};
+		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
+		if(duration) {
+			auto time_now = std::chrono::system_clock::now();
+			auto time_delta = duration->to_seconds();
+			auto future = time_now + time_delta;
+			std::string time_now_str = dpp::utility::current_date_time();
+			auto future_str = std::format("{}", future);
+			transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
+									  std::to_string(command.author.user_id), time_now_str, future_str,
+									  command.reason);
+			transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
+									  reactaio::internal::mod_action_name["ban"], duration->to_string(),
+									  std::to_string(command.author.user_id), std::to_string(user->id),
+									  command.reason);
+		}
+		else {
+			transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
+									  reactaio::internal::mod_action_name["ban"], std::to_string(
+																						  command.author.user_id), std::to_string(user->id), command
+																		.reason);
+		}
+
+		transaction.commit();
+	}
+}
+
 void ban_wrapper::process_bans() {
 
 	uint ban_remove_days{0};
 	constexpr uint TO_SECONDS = 24 * 3600;
 
-	pqxx::work transaction{*command.connection};
-	auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
-	transaction.commit();
-	if(!ban_remove_days_query.empty()) {
-		ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
-		ban_remove_days *= TO_SECONDS;
+	if(command.delete_message_days == 0) {
+		pqxx::work transaction{*command.connection};
+		auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
+		transaction.commit();
+		if(!ban_remove_days_query.empty()) {
+			ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
+			ban_remove_days *= TO_SECONDS;
+		}
 	}
+	else
+		ban_remove_days = command.delete_message_days;
 
 	auto* author_user = command.author.get_user();
 
@@ -121,39 +160,7 @@ void ban_wrapper::process_bans() {
 
 
 		command.bot->guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
-			if (completion.is_error()) {
-				auto error = completion.get_error();
-				errors.push_back(std::format("❌ Unable to ban user **{}**. Error code {}: {}.",
-				                             user->format_username(), error.code, error.message));
-				users_with_errors.push_back(user);
-			}
-			else {
-				auto transaction = pqxx::work{*command.connection};
-				auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-				auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-				if(duration) {
-					auto time_now = std::chrono::system_clock::now();
-					auto time_delta = duration->to_seconds();
-					auto future = time_now + time_delta;
-					std::string time_now_str = dpp::utility::current_date_time();
-					auto future_str = std::format("{}", future);
-					transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
-					                          std::to_string(command.author.user_id), time_now_str, future_str,
-											  command.reason);
-					transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
-					                          reactaio::internal::mod_action_name["ban"], duration->to_string(),
-					                          std::to_string(command.author.user_id), std::to_string(user->id),
-					                          command.reason);
-				}
-				else {
-					transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-					                          reactaio::internal::mod_action_name["ban"], std::to_string(
-													  command.author.user_id), std::to_string(user->id), command
-													  .reason);
-				}
-
-				transaction.commit();
-			}
+			lambda_callback(completion, user);
 		});
 	}
 }

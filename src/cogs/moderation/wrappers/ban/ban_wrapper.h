@@ -33,6 +33,13 @@ class ban_wrapper: public hybrid_wrapper {
 	 */
 	void process_response();
 
+	/**
+	 * @brief lambda_callback - This is a function that's called when an API call is made.
+	 * @param completion
+	 * @param user The user object the comeback is
+	 */
+	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override;
+
 	bool invalid_user{false};
 public:
 	using hybrid_wrapper::hybrid_wrapper;

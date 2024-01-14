@@ -31,6 +31,13 @@ class kick_wrapper: public member_wrapper {
 	 */
 	void process_response();
 
+	/**
+	 * @brief lambda_callback - This is a function that's called when an API call is made.
+	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
+	 * @param user User object that the callback is made on.
+	 */
+	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) override;
+
   public:
 	using member_wrapper::member_wrapper;
 };

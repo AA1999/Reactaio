@@ -58,6 +58,10 @@ public:
 	explicit base_wrapper(moderation_command command)
 	    : command(std::move(command)), duration(parse_human_time(command.duration)) {}
 
+
+	/**
+	 * @brief operator() - Called when the functor is invoked.
+	 */
 	virtual void operator()() final;
 
 	/**

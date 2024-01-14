@@ -156,6 +156,23 @@ void kick_wrapper::check_permissions() {
 	}
 }
 
+void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
+	if (completion.is_error()) {
+		auto error = completion.get_error();
+		errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.", member.get_user()->format_username(), error.code, error.human_readable));
+		members_with_errors.push_back(member);
+	}
+	else {
+		auto transaction = pqxx::work{*command.connection};
+		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
+								  reactaio::internal::mod_action_name["kick"], std::to_string(command.author.user_id),
+								  std::to_string(member.user_id), command.reason);
+		transaction.commit();
+	}
+}
+
 void kick_wrapper::process_kicks() {
 	for (auto const& member : members) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
@@ -164,23 +181,8 @@ void kick_wrapper::process_kicks() {
 				dpp::message(std::format("You have been kicked from {} by {}. Reason: {}.", command.guild->name,
 										 member.get_user()->format_username(), command.reason)));
 		}
-		command.bot->set_audit_reason(std::string{command.reason}).guild_member_kick(command.guild->id,
-																					 member.user_id,[this, member](auto const& completion) {
-			if (completion.is_error()) {
-				auto error = completion.get_error();
-				errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.",
-											 member.get_user()->format_username(), error.code, error.message));
-				members_with_errors.push_back(member);
-			}
-			else {
-				auto transaction = pqxx::work{*command.connection};
-				auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-				auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-				transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-										  reactaio::internal::mod_action_name["kick"], std::to_string(command.author
-										  .user_id), std::to_string(member.user_id), command.reason);
-				transaction.commit();
-			}
+		command.bot->set_audit_reason(std::string{command.reason}).guild_member_kick(command.guild->id, member.user_id, [this, member](auto const& completion) {
+			lambda_callback(completion, member);
 		});
 	}
 }

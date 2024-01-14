@@ -149,6 +149,56 @@ void mute_wrapper::check_permissions() {
 	}
 }
 
+void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
+	if(duration) {
+		if(completion.is_error()) {
+			auto error = completion.get_error();
+			members_with_errors.push_back(member);
+			errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
+		}
+		else {
+			auto now = std::chrono::system_clock::now();
+			auto time_delta = duration->to_seconds();
+			auto future = now + time_delta;
+			auto future_ms = future.time_since_epoch().count();
+			std::string time_future_relative = dpp::utility::timestamp(future_ms,
+																	   dpp::utility::time_format::tf_relative_time);
+			std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
+												 command.guild->name, command.author.get_user()->format_username(),
+												 time_future_relative, command.reason);
+			command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+		}
+		return;
+	}
+	if(completion.is_error()) {
+		auto error = completion.get_error();
+		members_with_errors.push_back(member);
+		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
+	}
+	else {
+		auto transaction = pqxx::work{*command.connection};
+		auto id_query = transaction.exec_prepared1("timeout_id", std::to_string(command.guild->id));
+		ullong timeout_id = 0;
+		if(!id_query["timeout_id"].is_null()) {
+			timeout_id = id_query["timeout_id"].as<case_t>() + 1;
+		}
+		auto now = std::chrono::system_clock::now();
+		auto time_delta = std::chrono::days{max_timeout_days};
+		auto future = now + time_delta;
+		auto future_ms = future.time_since_epoch().count();
+		transaction.exec_prepared("permanent_timeout", timeout_id, std::to_string(member.user_id),
+								  std::to_string(command.guild->id), std::to_string(command.author.user_id),
+								  command.reason);
+		transaction.commit();
+		std::string time_future_relative = dpp::utility::timestamp(future_ms,
+																   dpp::utility::time_format::tf_relative_time);
+		std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
+											 command.guild->name, command.author.get_user()->format_username(),
+											 time_future_relative, command.reason);
+		command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+	}
+}
+
 void mute_wrapper::process_mutes() {
 	pqxx::work transaction{*command.connection};
 	auto query = transaction.exec_prepared("use_timeout", std::to_string(command.guild->id));
@@ -172,23 +222,7 @@ void mute_wrapper::process_mutes() {
 				auto future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
 					command.bot->guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
-						if(completion.is_error()) {
-							auto error = completion.get_error();
-							members_with_errors.push_back(member);
-							errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
-						}
-						else {
-							auto now = std::chrono::system_clock::now();
-							auto time_delta = duration->to_seconds();
-							auto future = now + time_delta;
-							auto future_ms = future.time_since_epoch().count();
-							std::string time_future_relative = dpp::utility::timestamp(future_ms,
-																					   dpp::utility::time_format::tf_relative_time);
-							std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
-																 command.guild->name, command.author.get_user()->format_username(),
-																 time_future_relative, command.reason);
-							command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
-						}
+						lambda_callback(completion, member);
 					});
 				}
 			}
@@ -196,33 +230,7 @@ void mute_wrapper::process_mutes() {
 		else {
 			for(auto const& member: members) {
 				command.bot->guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
-					if(completion.is_error()) {
-						auto error = completion.get_error();
-						members_with_errors.push_back(member);
-						errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
-					}
-					else {
-						auto transaction = pqxx::work{*command.connection};
-						auto id_query = transaction.exec_prepared1("timeout_id", std::to_string(command.guild->id));
-						ullong timeout_id = 0;
-						if(!id_query["timeout_id"].is_null()) {
-							timeout_id = id_query["timeout_id"].as<case_t>() + 1;
-						}
-						auto now = std::chrono::system_clock::now();
-						auto time_delta = std::chrono::days{max_timeout_days};
-						auto future = now + time_delta;
-						auto future_ms = future.time_since_epoch().count();
-						transaction.exec_prepared("permanent_timeout", timeout_id, std::to_string(member.user_id),
-												  std::to_string(command.guild->id), std::to_string(command.author.user_id),
-												  command.reason);
-						transaction.commit();
-						std::string time_future_relative = dpp::utility::timestamp(future_ms,
-																				   dpp::utility::time_format::tf_relative_time);
-						std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
-															 command.guild->name, command.author.get_user()->format_username(),
-															 time_future_relative, command.reason);
-						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
-					}
+					lambda_callback(completion, member);
 				});
 			}
 		}

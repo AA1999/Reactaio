@@ -34,6 +34,13 @@ class unban_wrapper: public user_wrapper {
 	 */
 	void process_response();
 
+	/**
+	 * @brief lambda_callback - This is a function that's called when an API call is made.
+	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
+	 * @param user User object that the callback is made on.
+	 */
+	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override;
+
 public:
 	using user_wrapper::user_wrapper;
 };

@@ -153,28 +153,30 @@ void warn_wrapper::check_permissions() {
 	}
 }
 
+void warn_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
+	if(completion.is_error()) {
+		auto error = completion.get_error();
+		errors.push_back(std::format("Unable to DM user **{}**. Warning registered. Error{}: {}",
+									 member.get_user()->format_username(), error.code, error.human_readable));
+		members_with_errors.push_back(member);
+	}
+	auto transaction = pqxx::work{*command.connection};
+	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+	auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
+	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
+							  reactaio::internal::mod_action_name["warn"], std::to_string(command.author.user_id),
+							  std::to_string(member.user_id), command.reason);
+	transaction.commit();
+}
+
 void warn_wrapper::process_warnings() {
 	for (auto const& member : members) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
-			command.bot->direct_message_create(
-					member.user_id,
-					dpp::message(std::format("You have been warned in {} by {}. Reason: {}.", command.guild->name,
-					                         member.get_user()->format_username(), command.reason)), [this, member]
-											 (auto const& completion){
-
-						if(completion.is_error()) {
-							errors.push_back(std::format("Unable to DM user **{}**. Warning registered.",
-							                             member.get_user()->format_username()));
-							members_with_errors.push_back(member);
-						}
-						auto transaction = pqxx::work{*command.connection};
-						auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-						auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-						transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-						                          reactaio::internal::mod_action_name["warn"], std::to_string(command.author
-								                                                                                    .user_id), std::to_string(member.user_id), command.reason);
-						transaction.commit();
-					});
+			auto const warning_message = std::format("You have been warned in {} by {}. Reason: {}.", command.guild->name,
+											   member.get_user()->format_username(), command.reason);
+			command.bot->direct_message_create(member.user_id, dpp::message(warning_message), [this, member](auto const& completion){
+				lambda_callback(completion, member);
+			});
 		}
 	}
 }
