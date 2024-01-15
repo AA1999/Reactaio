@@ -28,7 +28,7 @@ namespace reactaio::internal {
 		mutable std::array<std::pair<Key, Value>, size> m_array;
 
 		[[nodiscard]] std::unordered_map<Key, Value&, Hash, KeyEqual, Allocator>& get_map() const noexcept {
-			static std::unordered_map<Key, Value&, Hash, KeyEqual, Allocator> map{this->m_array.begin(), this->m_array.end()};
+			static std::unordered_map<Key, Value&, Hash, KeyEqual, Allocator> map {m_array.begin(), m_array.end()};
 			return map;
 		}
 
@@ -45,9 +45,10 @@ namespace reactaio::internal {
 				assert(false);
 			}
 			else {
+				auto map = get_map();
 				if (check)
-					return get_map().at(key);
-				return get_map()[key];
+					return map.at(key);
+				return map[key];
 			}
 		}
 

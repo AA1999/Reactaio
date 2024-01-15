@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base_wrapper.h"
+#include "command_wrapper.h"
 
 #include <dpp/dpp.h>
 #include <variant>
@@ -14,9 +14,9 @@
  * @brief hybrid_wrapper - A wrapper used to process commands with a mix of dpp::user* and dpp::guild_member elements.
  */
 
-class hybrid_wrapper: public base_wrapper {
+class hybrid_wrapper: public command_wrapper {
 protected:
-	std::vector<std::variant<dpp::user*, dpp::guild_member>> snowflakes;
+	std::vector<std::variant<dpp::guild_member, dpp::user*>> snowflakes;
 	std::vector<dpp::user*> users_with_errors;
 	std::vector<dpp::user*> users;
 	std::vector<dpp::guild_member> members;
@@ -55,7 +55,7 @@ public:
 	 * @param snowflakes The list of dpp::user* and dpp::guild_member objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	hybrid_wrapper(const std::vector<std::variant<dpp::user*, dpp::guild_member>>& snowflakes, moderation_command& command)
-		: snowflakes(snowflakes), base_wrapper(std::move(command)) {}
+	hybrid_wrapper(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &snowflakes, moderation_command& command)
+		: snowflakes(snowflakes), command_wrapper(std::move(command)) {}
 
 };

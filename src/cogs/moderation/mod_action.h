@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../base/datatypes/fixed_map.h"
+#include "../core/datatypes/fixed_map.h"
 
 #include <initializer_list>
 
@@ -14,7 +14,7 @@ namespace reactaio::internal {
 	 * @note This is implemented as a map with fixed size.
 	 */
 	std::size_t const MOD_ACTION_NAME_SIZE = 20;
-	extern inline const reactaio::internal::fixed_map<std::string_view, std::string_view, MOD_ACTION_NAME_SIZE> mod_action_name {
+	extern inline const reactaio::internal::fixed_map<std::string, std::string, MOD_ACTION_NAME_SIZE> mod_action_name {
 			{"kick", "Kick"},
 			{"ban", "Ban"},
 			{"softban", "Softban"},

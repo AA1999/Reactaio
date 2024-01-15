@@ -6,7 +6,7 @@
 
 #include <dpp/dpp.h>
 
-#include "../base/datatypes/fifo_map.h"
+#include "../core/datatypes/fifo_map.h"
 
 
 extern inline const reactaio::internal::fifo_map<std::string, dpp::audit_type> audit_log_events{

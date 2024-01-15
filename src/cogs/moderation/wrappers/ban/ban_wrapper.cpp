@@ -3,9 +3,9 @@
 //
 
 #include "ban_wrapper.h"
-#include "../../../base/colors.h"
-#include "../../../base/consts.h"
-#include "../../../base/datatypes/message_paginator.h"
+#include "../../../core/colors.h"
+#include "../../../core/consts.h"
+#include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
 #include <dpp/dpp.h>

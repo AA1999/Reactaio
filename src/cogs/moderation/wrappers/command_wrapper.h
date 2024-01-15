@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "../../base/datatypes/duration.h"
-#include "../../base/helpers.h"
+#include "../../core/datatypes/duration.h"
+#include "../../core/helpers.h"
 #include "../modules/moderation_command.h"
 
 #include <dpp/dpp.h>
@@ -16,10 +16,10 @@
 #include <vector>
 
 /**
- * \brief base_wrapper - The base abstract functor class for all moderation actions. This class is only supposed to be used as a base class and not have direct instances
+ * @brief command_wrapper - The base abstract functor class for all moderation actions. This class is only supposed to be used as a base class and not have direct instances
  */
 
-class base_wrapper {
+class command_wrapper {
 
 protected:
 	std::optional<duration> duration;
@@ -47,15 +47,15 @@ protected:
 
 
 public:
-	virtual ~base_wrapper() = 0;
+	virtual ~command_wrapper() = 0;
 
-	base_wrapper() = delete;
+	command_wrapper() = delete;
 
 	/**
 	 * @brief The constructor for the wrapper.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	explicit base_wrapper(moderation_command command)
+	explicit command_wrapper(moderation_command command)
 	    : command(std::move(command)), duration(parse_human_time(command.duration)) {}
 
 

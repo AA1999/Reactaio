@@ -6,7 +6,7 @@
 
 #include "guild_bans_wrapper.h"
 #include "ban_processor.h"
-#include "../../../base/consts.h"
+#include "../../../core/consts.h"
 
 
 void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {

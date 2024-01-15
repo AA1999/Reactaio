@@ -35,4 +35,6 @@ class softban_wrapper: public hybrid_wrapper {
 	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override;
 
 	bool invalid_user{false};
+public:
+	using hybrid_wrapper::hybrid_wrapper;
 };

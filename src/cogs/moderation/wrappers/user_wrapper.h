@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "base_wrapper.h"
+#include "command_wrapper.h"
 
 /**
  * @brief hybrid_wrapper - A wrapper used to process commands of dpp::user* elements.
  */
-class user_wrapper : public base_wrapper {
+class user_wrapper : public command_wrapper {
 protected:
 	std::vector<dpp::user*> users;
 	std::vector<dpp::user*> users_with_errors;
@@ -46,7 +46,7 @@ public:
 	 * @param users The list of dpp::user* objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): users(users), base_wrapper(std::move(command)){}
+	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): users(users), command_wrapper(std::move(command)){}
 
 	~user_wrapper() override = 0;
 };

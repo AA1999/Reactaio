@@ -3,10 +3,10 @@
 //
 
 #include "softban_wrapper.h"
-#include "../../../base/colors.h"
-#include "../../../base/consts.h"
-#include "../../../base/helpers.h"
-#include "../../../base/datatypes/message_paginator.h"
+#include "../../../core/colors.h"
+#include "../../../core/consts.h"
+#include "../../../core/helpers.h"
+#include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
 

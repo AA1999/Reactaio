@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../../base/datatypes/ban.h"
+#include "../../../core/datatypes/ban.h"
 
 #include <vector>
 #include <dpp/dpp.h>

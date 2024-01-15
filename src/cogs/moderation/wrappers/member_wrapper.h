@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base_wrapper.h"
+#include "command_wrapper.h"
 
 #include <dpp/dpp.h>
 #include <vector>
@@ -12,7 +12,7 @@
 /**
  * @brief member_wrapper - A wrapper used to process commands with only dpp::guild_member elements.
  */
-class member_wrapper: public base_wrapper {
+class member_wrapper: public command_wrapper {
 protected:
 	std::vector<dpp::guild_member> members;
 	std::vector<dpp::guild_member> members_with_errors;
@@ -45,7 +45,7 @@ public:
 	 * @param members The list of the guild members
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	member_wrapper(const std::vector<dpp::guild_member>& members, moderation_command& command): members(members), base_wrapper(std::move(command)){}
+	member_wrapper(const std::vector<dpp::guild_member>& members, moderation_command& command): members(members), command_wrapper(std::move(command)){}
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.
