@@ -44,4 +44,6 @@ class hardban_wrapper: public hybrid_wrapper {
 
 public:
 	using hybrid_wrapper::hybrid_wrapper;
+
+	~hardban_wrapper() override = default;
 };

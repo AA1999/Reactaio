@@ -42,7 +42,7 @@ protected:
 
 public:
 
-	~hybrid_wrapper() override = 0;
+	~hybrid_wrapper() override = default;
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.

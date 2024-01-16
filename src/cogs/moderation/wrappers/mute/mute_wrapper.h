@@ -44,4 +44,6 @@ class mute_wrapper: public member_wrapper {
 
 public:
 	using member_wrapper::member_wrapper;
+
+	~mute_wrapper() override = default;
 };

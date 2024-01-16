@@ -31,7 +31,7 @@ public:
 		get_all_guild_bans();
 	}
 
-	~guild_bans_wrapper() = default;
+	virtual ~guild_bans_wrapper() = default;
 
 	/**
 	 * @brief guild_bans - Returns all the guild bans.

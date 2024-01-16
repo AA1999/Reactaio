@@ -43,4 +43,6 @@ class unban_wrapper: public user_wrapper {
 
 public:
 	using user_wrapper::user_wrapper;
+
+	~unban_wrapper() override = default;
 };

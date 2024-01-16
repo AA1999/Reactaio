@@ -40,4 +40,6 @@ class kick_wrapper: public member_wrapper {
 
   public:
 	using member_wrapper::member_wrapper;
+
+	~kick_wrapper() override = default;
 };

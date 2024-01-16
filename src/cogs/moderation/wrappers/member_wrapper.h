@@ -37,7 +37,7 @@ protected:
 	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) = 0;
 
 public:
-	~member_wrapper() override = 0;
+	~member_wrapper() override = default;
 
 
 	/**

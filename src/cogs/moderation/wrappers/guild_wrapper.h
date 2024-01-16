@@ -14,6 +14,6 @@ class guild_wrapper: public command_wrapper {
 
 public:
 	guild_wrapper() = delete;
-	~guild_wrapper() override = 0;
+	~guild_wrapper() override = default;
 	explicit guild_wrapper(moderation_command& command): command_wrapper(std::move(command)), guild(this->command.guild){};
 };

@@ -47,7 +47,7 @@ protected:
 
 
 public:
-	virtual ~command_wrapper() = 0;
+	virtual ~command_wrapper() = default;
 
 	command_wrapper() = delete;
 

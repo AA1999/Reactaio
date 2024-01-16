@@ -23,12 +23,12 @@ namespace reactaio::internal {
 	 * @tparam KeyEqual
 	 * @tparam Allocator
 	 */
-	template <typename Key, typename Value, std::size_t size, typename Hash = std::hash<Key>, typename KeyEqual = std::equal_to<Key>, typename Allocator = std::allocator<std::pair<const Key, Value &>>>
+	template <typename Key, typename Value, std::size_t size, typename Hash = std::hash<Key>, typename KeyEqual = std::equal_to<Key>, typename Allocator = std::allocator<std::pair<const Key, Value>>>
 	class fixed_map {
 		mutable std::array<std::pair<Key, Value>, size> m_array;
 
-		[[nodiscard]] std::unordered_map<Key, Value&, Hash, KeyEqual, Allocator>& get_map() const noexcept {
-			static std::unordered_map<Key, Value&, Hash, KeyEqual, Allocator> map {m_array.begin(), m_array.end()};
+		[[nodiscard]] std::unordered_map<Key, Value, Hash, KeyEqual, Allocator>& get_map() const noexcept {
+			static std::unordered_map<Key, Value, Hash, KeyEqual, Allocator> map {m_array.begin(), m_array.end()};
 			return map;
 		}
 
@@ -37,7 +37,7 @@ namespace reactaio::internal {
 
 		[[nodiscard]] constexpr Value& lookup(const Key& key, bool check = true) const {
 			if (std::is_constant_evaluated()) {
-				for (auto &[array_key, value]: this->m_array)
+				for (auto& [array_key, value]: this->m_array)
 					if (array_key == key)
 						return value;
 				if(check)
@@ -45,10 +45,10 @@ namespace reactaio::internal {
 				assert(false);
 			}
 			else {
-				auto map = get_map();
+//				auto& map = get_map();
 				if (check)
-					return map.at(key);
-				return map[key];
+					return get_map().at(key);
+				return get_map()[key];
 			}
 		}
 

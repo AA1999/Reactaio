@@ -37,4 +37,6 @@ class softban_wrapper: public hybrid_wrapper {
 	bool invalid_user{false};
 public:
 	using hybrid_wrapper::hybrid_wrapper;
+
+	~softban_wrapper() override = default;
 };

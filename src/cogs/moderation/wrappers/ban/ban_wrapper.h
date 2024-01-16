@@ -43,4 +43,6 @@ class ban_wrapper: public hybrid_wrapper {
 	bool invalid_user{false};
 public:
 	using hybrid_wrapper::hybrid_wrapper;
+
+	~ban_wrapper() override = default;
 };
