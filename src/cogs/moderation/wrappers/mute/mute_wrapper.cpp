@@ -174,7 +174,7 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 	if(completion.is_error()) {
 		auto error = completion.get_error();
 		members_with_errors.push_back(member);
-		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
+		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
@@ -454,7 +454,7 @@ void mute_wrapper::process_response() {
 		}
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		auto action_name = use_timeout ? reactaio::internal::mod_action_name["timeout"] : reactaio::internal::mod_action_name["mute"];
+		auto action_name = use_timeout ? reactaio::internal::mod_action_name::TIMEOUT : reactaio::internal::mod_action_name::MUTE;
 
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
 								  action_name, dpp::utility::current_date_time());

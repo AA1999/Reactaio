@@ -4,37 +4,32 @@
 
 #pragma once
 
-#include "../core/datatypes/fixed_map.h"
+#include <string_view>
 
-#include <initializer_list>
-
-namespace reactaio::internal {
-	/**
-	 * @brief mod_action_name - A string enum used to insert moderation action names into a SQL query with no typo.
-	 * @note This is implemented as a map with fixed size.
-	 */
-	std::size_t const MOD_ACTION_NAME_SIZE = 20;
-	extern inline const reactaio::internal::fixed_map<std::string, std::string, MOD_ACTION_NAME_SIZE> mod_action_name {
-			{"kick", "Kick"},
-			{"ban", "Ban"},
-			{"softban", "Softban"},
-			{"hardban", "hardban"},
-			{"warn", "Warning"},
-			{"mute", "Mute"},
-			{"timeout", "timeout"},
-			{"unban", "Unban"},
-			{"delwarn", "Delete warn"},
-			{"clearwarn", "Clear warnings"},
-			{"globalclear", "Guild warnings cleared"},
-			{"lock", "Lock channel"},
-			{"unlock", "Unlock channel"},
-			{"lockdown", "Lockdown start"},
-			{"lockdown_end", "Lockdown end"},
-			{"duration", "Change action duration"},
-			{"reason", "Change action reason"},
-			{"view_case", "View moderation case"},
-			{"view_warns", "View warnings"},
-			{"view_audit", "View audit log entry"},
-			{"ban_list", "View guild bans list"}
-	};
-}
+/**
+ * @brief namespace mod_action_name - This acts as a string enum.
+ */
+namespace reactaio::internal::mod_action_name {
+	extern inline constexpr std::string_view KICK {"Kick"};
+	extern inline constexpr std::string_view BAN{"Ban"};
+	extern inline constexpr std::string_view SOFT_BAN{"Soft Ban"};
+	extern inline constexpr std::string_view HARD_BAN{"Hard Ban"};
+	extern inline constexpr std::string_view WARN{"Warning"};
+	extern inline constexpr std::string_view MUTE{"Mute"};
+	extern inline constexpr std::string_view UNMUTE{"Unmute"};
+	extern inline constexpr std::string_view TIMEOUT{"Timeout"};
+	extern inline constexpr std::string_view UNBAN{"Unban"};
+	extern inline constexpr std::string_view DELETE_WARN{"Delete warning"};
+	extern inline constexpr std::string_view CLEAR_WARNS{"Clear member warning"};
+	extern inline constexpr std::string_view CLEAR_GUILD_WARNS{"Clear guild warnings"};
+	extern inline constexpr std::string_view LOCK{"Lock channel"};
+	extern inline constexpr std::string_view UNLOCK {"Unlock channel"};
+	extern inline constexpr std::string_view LOCKDOWN{"Lockdown start"};
+	extern inline constexpr std::string_view LOCKDOWN_END{"Lockdown end"};
+	extern inline constexpr std::string_view DURATION{"Change command duration"};
+	extern inline constexpr std::string_view REASON{"Change action reason"};
+	extern inline constexpr std::string_view VIEW_MOD_CASE{"View moderation case"};
+	extern inline constexpr std::string_view VIEW_WARNS{"View warnings"};
+	extern inline constexpr std::string_view VIEW_AUDIT_LOG{"View audit log entry"};
+	extern inline constexpr std::string_view VIEW_BAN_LIST{"View guild ban list"};
+} // namespace reactaio::internal::mod_action_name

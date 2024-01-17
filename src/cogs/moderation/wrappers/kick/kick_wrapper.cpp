@@ -167,7 +167,7 @@ void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-								  reactaio::internal::mod_action_name["kick"], std::to_string(command.author.user_id),
+								  reactaio::internal::mod_action_name::KICK, std::to_string(command.author.user_id),
 								  std::to_string(member.user_id), command.reason);
 		transaction.commit();
 	}
@@ -381,7 +381,7 @@ void kick_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-														   reactaio::internal::mod_action_name["kick"], dpp::utility::current_date_time());
+														   reactaio::internal::mod_action_name::KICK, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else

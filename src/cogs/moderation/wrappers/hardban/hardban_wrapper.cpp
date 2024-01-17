@@ -215,7 +215,7 @@ void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 		auto transaction = pqxx::work{*command.connection};
 		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name["hardban"],
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::HARD_BAN,
 								  std::to_string(command.author.user_id), std::to_string(user->id), command.reason);
 		transaction.commit();
 	}
@@ -466,7 +466,7 @@ void hardban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-								  reactaio::internal::mod_action_name["hardban"], dpp::utility::current_date_time());
+								  reactaio::internal::mod_action_name::HARD_BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else

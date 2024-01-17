@@ -230,7 +230,7 @@ void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-								  reactaio::internal::mod_action_name["softban"], std::to_string(command.author.user_id),
+								  reactaio::internal::mod_action_name::SOFT_BAN, std::to_string(command.author.user_id),
 								  std::to_string(user->id), command.reason);
 		transaction.commit();
 	}
@@ -474,7 +474,7 @@ void softban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-								  reactaio::internal::mod_action_name["softban"], dpp::utility::current_date_time());
+								  reactaio::internal::mod_action_name::SOFT_BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else

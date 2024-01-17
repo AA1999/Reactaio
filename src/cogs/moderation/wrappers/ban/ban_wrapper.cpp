@@ -104,13 +104,13 @@ void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion
 									  std::to_string(command.author.user_id), time_now_str, future_str,
 									  command.reason);
 			transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
-									  reactaio::internal::mod_action_name["ban"], duration->to_string(),
+									  reactaio::internal::mod_action_name::BAN, duration->to_string(),
 									  std::to_string(command.author.user_id), std::to_string(user->id),
 									  command.reason);
 		}
 		else {
 			transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-									  reactaio::internal::mod_action_name["ban"], std::to_string(
+									  reactaio::internal::mod_action_name::BAN, std::to_string(
 																						  command.author.user_id), std::to_string(user->id), command
 																		.reason);
 		}
@@ -409,7 +409,7 @@ void ban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-		                          reactaio::internal::mod_action_name["ban"], dpp::utility::current_date_time());
+		                          reactaio::internal::mod_action_name::BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
