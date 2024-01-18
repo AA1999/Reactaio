@@ -167,17 +167,17 @@ std::vector<T> parse_psql_array(const pqxx::field& field) {
 }
 
 /**
- * @brief get_guild_sorted_roles - Returns a sorted vector of a guild's roles.
+ * @brief get_roles_sorted - Returns a sorted vector of a guild's roles.
  * @param guild The guild to fetch the roles from.
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of guild roles.
  */
-std::vector<dpp::role*> get_guild_sorted_roles(dpp::guild* guild, bool descending = true);
+std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending = true);
 
 /**
- * @brief get_member_roles_sorted - Returns a sorted vector of a dpp::guild_member's roles.
+ * @brief get_roles_sorted - Returns a sorted vector of a dpp::guild_member's roles.
  * @param member The member to fetch the roles from.
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of member roles.
  */
-std::vector<dpp::role*> get_member_roles_sorted(const dpp::guild_member& member, bool descending = true);
+std::vector<dpp::role*> get_roles_sorted(const dpp::guild_member& member, bool descending = true);

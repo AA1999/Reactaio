@@ -5,15 +5,42 @@
 #include <format>
 
 #include "guild_bans_wrapper.h"
-#include "ban_processor.h"
 #include "../../../core/consts.h"
+#include "../../../core/helpers.h"
+#include "../../../core/colors.h"
+#include "../../../core/datatypes/message_paginator.h"
 
+void guild_bans_wrapper::wrapper_function() {
+	check_permissions();
+	if(cancel_operation)
+		return;
+	get_all_guild_bans();
+	process_response();
+}
+
+void guild_bans_wrapper::check_permissions() {
+	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+
+	auto bot_roles = get_roles_sorted(bot_member);
+	auto bot_top_role = *bot_roles.begin();
+
+	auto author_roles = get_roles_sorted(command.author);
+	auto author_top_role = *author_roles.begin();
+
+	if(!bot_top_role->has_ban_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the Ban Members permission is enabled.");
+	}
+
+	//TODO Check for permission to either Ban Members in discord or a specified role in bot (adding to db soon)
+
+}
 
 void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
-	command.bot->guild_get_bans(command.guild->id, 0, after, max_guild_ban_fetch, [this, after](const auto completion){
+	command.bot->guild_get_bans(command.guild->id, 0, after, max_guild_ban_fetch, [this, after](dpp::confirmation_callback_t const& completion){
 		if(completion.is_error()) {
 			auto error = completion.get_error();
-			errors.push_back(std::format("❌ Error {}: {}", error.code, error.message));
+			errors.push_back(std::format("❌ Error {}: {}", error.code, error.human_readable));
 		}
 		else {
 			auto event_map = completion.template get<dpp::ban_map>();
@@ -22,7 +49,7 @@ void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 			for(auto& [user_id, ban]: event_map) {
 				if(new_after < user_id)
 					new_after = user_id;
-				bans.emplace_back(command.guild, ban);
+				bans.push_back(ban);
 			}
 
 			if(event_map.size() < max_guild_ban_fetch) // All bans are fetched.
@@ -32,15 +59,74 @@ void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 	});
 }
 
+void guild_bans_wrapper::process_response() {
+	auto message = dpp::message(command.channel_id, "");
+	auto const* author_user = command.author.get_user();
+	if (has_error()) {
+		auto format_split = join_with_limit(errors, bot_max_embed_chars);
+		auto const time_now = std::time(nullptr);
+		auto base_embed		= dpp::embed()
+								  .set_title("Error while fetching guild bans: ")
+								  .set_color(color::ERROR_COLOR)
+								  .set_timestamp(time_now);
+		if(format_split.size() == 1) {
+			base_embed.set_description(format_split[0]);
+			message.add_embed(base_embed);
+		}
+		else {
+			for (auto const& error : format_split) {
+				auto embed{base_embed};
+				embed.set_description(error);
+				message.add_embed(embed);
+			}
+		}
+		if(command.interaction) { // This is always true but a failsafe
+			if(are_all_errors())
+				message.set_flags(dpp::m_ephemeral); // Invisible error message.
+			if(format_split.size() == 1)
+				command.interaction->edit_response(message);
+			else {
+				message_paginator paginator{message, command};
+				paginator.start();
+			}
+		}
+		return;
+	}
 
-ban_vector guild_bans_wrapper::guild_bans() const {
-	return bans;
-}
+	message.set_flags(dpp::m_ephemeral);
 
-std::vector<std::string> guild_bans_wrapper::what() const {
-	return errors;
-}
+	for(auto const& ban: bans) {
+		command.bot->user_get_cached(ban.user_id, [this, ban](dpp::confirmation_callback_t const& completion){
+			if(!completion.is_error())
+				banned_usernames.push_back(std::format("User **{}** Reason: {}", std::get<dpp::user_identified>(completion.value).format_username(),
+													   ban.reason));
+		});
+	}
 
-bool guild_bans_wrapper::is_error() const {
-	return !errors.empty();
+	auto format_split = join_with_limit(banned_usernames, bot_max_embed_chars);
+	auto time_now = std::time(nullptr);
+
+	auto base_embed = dpp::embed()
+							  .set_title("Error while fetching guild bans: ")
+							  .set_color(color::INFO_COLOR)
+							  .set_timestamp(time_now);
+
+	if(format_split.size() == 1) {
+		base_embed.set_description(format_split.at(0));
+		message.add_embed(base_embed);
+		if(command.interaction) {
+			command.interaction->edit_response(message);
+			return;
+		}
+	}
+
+	for(auto const& ban: format_split) {
+		auto embed{base_embed};
+		embed.set_description(ban);
+		message.add_embed(embed);
+	}
+	if(command.interaction) {
+		message_paginator paginator{message, command};
+		paginator.start();
+	}
 }

@@ -98,7 +98,7 @@ void hardban_wrapper::check_permissions() {
 	auto* bot_user = &command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
 
-	auto bot_roles = get_member_roles_sorted(bot_member);
+	auto bot_roles = get_roles_sorted(bot_member);
 	auto bot_top_role = *bot_roles.begin();
 
 
@@ -124,7 +124,7 @@ void hardban_wrapper::check_permissions() {
 	}
 
 	for(auto const& member: members) {
-		auto member_roles = get_member_roles_sorted(member);
+		auto member_roles = get_roles_sorted(member);
 		auto member_top_role = *member_roles.begin();
 
 		if(member.user_id == author_user->id) { // If for some reason you felt like hardbanning yourself, being the server owner.

@@ -24,10 +24,10 @@ void mute_wrapper::wrapper_function() {
 void mute_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
-	auto bot_roles = get_member_roles_sorted(bot_member);
+	auto bot_roles = get_roles_sorted(bot_member);
 	auto bot_top_role = *bot_roles.begin();
 
-	auto author_roles = get_member_roles_sorted(command.author);
+	auto author_roles = get_roles_sorted(command.author);
 	auto author_top_role = *author_roles.begin();
 
 	bool is_owner{false};
@@ -54,7 +54,7 @@ void mute_wrapper::check_permissions() {
 
 
 	for(auto const& member: members) {
-		auto member_roles = get_member_roles_sorted(member);
+		auto member_roles = get_roles_sorted(member);
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author.user_id == member.user_id) { // If for some reason you decided to mute yourself lol

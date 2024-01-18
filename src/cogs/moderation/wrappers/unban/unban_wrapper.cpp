@@ -24,10 +24,10 @@ void unban_wrapper::wrapper_function() {
 
 void unban_wrapper::check_permissions() {
 	auto* bot_user = &command.bot->me;
-	auto author_roles = get_member_roles_sorted(command.author);
+	auto author_roles = get_roles_sorted(command.author);
 	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
 	auto* author_top_role = *author_roles.begin();
-	auto bot_roles = get_member_roles_sorted(bot_member);
+	auto bot_roles = get_roles_sorted(bot_member);
 	auto* bot_top_role = *bot_roles.begin();
 
 	if(!bot_top_role->has_ban_members()) {

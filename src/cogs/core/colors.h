@@ -4,7 +4,7 @@
 
 #pragma once
 
-using color_t = unsigned int;
+#include "aliases.h"
 
 /**
  * @brief color - An enum for all the used color in the code.

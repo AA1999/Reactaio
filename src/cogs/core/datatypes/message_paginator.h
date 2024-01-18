@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../aliases.h"
-#include "../base_command.h"
+#include "../discord_command.h"
 
 #include <dpp/dpp.h>
 #include <string>
@@ -21,7 +21,7 @@ class message_paginator {
 	std::array<dpp::component, 4> buttons{};
 	dpp::component action_row;
 	dpp::message message;
-	base_command command;
+	discord_command command;
 	ushort current_page{0};
 	bool const use_embeds;
 	std::vector<std::string> messages;
@@ -67,7 +67,7 @@ public:
 	 * @param message The message to get the embeds from.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	message_paginator(const dpp::message& message, base_command& command): pages(message.embeds), message(message),
+	message_paginator(const dpp::message& message, discord_command & command): pages(message.embeds), message(message),
 	                  command(command), action_row(), use_embeds{true},
 	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
 	                  backward_id(std::format("{}_{}_{}_backward", command.author.user_id.str(), command.channel_id.str(), id)),
@@ -83,7 +83,7 @@ public:
 	 * @param messages The series of messages to put inside the paginator.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	message_paginator(const dpp::message& message, const std::vector<std::string>& messages ,base_command& command): message(message),
+	message_paginator(const dpp::message& message, const std::vector<std::string>& messages , discord_command & command): message(message),
 	                  messages(messages), command(command), action_row(), use_embeds{false},
 	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
 	                  backward_id(std::format("{}_{}_{}_backward", command.author.user_id.str(), command.channel_id.str(), id)),

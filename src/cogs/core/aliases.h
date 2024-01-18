@@ -14,3 +14,4 @@ using member_t	  = ullong;
 using duration_t  = ullong;
 using count_t	  = ullong;
 using snowflake_t = std::uint64_t;
+using color_t     = std::uint32_t;
