@@ -1,20 +1,15 @@
 //
-// Created by arshia on 1/19/24.
+// Created by arshia on 1/20/24.
 //
 
 #pragma once
 
-#include <utility>
-
 #include "../simple_wrapper.h"
 
-/**
- * @brief view_warnings - Wrapper for viewing warnings for a member.
- */
-class view_warnings: public simple_wrapper {
+class delete_warning: public simple_wrapper {
+	std::string warning_id;
 
 	dpp::guild_member member;
-
 	dpp::message response;
 
 	/**
@@ -31,14 +26,15 @@ class view_warnings: public simple_wrapper {
 	 * @brief process_response - Sends the resulting response to the wrapper message object as embed(s).
 	 */
 	void process_response();
-
 public:
+	delete_warning() = delete;
+
 	/**
 	 @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
-	 * @param member The member to check the warnings for.
+	 * @param warning_id The warning id.
 	 */
-	view_warnings(moderation_command command, dpp::guild_member member): simple_wrapper(std::move(command)), member(std::move(member)){}
-	~view_warnings() override = default;
+	delete_warning(moderation_command command, std::string_view warning_id): simple_wrapper(std::move(command)), warning_id(warning_id){}
 
+	~delete_warning() override = default;
 };

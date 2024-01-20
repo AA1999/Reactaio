@@ -78,5 +78,9 @@ void create_prepared_statements(pqxx::connection *connection) {
 	connection->prepare("permanent_timeout", "INSERT INTO permanent_timeouts(timeout_id, user_id, guild_id, author_id, reason) VALUES($1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT permanent_timeouts_pkey DO UPDATE SET REASON = $5");
 	connection->prepare("hardban_get", "SELECT user_id FROM hardbans WHERE guild_id = $1");
 	connection->prepare("view_warnings", "SELECT warn_id, reason FROM warnings WHERE guild_id = $1 AND user_id = $2");
+	connection->prepare("warning_lookup", "SELECT user_id FROM warnings WHERE warn_id = $1 AND guild_id = $2");
+	connection->prepare("remove_warning", "DELETE FROM warnings WHERE warn_id = $1 AND guild_id = $2 RETURNING warn_id");
+	connection->prepare("clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id");
+	connection->prepare("clear_guild_warnings", "DELETE FROM warnings WHERE guild_id = $1 RETURNING guild_id");
 }
 
