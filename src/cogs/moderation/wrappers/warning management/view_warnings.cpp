@@ -24,6 +24,11 @@ void view_warnings::check_permissions() {
 	auto* bot_top_role = *bot_roles_sorted.begin();
 	auto* member_top_role = *member_roles_sorted.begin();
 
+	if(!bot_top_role->has_moderate_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot's top role has Moderate Members permission.");
+	}
+
 	if(member_top_role->position > bot_top_role->position) {
 		cancel_operation = true;
 		errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to view warnings for this member. Please "

@@ -19,6 +19,12 @@ void delete_warning::check_permissions() {
 	auto bot_user = command.bot->me;
 	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
 	auto bot_roles_sorted = get_roles_sorted(bot_member);
+	auto* bot_top_role = *bot_roles_sorted.begin();
+
+	if(!bot_top_role->has_moderate_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Moderate Members permission.");
+	}
 
 	// Get member from warning id
 	pqxx::work transaction{*command.connection};
@@ -27,7 +33,6 @@ void delete_warning::check_permissions() {
 	if(!query["user_id"].is_null()) {
 		member = dpp::find_guild_member(command.guild->id, query["user_id"].as<snowflake_t>());
 		auto member_roles_sorted = get_roles_sorted(member);
-		auto* bot_top_role = *bot_roles_sorted.begin();
 		auto* member_top_role = *member_roles_sorted.begin();
 
 		if(member_top_role->position > bot_top_role->position) {
