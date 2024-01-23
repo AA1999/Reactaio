@@ -456,8 +456,8 @@ void mute_wrapper::process_response() {
 		pqxx::work transaction{*command.connection};
 		auto action_name = use_timeout ? reactaio::internal::mod_action_name::TIMEOUT : reactaio::internal::mod_action_name::MUTE;
 
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
-								  action_name, dpp::utility::current_date_time());
+		transaction.exec_prepared("command_insert_duration", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+								  action_name, duration.value().to_string(), dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../strings.h"
+
 #include <array>
 #include <chrono>
 #include <string>
@@ -37,13 +39,13 @@ const static std::vector<std::pair<chr::seconds, std::vector<std::string>>> unit
 // clang-format on
 
 struct duration {
-	std::array<int, TIME_PARTS_COUNT> values{0};
+	std::array<std::uint64_t, TIME_PARTS_COUNT> values{0};
 
 	/**
 	 * @brief years - Returns the years of a duration.
 	 * @return The years passed in this duration.
 	 */
-	int& years() {
+	std::uint64_t& years() {
 		return values.at(time::years);
 	}
 
@@ -51,7 +53,7 @@ struct duration {
 	 * @brief months - Returns the months of a duration.
 	 * @return The months passed in this duration.
 	 */
-	int& months() {
+	std::uint64_t& months() {
 		return values.at(time::months);
 	}
 
@@ -59,7 +61,7 @@ struct duration {
 	 * @brief weeks - Returns the weeks of a duration.
 	 * @return The weeks passed in this duration.
 	 */
-	int& weeks() {
+	std::uint64_t& weeks() {
 		return values.at(time::weeks);
 	}
 
@@ -67,7 +69,7 @@ struct duration {
 	 * @brief days - Returns the days of a duration.
 	 * @return The days passed in this duration.
 	 */
-	int& days() {
+	std::uint64_t& days() {
 		return values.at(time::days);
 	}
 
@@ -75,7 +77,7 @@ struct duration {
 	 * @brief hours - Returns the hours of a duration.
 	 * @return The hours passed in this duration.
 	 */
-	int& hours() {
+	std::uint64_t& hours() {
 		return values.at(time::hours);
 	}
 
@@ -83,7 +85,7 @@ struct duration {
 	 * @brief minutes - Returns the minutes of a duration.
 	 * @return The minutes passed in this duration.
 	 */
-	int& minutes() {
+	std::uint64_t& minutes() {
 		return values.at(time::minutes);
 	}
 
@@ -91,7 +93,7 @@ struct duration {
 	 * @brief seconds - Returns the seconds of a duration.
 	 * @return The seconds passed in this duration.
 	 */
-	int& seconds() {
+	std::uint64_t& seconds() {
 		return values.at(time::seconds);
 	}
 
@@ -99,7 +101,7 @@ struct duration {
 	 * @brief years - Returns the years of a duration.
 	 * @return The years passed in this duration.
 	 */
-	[[nodiscard]] int years() const {
+	[[nodiscard]] std::uint64_t years() const {
 		return values.at(time::years);
 	}
 
@@ -107,7 +109,7 @@ struct duration {
 	 * @brief months - Returns the months of a duration.
 	 * @return The months passed in this duration.
 	 */
-	[[nodiscard]] int months() const {
+	[[nodiscard]] std::uint64_t months() const {
 		return values.at(time::months);
 	}
 
@@ -115,7 +117,7 @@ struct duration {
 	 * @brief weeks - Returns the weeks of a duration.
 	 * @return The weeks passed in this duration.
 	 */
-	[[nodiscard]] int weeks() const {
+	[[nodiscard]] std::uint64_t weeks() const {
 		return values.at(time::weeks);
 	}
 
@@ -123,7 +125,7 @@ struct duration {
 	 * @brief days - Returns the days of a duration.
 	 * @return The days passed in this duration.
 	 */
-	[[nodiscard]] int days() const {
+	[[nodiscard]] std::uint64_t days() const {
 		return values.at(time::days);
 	}
 
@@ -131,7 +133,7 @@ struct duration {
 	 * @brief hours - Returns the hours of a duration.
 	 * @return The hours passed in this duration.
 	 */
-	[[nodiscard]] int hours() const {
+	[[nodiscard]] std::uint64_t hours() const {
 		return values.at(time::hours);
 	}
 
@@ -139,7 +141,7 @@ struct duration {
 	 * @brief minutes - Returns the minutes of a duration.
 	 * @return The years minutes in this duration.
 	 */
-	[[nodiscard]] int minutes() const {
+	[[nodiscard]] std::uint64_t minutes() const {
 		return values.at(time::minutes);
 	}
 
@@ -147,11 +149,32 @@ struct duration {
 	 * @brief seconds - Returns the seconds of a duration.
 	 * @return The seconds passed in this duration.
 	 */
-	[[nodiscard]] int seconds() const {
+	[[nodiscard]] std::uint64_t seconds() const {
 		return values.at(time::seconds);
 	}
 
 	duration() = default;
+
+	/**
+	 * @brief Constructor used to read the database data
+	 * @param duration_string The string duration read from the database query.
+	 */
+	explicit duration(const std::string& duration_string) {
+		auto tokens = split(duration_string, " ");
+		for(auto& token: tokens) {
+			auto number_string = remove_alpha(token);
+			auto number = std::stoull(token);
+			auto ending = remove_numeric(token);
+			auto find = std::ranges::find_if(units, [ending](std::pair<chr::seconds, std::vector<std::string>> const& element){
+				return element.second.front() == ending || element.second.back() == ending;
+			});
+			if(find != units.end()) { // Should always be true but failsafe
+				auto index = std::ranges::distance(units.begin(), find);
+				values.at(index) = number;
+			}
+		}
+	}
+
 
 	/**
 	 * @brief to_seconds - Converts this object to a std::chrono::seconds object

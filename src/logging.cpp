@@ -60,6 +60,8 @@ void create_prepared_statements(pqxx::connection *connection) {
 	connection->prepare("modcase_insert_duration", "INSERT INTO modcase(guild_id, case_id, action, duration, mod_id, "
 												   "punished_id, reason)"
 												   "VALUES($1, $2, $3, $4, $5, $6, $7)");
+	connection->prepare("modcase_view", "SELECT action, mod_id, punished_id, reason, duration FROM modcase WHERE case_id = $1 AND guild_id = $2");
+	connection->prepare("modcase_update_reason", "UPDATE modcase SET reason = $1 WHERE case_id = $1 AND guild_id = $2 RETURNING case_id");
 	connection->prepare("command_insert", "INSERT INTO command_logs(guild_id, author_id, name, issues_at) VALUES($1, $2, $3,"
 										  " $4)");
 	connection->prepare("get_ban_remove_days", "SELECT ban_remove_days FROM config WHERE guild_id = $1");

@@ -58,21 +58,6 @@ std::vector<std::string_view> find_all_of(std::string_view string, std::string_v
 std::vector<std::size_t> find_index_all(std::string_view string, std::string_view find);
 
 /**
- * @brief is_all_digit - Checks if a string is all numeric.
- * @param string The string to check.
- * @return true if the string is all numeric (e.g "1257")
- * @return false otherwise
- */
-bool is_all_digit(std::string_view string);
-
-/**
- * @brief remove_non_alphanumeric - Removes all non-numeric and alphabetic characters (0-9, Aa-Zz) from a string.
- * @param string The string to have the characters removed from.
- * @return The resulting string with only 0-9 and Aa-zZ characters.
- */
-std::string remove_non_alphanumeric(std::string_view string);
-
-/**
  * @brief non_bot_members - Counts all the dpp::guild_members from a guild if they're not a bot account.
  * @note This function won't and cannot count the self-bot accounts as a bot.
  * @param guild The guild to count the non-bot members in.

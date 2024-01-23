@@ -3,19 +3,11 @@
 //
 
 #include "helpers.h"
+#include "strings.h"
 
 #include <algorithm>
 #include <string>
 
-bool is_all_digit(std::string_view string) {
-	return std::ranges::all_of(string, ::isdigit);
-}
-
-std::string remove_non_alphanumeric(std::string_view string) {
-	std::string result;
-	std::ranges::copy_if(string, std::back_inserter(result), ::isalnum);
-	return result;
-}
 
 member_t non_bot_members(dpp::guild* guild) {
 	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
