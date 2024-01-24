@@ -62,10 +62,10 @@ void view_modcase::process_response() {
 								 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
 			if(!completion.is_error()) {
 				auto username = std::get<dpp::user_identified>(completion.value).format_username();
-				
-				embed.add_field(std::format("User: {}", username), std::format("Punishment type: {}", result["action"].as<std::string>()), true);
+				auto punishment_type = result["action"].as<std::string>();
+				embed.add_field(std::vformat("User: {}", std::make_format_args(username)), std::vformat("Punishment type: {}", std::make_format_args(punishment_type)), true);
 				auto reason = result["reason"].as<std::string>();
-				embed.add_field(std::format("Reason: {}"), reason, true);
+				embed.add_field("Reason: ", reason, true);
 				if(!result["duration"].is_null()) {
 					auto duration_str = result["duration"].as<std::string>();
 					embed.add_field("Duration: ", duration_str);

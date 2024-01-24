@@ -35,11 +35,3 @@ std::string remove_alpha(std::string_view string);
  * @return A copy that doesn't have the numeric characters.
  */
 std::string remove_numeric(std::string_view string);
-
-/**
- * @brief split - Splits a string into a vector by the specified delimiter.
- * @param string The string to split.
- * @param delimiter
- * @return
- */
-std::vector<std::string> split(std::string string, std::string_view delimiter = " ");
