@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <string_view>
-#include <vector>
+#include "datatypes/split_proxy.h"
 
 /**
  * @brief is_all_digit - Checks if a string is all numeric.
@@ -35,3 +34,15 @@ std::string remove_alpha(std::string_view string);
  * @return A copy that doesn't have the numeric characters.
  */
 std::string remove_numeric(std::string_view string);
+
+/**
+ *
+ * @tparam CharT
+ * @param string
+ * @param delimiter
+ * @return
+ */
+template <typename CharT>
+reactaio::internal::split_proxy<CharT> split(std::basic_string_view<CharT> string, std::basic_string_view<CharT> delimiter) {
+	return reactaio::internal::split_proxy{string, delimiter};
+}

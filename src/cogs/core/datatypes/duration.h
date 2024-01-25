@@ -160,17 +160,15 @@ struct duration {
 	 * @brief Constructor used to read the database data
 	 * @param duration_string The string duration read from the database query.
 	 */
-	explicit duration(const std::string& duration_string) {
-		auto tokens = std::views::split(duration_string, " ");
-		for(auto token: tokens) {
-			std::string token_str{token.begin(), token.end()};
-			auto number_string = remove_alpha(token_str);
-			auto number = std::stoull(token_str);
-			auto ending = remove_numeric(token_str);
-			auto find = std::ranges::find_if(units, [ending](std::pair<chr::seconds, std::vector<std::string>> const& element){
+	explicit duration(std::string_view duration_string) {
+		auto tokens = split(duration_string, std::string_view{" "});
+		for(auto const& token: tokens) {
+			auto number = std::stoull(remove_alpha(token));
+			auto ending = remove_numeric(token);
+			auto find = std::ranges::find_if(units, [ending](std::pair<chr::seconds, std::vector<std::string>> const &element) {
 				return element.second.front() == ending || element.second.back() == ending;
 			});
-			if(find != units.end()) { // Should always be true but failsafe
+			if (find != units.end()) {// Should always be true but a failsafe
 				auto index = std::ranges::distance(units.begin(), find);
 				values.at(index) = number;
 			}

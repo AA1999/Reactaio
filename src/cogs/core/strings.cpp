@@ -21,16 +21,12 @@ std::string remove_non_alphanumeric(std::string_view string) {
 
 std::string remove_alpha(std::string_view string) {
 	std::string result;
-	std::ranges::copy_if(string, std::back_inserter(result), [](auto const& character){
-		return !std::isalpha(character);
-	});
+	std::ranges::remove_copy_if(string, std::back_inserter(result), ::isalpha);
 	return result;
 }
 
 std::string remove_numeric(std::string_view string) {
 	std::string result;
-	std::ranges::copy_if(string, std::back_inserter(result), [](auto const& character) {
-		return !std::isdigit(character);
-	});
+	std::ranges::remove_copy_if(string, std::back_inserter(result), ::isdigit);
 	return result;
 }
