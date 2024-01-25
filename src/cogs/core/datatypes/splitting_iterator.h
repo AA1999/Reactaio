@@ -50,11 +50,11 @@ namespace reactaio::internal {
 		/**
 		 * @brief operator == - Equality comparison operator.
 		 * @param other Another iterator to compare this to.
-		 * @return true if the string and delimiters are the same.
-		 * @return false if the string and the delimiters aren't the same.
+		 * @return true if the string and delimiters and the position are the same.
+		 * @return false if the string and the delimiters and the position aren't the same.
 		 */
 		bool operator== (splitting_iterator const& other) const {
-			return this->m_string == other.m_string && this->m_delimiter == other.m_delimiter;
+			return this->m_string == other.m_string && this->m_delimiter == other.m_delimiter && this->m_pos == other.m_pos;
 		}
 	};
 }
