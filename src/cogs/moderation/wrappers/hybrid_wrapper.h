@@ -56,6 +56,6 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
 	hybrid_wrapper(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &snowflakes, moderation_command& command)
-		: snowflakes(snowflakes), command_wrapper(std::move(command)) {}
+		: command_wrapper(std::move(command)), snowflakes(snowflakes) {}
 
 };

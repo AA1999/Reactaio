@@ -213,7 +213,7 @@ void mute_wrapper::process_mutes() {
 	duration = parse_human_time(command.duration);
 	if(use_timeout) {
 		if(duration) {
-			if(duration->to_seconds().count() > max_timeout_seconds) {
+			if(static_cast<ullong>(duration->to_seconds().count()) > max_timeout_seconds) {
 				errors.emplace_back("❌ Invalid timeout duration. Timeouts can only be max of 28 days.");
 			}
 			else {

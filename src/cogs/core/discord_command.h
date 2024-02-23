@@ -32,11 +32,11 @@ struct discord_command {
 	 * @param interaction The slash command interaction (if called from a slash command)
 	 */
 	discord_command(dpp::cluster* bot, pqxx::connection* connection, dpp::guild* guild, dpp::guild_member  author,
-				 const dpp::snowflake& channel_id, const std::optional<dpp::slashcommand_t>& interaction) : bot(bot),
-																											connection(connection),
-																											guild(guild),
+				 const dpp::snowflake& channel_id, const std::optional<dpp::slashcommand_t>& interaction) : guild(guild),
 																											author(std::move(author)),
 																											channel_id(channel_id),
+																											bot(bot),
+																											connection(connection),
 																											interaction(interaction) {}
 
 	discord_command(discord_command && command) noexcept = default;

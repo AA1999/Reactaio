@@ -29,7 +29,6 @@ class unmute_wrapper: public member_wrapper {
 	 */
 	void process_response();
 
-	bool use_timeout{true};
 
 	/**
 	 * @brief lambda_callback - This is a function that's called when an API call is made.

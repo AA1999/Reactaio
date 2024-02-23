@@ -46,7 +46,7 @@ public:
 	 * @param users The list of dpp::user* objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): users(users), command_wrapper(std::move(command)){}
+	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): command_wrapper(std::move(command)), users(users){}
 
 	~user_wrapper() override = default;
 };

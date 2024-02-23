@@ -9,6 +9,7 @@
 
 #include <dpp/dpp.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include <array>
 #include <format>
@@ -17,14 +18,34 @@
  * @brief message_paginator - A utility class to show a serires of texts/embes in one message. Buttons are used for navigation.
  */
 class message_paginator {
+	discord_command m_command;
+	dpp::message m_message;
 	std::vector<dpp::embed> pages;
 	std::array<dpp::component, 4> buttons{};
 	dpp::component action_row;
-	dpp::message message;
-	discord_command command;
 	ushort current_page{0};
 	bool const use_embeds;
 	std::vector<std::string> messages;
+
+
+	enum action: ushort {
+		SKIP_FIRST = 0,
+		BACKWARD = 1,
+		FORWARD = 2,
+		SKIP_LAST = 3
+	};
+
+	constexpr static std::string_view SKIP_FIRST_FORMAT = "{}_{}_{}_skip_first";
+	constexpr static std::string_view SKIP_LAST_FORMAT = "{}_{}_{}_skip_last";
+	constexpr static std::string_view FORWARD_FORMAT = "{}_{}_{}_forward";
+	constexpr static std::string_view BACKWARD_FORMAT = "{}_{}_{}_backward";
+
+	inline static ullong id{0}; // Unique id for each paginator
+
+	std::string const forward_id;
+	std::string const backward_id;
+	std::string const skip_last_id;
+	std::string const skip_first_id;
 
 	/**
 	 * @brief forward - Goes to the next page. Goes back to page 0 if at the last page already.
@@ -46,17 +67,6 @@ class message_paginator {
 	 */
 	void skip_first();
 
-	const static ushort SKIP_FIRST{0};
-	const static ushort BACKWARD{1};
-	const static ushort FORWARD{2};
-	const static ushort SKIP_LAST{3};
-
-	inline static ullong id{0}; // Unique id for each paginator
-
-	std::string const forward_id;
-	std::string const backward_id;
-	std::string const skip_last_id;
-	std::string const skip_first_id;
 
 public:
 	~message_paginator();
@@ -67,12 +77,14 @@ public:
 	 * @param message The message to get the embeds from.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	message_paginator(const dpp::message& message, discord_command & command): pages(message.embeds), message(message),
-	                  command(command), action_row(), use_embeds{true},
-	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  backward_id(std::format("{}_{}_{}_backward", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  skip_first_id(std::format("{}_{}_{}_skip_first", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  skip_last_id(std::format("{}_{}_{}_skip_last", command.author.user_id.str(), command.channel_id.str(), id))
+	message_paginator(dpp::message message, discord_command& command): m_command(std::move(command)),
+																			  m_message(std::move(message)),
+																			  pages(m_message.embeds),
+																			  action_row(), use_embeds{true},
+																			  forward_id(std::format("{}_{}_{}_forward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+															                  backward_id(std::format("{}_{}_{}_backward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+																			  skip_last_id(std::format("{}_{}_{}_skip_last", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+															                  skip_first_id(std::format("{}_{}_{}_skip_first", m_command.author.user_id.str(), m_command.channel_id.str(), id))
 	{
 		id++;
 	}
@@ -83,12 +95,14 @@ public:
 	 * @param messages The series of messages to put inside the paginator.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	message_paginator(const dpp::message& message, const std::vector<std::string>& messages , discord_command & command): message(message),
-	                  messages(messages), command(command), action_row(), use_embeds{false},
-	                  forward_id(std::format("{}_{}_{}_forward", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  backward_id(std::format("{}_{}_{}_backward", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  skip_first_id(std::format("{}_{}_{}_skip_first", command.author.user_id.str(), command.channel_id.str(), id)),
-	                  skip_last_id(std::format("{}_{}_skip_last", command.author.user_id.str(), command.channel_id.str(), id))
+	message_paginator(dpp::message message, const std::vector<std::string>& messages , discord_command & command): m_command(command), m_message(std::move(message)),
+					action_row(), use_embeds{false},
+					messages(messages),
+	                forward_id(std::format("{}_{}_{}_forward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+	                backward_id(std::format("{}_{}_{}_backward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+					skip_last_id(std::format("{}_{}_skip_last", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+	                skip_first_id(std::format("{}_{}_{}_skip_first", m_command.author.user_id.str(), m_command.channel_id.str(), id))
+
 	{
 		id++;
 	}

@@ -5,7 +5,6 @@
 #pragma once
 #include <cstdint>
 
-using cstring	  = const char*;
 using ullong	  = unsigned long long int;
 using ushort	  = unsigned short;
 using warn_t	  = ullong;

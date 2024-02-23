@@ -53,16 +53,16 @@ void message_paginator::start() {
 	for(auto const& button: buttons)
 		action_row.add_component(button);
 
-	message.components.clear();
-	message.add_component(action_row);
+	m_message.components.clear();
+	m_message.add_component(action_row);
 
-	if(command.interaction) {
-		command.interaction->reply(message);
+	if(m_command.interaction) {
+		m_command.interaction->reply(m_message);
 	}
 	else {
-		command.bot->message_create(message);
+		m_command.bot->message_create(m_message);
 	}
-	command.bot->on_button_click([this](const dpp::button_click_t& event) {
+	m_command.bot->on_button_click([this](const dpp::button_click_t& event) {
 		if(event.custom_id == forward_id) {
 			forward();
 		}
@@ -81,16 +81,16 @@ void message_paginator::start() {
 void message_paginator::forward() {
 	current_page = ++current_page % size();
 	if(is_embed_paginator()) {
-		message.embeds.clear();
-		message.add_embed(pages[current_page]);
+		m_message.embeds.clear();
+		m_message.add_embed(pages[current_page]);
 	}
 	else {
-		message.set_content(messages[current_page]);
+		m_message.set_content(messages[current_page]);
 	}
-	if(command.interaction)
-		command.interaction->edit_response(message);
+	if(m_command.interaction)
+		m_command.interaction->edit_response(m_message);
 	else
-		command.bot->message_edit(message);
+		m_command.bot->message_edit(m_message);
 }
 
 void message_paginator::backward() {
@@ -99,47 +99,47 @@ void message_paginator::backward() {
 	else
 		current_page--;
 	if(is_embed_paginator()) {
-		message.embeds.clear();
-		message.add_embed(pages[current_page]);
+		m_message.embeds.clear();
+		m_message.add_embed(pages[current_page]);
 	}
 	else {
-		message.set_content(messages[current_page]);
+		m_message.set_content(messages[current_page]);
 	}
-	if(command.interaction)
-		command.interaction->edit_response(message);
+	if(m_command.interaction)
+		m_command.interaction->edit_response(m_message);
 	else
-		command.bot->message_edit(message);
+		m_command.bot->message_edit(m_message);
 }
 
 void message_paginator::skip_last() {
 	current_page = size() - 1;
 	if(is_embed_paginator()) {
-		message.embeds.clear();
-		message.add_embed(pages[current_page]);
+		m_message.embeds.clear();
+		m_message.add_embed(pages[current_page]);
 	}
 	else {
-		message.set_content(messages[current_page]);
+		m_message.set_content(messages[current_page]);
 	}
-	if(command.interaction)
-		command.interaction->edit_response(message);
+	if(m_command.interaction)
+		m_command.interaction->edit_response(m_message);
 	else
-		command.bot->message_edit(message);
+		m_command.bot->message_edit(m_message);
 }
 
 
 void message_paginator::skip_first() {
 	current_page = 0;
 	if(is_embed_paginator()) {
-		message.embeds.clear();
-		message.add_embed(pages[current_page]);
+		m_message.embeds.clear();
+		m_message.add_embed(pages[current_page]);
 	}
 	else {
-		message.set_content(messages[current_page]);
+		m_message.set_content(messages[current_page]);
 	}
-	if(command.interaction)
-		command.interaction->edit_response(message);
+	if(m_command.interaction)
+		m_command.interaction->edit_response(m_message);
 	else
-		command.bot->message_edit(message);
+		m_command.bot->message_edit(m_message);
 }
 message_paginator::~message_paginator() {
 	action_row.components.clear();
@@ -148,13 +148,13 @@ message_paginator::~message_paginator() {
 		action_row.add_component(button);
 	}
 
-	message.components.clear();
-	message.add_component(action_row);
+	m_message.components.clear();
+	m_message.add_component(action_row);
 
-	if(command.interaction)
-		command.interaction->edit_response(message);
+	if(m_command.interaction)
+		m_command.interaction->edit_response(m_message);
 	else
-		command.bot->message_edit(message);
+		m_command.bot->message_edit(m_message);
 }
 bool message_paginator::is_embed_paginator() const {
 	return use_embeds;

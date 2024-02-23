@@ -56,7 +56,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
 	explicit command_wrapper(moderation_command command)
-	    : command(std::move(command)), duration(parse_human_time(command.duration)) {}
+	    : duration(parse_human_time(command.duration)), command(std::move(command)) {}
 
 
 	/**

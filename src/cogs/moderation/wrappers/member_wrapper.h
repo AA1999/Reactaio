@@ -45,7 +45,7 @@ public:
 	 * @param members The list of the guild members
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	member_wrapper(const std::vector<dpp::guild_member>& members, moderation_command& command): members(members), command_wrapper(std::move(command)){}
+	member_wrapper(const std::vector<dpp::guild_member>& members, moderation_command& command): command_wrapper(std::move(command)), members(members){}
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.
