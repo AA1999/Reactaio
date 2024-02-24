@@ -81,10 +81,10 @@ public:
 																			  m_message(std::move(message)),
 																			  pages(m_message.embeds),
 																			  action_row(), use_embeds{true},
-																			  forward_id(std::format("{}_{}_{}_forward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-															                  backward_id(std::format("{}_{}_{}_backward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-																			  skip_last_id(std::format("{}_{}_{}_skip_last", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-															                  skip_first_id(std::format("{}_{}_{}_skip_first", m_command.author.user_id.str(), m_command.channel_id.str(), id))
+																			  forward_id(std::format(FORWARD_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+															                  backward_id(std::format(BACKWARD_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+																			  skip_last_id(std::format(SKIP_LAST_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+															                  skip_first_id(std::format(SKIP_FIRST_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id))
 	{
 		id++;
 	}
@@ -98,10 +98,10 @@ public:
 	message_paginator(dpp::message message, const std::vector<std::string>& messages , discord_command & command): m_command(command), m_message(std::move(message)),
 					action_row(), use_embeds{false},
 					messages(messages),
-	                forward_id(std::format("{}_{}_{}_forward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-	                backward_id(std::format("{}_{}_{}_backward", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-					skip_last_id(std::format("{}_{}_skip_last", m_command.author.user_id.str(), m_command.channel_id.str(), id)),
-	                skip_first_id(std::format("{}_{}_{}_skip_first", m_command.author.user_id.str(), m_command.channel_id.str(), id))
+	                forward_id(std::format(FORWARD_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+	                backward_id(std::format(BACKWARD_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+					skip_last_id(std::format(SKIP_LAST_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id)),
+	                skip_first_id(std::format(SKIP_FIRST_FORMAT, m_command.author.user_id.str(), m_command.channel_id.str(), id))
 
 	{
 		id++;
