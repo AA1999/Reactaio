@@ -1,10 +1,21 @@
 cmake_minimum_required(VERSION 3.23)
 project(Reactaio VERSION 1.0 DESCRIPTION "A multi-purpose AIO discord bot written in C++.")
 
-file(GLOB_RECURSE sources src/*.cpp src/*.h src/*.cppm)
+file(GLOB_RECURSE sources src/*.cppm)
 
 add_executable(${PROJECT_NAME}
         ${sources}
+        src/cogs/core/datatypes/duration.cppm
+        src/cogs/core/strings.cppm
+        src/cogs/core/datatypes/split_proxy.cppm
+        src/cogs/core/datatypes/splitting_iterator.cppm
+        src/cogs/core/aliases.cppm
+        src/cogs/core/datatypes/colors.cppm
+        src/cogs/core/datatypes/fifo_map.cppm
+        src/cogs/core/datatypes/message_paginator.cppm
+        src/cogs/core/datatypes/discord_command.cppm
+        src/cogs/core/datatypes/parser_item.cppm
+        src/cogs/core/consts.cppm
 )
 
 find_package(nlohmann_json 3.11.2 REQUIRED)
