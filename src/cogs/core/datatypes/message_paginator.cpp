@@ -3,14 +3,9 @@
 //
 
 #include "message_paginator.h"
-#include "../helpers.h"
 
 #include <stdexcept>
 #include <format>
-
-std::size_t message_paginator::size() const {
-	return pages.size();
-}
 
 void message_paginator::add_page(const dpp::embed& embed) {
 	if(is_embed_paginator())
@@ -155,7 +150,4 @@ message_paginator::~message_paginator() {
 		m_command.interaction->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
-}
-bool message_paginator::is_embed_paginator() const {
-	return use_embeds;
 }

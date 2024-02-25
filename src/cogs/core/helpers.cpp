@@ -8,20 +8,6 @@
 #include <algorithm>
 #include <string>
 
-
-member_t non_bot_members(dpp::guild* guild) {
-	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
-		return !member.get_user()->is_bot();
-	});
-}
-
-member_t bot_members(dpp::guild* guild) {
-	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
-		return member.get_user()->is_bot();
-	});
-}
-
-
 std::vector<std::string> join_with_limit(const std::vector<std::string> &vector, std::size_t length) {
 	std::vector<std::string> result;
 	std::size_t current_size{0};
@@ -44,9 +30,6 @@ std::vector<std::string> join_with_limit(const std::vector<std::string> &vector,
 	return result;
 }
 
-bool includes(std::string_view string, std::string_view find) {
-	return string.find(find) != std::string_view::npos;
-}
 
 std::vector<std::string_view> find_all_of(std::string_view string, std::string_view find) {
 	std::vector<std::string_view> results;

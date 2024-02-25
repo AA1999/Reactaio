@@ -27,8 +27,7 @@ class message_paginator {
 	bool const use_embeds;
 	std::vector<std::string> messages;
 
-
-	enum action: ushort {
+	enum action: std::uint8_t {
 		SKIP_FIRST = 0,
 		BACKWARD = 1,
 		FORWARD = 2,
@@ -132,13 +131,17 @@ public:
 	 * @brief size - Returns the length of the paginator.
 	 * @return  The length of the paginator.
 	 */
-	[[nodiscard]] std::size_t size() const;
+	[[nodiscard]] constexpr std::size_t size() const {
+		return is_embed_paginator() ? pages.size() : messages.size();
+	}
 
 	/**
 	 * @brief start - Starts the paginator and activates the buttons.
 	 */
 	void start();
 
-	[[nodiscard]] bool is_embed_paginator() const;
+	[[nodiscard]] constexpr bool is_embed_paginator() const {
+		return use_embeds;
+	}
 
 };

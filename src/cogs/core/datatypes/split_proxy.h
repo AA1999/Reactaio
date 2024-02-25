@@ -25,14 +25,14 @@ namespace reactaio::internal {
 		 * @param string Target string to split.
 		 * @param delimiter The delimiter to split by.
 		 */
-		split_proxy(string_view string, string_view delimiter): m_string(string), m_delimiter(delimiter){}
+		constexpr split_proxy(string_view string, string_view delimiter): m_string(string), m_delimiter(delimiter){}
 
 
 		/**
 		 * @brief begin - The beginning of the split strings
 		 * @return Iterator to the beginning of the split strings.
 		 */
-		iterator begin() {
+		constexpr iterator begin() {
 			return iterator(m_string, m_delimiter, 0);
 		}
 
@@ -40,7 +40,7 @@ namespace reactaio::internal {
 		 * @brief end - The end of the split strings
 		 * @return Iterator to the end of the split strings.
 		 */
-		iterator end() {
+		constexpr iterator end() {
 			return iterator(m_string, m_delimiter, string_view::npos);
 		}
 
@@ -48,7 +48,7 @@ namespace reactaio::internal {
 		 * @brief front - First split string
 		 * @return Reference to the first split string.
 		 */
-		string_view front() {
+		constexpr string_view front() {
 			return *begin();
 		}
 
@@ -56,7 +56,7 @@ namespace reactaio::internal {
 		 * @brief back - Last split string
 		 * @return Reference to the last split string.
 		 */
-		string_view back() {
+		constexpr string_view back() {
 			return *end();
 		}
 	};

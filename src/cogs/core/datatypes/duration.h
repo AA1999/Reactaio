@@ -46,7 +46,7 @@ struct duration {
 	 * @brief years - Returns the years of a duration.
 	 * @return The years passed in this duration.
 	 */
-	std::uint64_t& years() {
+	constexpr std::uint64_t& years() {
 		return values.at(time::years);
 	}
 
@@ -54,7 +54,7 @@ struct duration {
 	 * @brief months - Returns the months of a duration.
 	 * @return The months passed in this duration.
 	 */
-	std::uint64_t& months() {
+	constexpr std::uint64_t& months() {
 		return values.at(time::months);
 	}
 
@@ -62,7 +62,7 @@ struct duration {
 	 * @brief weeks - Returns the weeks of a duration.
 	 * @return The weeks passed in this duration.
 	 */
-	std::uint64_t& weeks() {
+	constexpr std::uint64_t& weeks() {
 		return values.at(time::weeks);
 	}
 
@@ -70,7 +70,7 @@ struct duration {
 	 * @brief days - Returns the days of a duration.
 	 * @return The days passed in this duration.
 	 */
-	std::uint64_t& days() {
+	constexpr std::uint64_t& days() {
 		return values.at(time::days);
 	}
 
@@ -78,7 +78,7 @@ struct duration {
 	 * @brief hours - Returns the hours of a duration.
 	 * @return The hours passed in this duration.
 	 */
-	std::uint64_t& hours() {
+	constexpr std::uint64_t& hours() {
 		return values.at(time::hours);
 	}
 
@@ -86,7 +86,7 @@ struct duration {
 	 * @brief minutes - Returns the minutes of a duration.
 	 * @return The minutes passed in this duration.
 	 */
-	std::uint64_t& minutes() {
+	constexpr std::uint64_t& minutes() {
 		return values.at(time::minutes);
 	}
 
@@ -94,7 +94,7 @@ struct duration {
 	 * @brief seconds - Returns the seconds of a duration.
 	 * @return The seconds passed in this duration.
 	 */
-	std::uint64_t& seconds() {
+	constexpr std::uint64_t& seconds() {
 		return values.at(time::seconds);
 	}
 
@@ -102,7 +102,7 @@ struct duration {
 	 * @brief years - Returns the years of a duration.
 	 * @return The years passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t years() const {
+	[[nodiscard]] constexpr std::uint64_t years() const {
 		return values.at(time::years);
 	}
 
@@ -110,7 +110,7 @@ struct duration {
 	 * @brief months - Returns the months of a duration.
 	 * @return The months passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t months() const {
+	[[nodiscard]] constexpr std::uint64_t months() const {
 		return values.at(time::months);
 	}
 
@@ -118,7 +118,7 @@ struct duration {
 	 * @brief weeks - Returns the weeks of a duration.
 	 * @return The weeks passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t weeks() const {
+	[[nodiscard]] constexpr std::uint64_t weeks() const {
 		return values.at(time::weeks);
 	}
 
@@ -126,7 +126,7 @@ struct duration {
 	 * @brief days - Returns the days of a duration.
 	 * @return The days passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t days() const {
+	[[nodiscard]] constexpr std::uint64_t days() const {
 		return values.at(time::days);
 	}
 
@@ -134,7 +134,7 @@ struct duration {
 	 * @brief hours - Returns the hours of a duration.
 	 * @return The hours passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t hours() const {
+	[[nodiscard]] constexpr std::uint64_t hours() const {
 		return values.at(time::hours);
 	}
 
@@ -142,7 +142,7 @@ struct duration {
 	 * @brief minutes - Returns the minutes of a duration.
 	 * @return The years minutes in this duration.
 	 */
-	[[nodiscard]] std::uint64_t minutes() const {
+	[[nodiscard]] constexpr std::uint64_t minutes() const {
 		return values.at(time::minutes);
 	}
 
@@ -150,7 +150,7 @@ struct duration {
 	 * @brief seconds - Returns the seconds of a duration.
 	 * @return The seconds passed in this duration.
 	 */
-	[[nodiscard]] std::uint64_t seconds() const {
+	[[nodiscard]] constexpr std::uint64_t seconds() const {
 		return values.at(time::seconds);
 	}
 
@@ -180,7 +180,7 @@ struct duration {
 	 * @brief to_seconds - Converts this object to a std::chrono::seconds object
 	 * @return The std::chrono::seconds variant equivalent of this object
 	 */
-	[[nodiscard]] chr::seconds to_seconds() const {
+	[[nodiscard]] constexpr chr::seconds to_seconds() const {
 		return years() * chr::years{1} + months() * chr::months{1} + weeks() * chr::weeks{1}
 		+ days() * chr::days{1} + hours() * chr::hours{1} + minutes() * chr::minutes{1}
 		+ seconds() * chr::seconds{1};

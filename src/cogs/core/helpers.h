@@ -38,7 +38,9 @@ bool includes(const T& vector, const typename T::value_type& key) {
  * @return true if the string is found
  * @return false otherwise
  */
-bool includes(std::string_view string, std::string_view find);
+constexpr bool includes(std::string_view string, std::string_view find) {
+	return string.find(find) != std::string_view::npos;
+}
 
 
 /**
@@ -63,14 +65,22 @@ std::vector<std::size_t> find_index_all(std::string_view string, std::string_vie
  * @param guild The guild to count the non-bot members in.
  * @return The count of the members that aren't bots.
  */
-member_t non_bot_members(dpp::guild* guild);
+constexpr member_t non_bot_members(dpp::guild* guild) {
+	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
+		return !member.get_user()->is_bot();
+	});
+}
 
 /**
  * @brief bot_members - Counts all the dpp::guild_members from a guild if they're a bot account
  * @param guild The guild to count the bot members in.
  * @return The count of the members that are bots.
  */
-member_t bot_members(dpp::guild* guild);
+constexpr member_t bot_members(dpp::guild* guild) {
+	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
+		return member.get_user()->is_bot();
+	});
+}
 
 /**
  * @brief ordinal - Returns the ordinal format of a number
@@ -91,7 +101,7 @@ constexpr std::string ordinal(ullong number) {
 
 
 /**
- * @brief join -
+ * @brief join - Joins a vector of strings into one string by a separator.
  * @param vector The vector to join.
  * @param separator The separator to add to the end of each element.
  * @return A string created from concatenating all the vector elements.
