@@ -27,11 +27,6 @@ protected:
 	void wrapper_function() override = 0;
 
 
-	/**
-	 * @brief are_all_errors - Checks if every item has encountered an error.
-	 * @return Whether if every single item given to the wrapper has encountered an error.
-	 */
-	[[nodiscard]] bool are_all_errors() const override;
 
 	/**
 	 * @brief lambda_callback - This is a function that's called when an API call is made.
@@ -47,6 +42,15 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
 	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): command_wrapper(std::move(command)), users(users){}
+
+	/**
+	 * @brief are_all_errors - Checks if every item has encountered an error.
+	 * @return Whether if every single item given to the wrapper has encountered an error.
+	 */
+	[[nodiscard]] constexpr bool are_all_errors() const override {
+		return users_with_errors.size() == users.size();
+	}
+
 
 	~user_wrapper() override = default;
 };

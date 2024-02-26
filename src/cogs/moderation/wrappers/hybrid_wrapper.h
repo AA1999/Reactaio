@@ -48,7 +48,9 @@ public:
 	 * @brief are_all_errors - Checks if every item has encountered an error.
 	 * @return Whether if every single item given to the wrapper has encountered an error.
 	 */
-	[[nodiscard]] bool are_all_errors() const override;
+	[[nodiscard]] constexpr bool are_all_errors() const override {
+		return users_with_errors.size() == snowflakes.size();
+	}
 
 	/**
 	 * @brief The main constructor of the class used to get data from the command.

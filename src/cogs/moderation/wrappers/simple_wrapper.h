@@ -31,5 +31,7 @@ public:
 
 	~simple_wrapper() override = default;
 
-	[[nodiscard]] bool are_all_errors() const override;
+	[[nodiscard]] constexpr bool are_all_errors() const override {
+		return has_error();
+	}
 };

@@ -45,5 +45,7 @@ public:
 	 * @return true if there were errors in the operation.
 	 * @return false if there were no errors in the operation.
 	 */
-	[[nodiscard]] bool are_all_errors() const override;
+	[[nodiscard]] constexpr bool are_all_errors() const override {
+		return has_error();
+	}
 };

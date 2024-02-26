@@ -68,7 +68,9 @@ public:
 	 * @brief has_error - Checks for any errors in the process.
 	 * @return Whether there is any error when performing the specified instructions.
 	 */
-	[[nodiscard]] virtual bool has_error() const final;
+	[[nodiscard]] constexpr virtual bool has_error() const final {
+		return !errors.empty();
+	}
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.
@@ -81,5 +83,5 @@ public:
 	 * @note This is an abstract function.
 	 * @return The full error message if has_error() is true
 	 */
-	[[nodiscard]] std::optional<dpp::message> error() const;
+	[[nodiscard]] virtual std::optional<dpp::message> error() const final;
 };

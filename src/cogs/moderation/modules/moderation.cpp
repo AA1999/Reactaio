@@ -6,6 +6,7 @@
 #include "../wrappers/kick/kick_wrapper.h"
 #include "../wrappers/mute/mute_wrapper.h"
 #include "../wrappers/warn/warn_wrapper.h"
+#include "../wrappers/warning management/delete_warning.h"
 #include "../wrappers/ban/ban_wrapper.h"
 #include "../wrappers/softban/softban_wrapper.h"
 #include "../wrappers/hardban/hardban_wrapper.h"
