@@ -25,11 +25,6 @@ class clear_guild_warnings: public simple_wrapper {
 	void process_response();
 
 public:
-	/**
-	 @brief The main constructor of the class used to get data from the command.
-	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
-	 * @param member The member to clear the warnings for.
-	 */
-	explicit clear_guild_warnings(moderation_command command): simple_wrapper(std::move(command)){}
+	using simple_wrapper::simple_wrapper;
 	~clear_guild_warnings() override = default;
 };

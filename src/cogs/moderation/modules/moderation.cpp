@@ -7,52 +7,90 @@
 #include "../wrappers/mute/mute_wrapper.h"
 #include "../wrappers/warn/warn_wrapper.h"
 #include "../wrappers/warning management/delete_warning.h"
+#include "../wrappers/warning management/clear_warnings.h"
+#include "../wrappers/warning management/clear_guild_warnings.h"
+#include "../wrappers/warning management/view_warnings.h"
 #include "../wrappers/ban/ban_wrapper.h"
 #include "../wrappers/softban/softban_wrapper.h"
 #include "../wrappers/hardban/hardban_wrapper.h"
+#include "../wrappers/unmute/unmute_wrapper.h"
+#include "../wrappers/unban/unban_wrapper.h"
+#include "../wrappers/bans/guild_bans_wrapper.h"
 
+#include <string_view>
+#include <utility>
 
 namespace reactaio::moderation {
-	void kick(const std::vector<dpp::guild_member>& members, const moderation_command& command) {
-		kick_wrapper kick_members{members, const_cast<moderation_command&>(command)};
+	void kick(const std::vector<dpp::guild_member>& members, moderation_command command) {
+		kick_wrapper kick_members{members, command};
 		kick_members();
 	}
 
-	void ban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, const moderation_command &command) {
-		ban_wrapper ban_users{users_or_members, const_cast<moderation_command&>(command)};
+	void ban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, moderation_command command) {
+		ban_wrapper ban_users{users_or_members, command};
 		ban_users();
 	}
-	void softban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, const moderation_command &command) {
-		softban_wrapper softban_users{users_or_members, const_cast<moderation_command&>(command)};
+
+	void softban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, moderation_command command) {
+		softban_wrapper softban_users{users_or_members, command};
 		softban_users();
 	}
+
 	void hardban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, const moderation_command &command) {
 		hardban_wrapper hardban_users(users_or_members, const_cast<moderation_command&>(command));
 		hardban_users();
 	}
-	void mute(const std::vector<dpp::guild_member> &members, const moderation_command &command) {
-		mute_wrapper mute_members{members, const_cast<moderation_command&>(command)};
+
+	void mute(const std::vector<dpp::guild_member> &members, moderation_command command) {
+		mute_wrapper mute_members{members, command};
 		mute_members();
 	}
-	void warn(const std::vector<dpp::guild_member> &members, const moderation_command &command) {
-		warn_wrapper warn_members{members, const_cast<moderation_command&>(command)};
+
+	void warn(const std::vector<dpp::guild_member> &members, moderation_command command) {
+		warn_wrapper warn_members{members, command};
 		warn_members();
 	}
-	void delete_warn(warn_t warning_id, const moderation_command &command) {
+
+	void delete_warn(warn_t warning_id, moderation_command command) {
+		delete_warning delete_warn{std::to_string(warning_id), command};
+		delete_warn();
+	}
+
+	void clear_member_warnings(dpp::guild_member member, moderation_command command) {
+		clear_warnings clear_warns{std::move(member), command};
+		clear_warns();
+	}
+
+	void delete_all_guild_warns(moderation_command command) {
+		clear_guild_warnings clear_guild_warns{command};
+		clear_guild_warns();
+	}
+
+	void unmute(const std::vector<dpp::guild_member> &members, moderation_command command) {
+		unmute_wrapper unmute_members{members, command};
+		unmute_members();
+	}
+
+	void unban(const std::vector<dpp::user*> &users, moderation_command command) {
+		unban_wrapper unban_users{users, command};
+		unban_users();
+	}
+
+	void view_ban_list(moderation_command command) {
+		guild_bans_wrapper view_bans{command};
+		view_bans();
+	}
+
+	void view_muted_list(moderation_command command) {
 
 	}
-	void delete_all_guild_warns(const moderation_command &command) {
+
+	void view_member_warnings(dpp::guild_member member, moderation_command command) {
+		view_warnings view_warns{std::move(member), command};
+		view_warns();
 	}
-	void unmute(const std::vector<dpp::guild_member> &members, const moderation_command &command) {
-	}
-	void unban(const std::vector<dpp::user *> &users, const moderation_command &command) {
-	}
-	void view_ban_list(const moderation_command &command) {
-	}
-	void view_muted_list(const moderation_command &command) {
-	}
-	void view_warnings(const dpp::guild_member &member, const moderation_command &command) {
-	}
-	void view_warnings_list(const moderation_command &command) {
+
+	void view_guild_warnings(moderation_command command) {
+
 	}
 }

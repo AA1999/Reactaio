@@ -38,7 +38,7 @@ public:
 	 * @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	explicit guild_wrapper(moderation_command& command): command_wrapper(std::move(command)){};
+	explicit guild_wrapper(moderation_command command): command_wrapper(std::move(command)){};
 
 	/**
 	 * @brief are_all_errors - Checks if the operation had any errors.

@@ -23,4 +23,5 @@ struct moderation_command : public discord_command {
 																			  reason(reason), duration(duration), delete_message_days(delete_message_days), appeal(appeal) {}
 
 	moderation_command(moderation_command&& command) noexcept = default;
+	moderation_command(moderation_command& command) = default;
 };

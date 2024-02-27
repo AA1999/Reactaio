@@ -34,7 +34,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 * @param warning_id The warning id.
 	 */
-	delete_warning(moderation_command command, std::string_view warning_id): simple_wrapper(std::move(command)), warning_id(warning_id){}
+	delete_warning(std::string_view warning_id, moderation_command command) : simple_wrapper(std::move(command)), warning_id(warning_id){}
 
 	~delete_warning() override = default;
 };

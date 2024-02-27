@@ -31,7 +31,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 * @param member The member to clear the warnings for.
 	 */
-	clear_warnings(moderation_command command, dpp::guild_member member): simple_wrapper(std::move(command)), member(std::move(member)){}
+	clear_warnings(dpp::guild_member member, moderation_command command) : simple_wrapper(std::move(command)), member(std::move(member)){}
 	~clear_warnings() override = default;
 
 };

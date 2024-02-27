@@ -157,7 +157,7 @@ void unmute_wrapper::lambda_callback(const dpp::confirmation_callback_t &complet
 		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	} else {
 		std::string dm_message;
-		if(mute_callback)
+		if(use_mute_callback)
 			dm_message = std::format("Your timeout has been removed in {} by {}. Reason: {}",
 												 command.guild->name, command.author.get_user()->format_username(), command.reason);
 		else
@@ -179,16 +179,15 @@ void unmute_wrapper::process_unmutes() {
 	}
 	else
 		mute_role = nullptr;
+	use_mute_callback = mute_role != nullptr;
 	for(auto const& member: members) {
 		if(mute_role != nullptr) {
-			mute_callback = true;
 			command.bot->set_audit_reason(std::string{command.reason}).guild_member_delete_role(command.guild->id, member.user_id, mute_role->id, [this, member](auto const& completion){
 				lambda_callback(completion, member);
 			});
 		}
-		mute_callback = false;
-		command.bot->guild_member_timeout(command.guild->id, member.user_id, REMOVE_TIMEOUT, [this, member](auto const& completion){
-			lambda_callback(completion, member);
+		command.bot->set_audit_reason(std::string{command.reason}).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t callback){
+			lambda_callback(callback, member);
 		});
 	}
 }

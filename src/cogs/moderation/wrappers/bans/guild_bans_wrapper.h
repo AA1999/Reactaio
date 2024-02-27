@@ -14,7 +14,6 @@
 class guild_bans_wrapper: public guild_wrapper {
 	std::vector<dpp::ban> bans;
 	std::vector<std::string> banned_usernames;
-	moderation_command command;
 
 	/**
 	 * @brief get_all_guild_bans - Fetches all the bans from a guild recursively.
@@ -37,9 +36,11 @@ class guild_bans_wrapper: public guild_wrapper {
 	 */
 	void process_response();
 
-public:
-	guild_bans_wrapper() = delete;
-	~guild_bans_wrapper() override = default;
 
+	void lambda_callback([[maybe_unused]] dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override {}
+
+public:
+	~guild_bans_wrapper() override = default;
+	guild_bans_wrapper() = delete;
 	using guild_wrapper::guild_wrapper;
 };

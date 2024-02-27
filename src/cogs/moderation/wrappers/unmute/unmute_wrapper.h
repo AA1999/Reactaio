@@ -37,7 +37,7 @@ class unmute_wrapper: public member_wrapper {
 	 */
 	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) override;
 
-	bool mute_callback{false};
+	bool use_mute_callback{false};
 
 public:
 	using member_wrapper::member_wrapper;

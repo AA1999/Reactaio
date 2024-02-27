@@ -30,6 +30,7 @@ public:
 	explicit simple_wrapper(moderation_command command): command_wrapper(std::move(command)){}
 
 	~simple_wrapper() override = default;
+	simple_wrapper() = delete;
 
 	[[nodiscard]] constexpr bool are_all_errors() const override {
 		return has_error();
