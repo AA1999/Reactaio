@@ -171,7 +171,6 @@ void unmute_wrapper::process_unmutes() {
 	pqxx::work transaction{*command.connection};
 	auto mute_role_id_query = transaction.exec_prepared1("get_mute_role", std::to_string(command.guild->id));
 	transaction.commit();
-	short constexpr REMOVE_TIMEOUT{0};
 	dpp::role* mute_role;
 	if(!mute_role_id_query["mute_role"].is_null()) {
 		auto mute_role_id = mute_role_id_query["mute_role"].as<snowflake_t>();

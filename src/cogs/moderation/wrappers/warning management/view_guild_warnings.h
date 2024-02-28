@@ -1,5 +1,5 @@
 //
-// Created by arshia on 1/20/24.
+// Created by arshia on 2/28/24.
 //
 
 #pragma once
@@ -8,9 +8,9 @@
 
 
 /**
- * @brief clear_guild_warnings - Wrapper to handle clearing guild warnings.
+ * @brief view_guild_warnings - Wrapper to handle viewing all guild warnings.
  */
-class clear_guild_warnings: public simple_wrapper {
+class view_guild_warnings: public simple_wrapper {
 	dpp::message response;
 
 	/**
@@ -30,5 +30,5 @@ class clear_guild_warnings: public simple_wrapper {
 
 public:
 	using simple_wrapper::simple_wrapper;
-	~clear_guild_warnings() override = default;
+	~view_guild_warnings() override = default;
 };

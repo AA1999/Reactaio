@@ -10,6 +10,7 @@
 #include "../wrappers/warning management/clear_warnings.h"
 #include "../wrappers/warning management/clear_guild_warnings.h"
 #include "../wrappers/warning management/view_warnings.h"
+#include "../wrappers/warning management/view_guild_warnings.h"
 #include "../wrappers/ban/ban_wrapper.h"
 #include "../wrappers/softban/softban_wrapper.h"
 #include "../wrappers/hardban/hardban_wrapper.h"
@@ -91,6 +92,7 @@ namespace reactaio::moderation {
 	}
 
 	void view_guild_warnings(moderation_command command) {
-
+		class view_guild_warnings view_guild_warns{command};
+		view_guild_warns();
 	}
 }

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include <cstdint>
 
 using ullong	  = unsigned long long int;

@@ -6,6 +6,10 @@
 
 #include "../simple_wrapper.h"
 
+
+/**
+ * @brief clear_warnings - Wrapper that handles clearing warnings for a member.
+ */
 class clear_warnings: public simple_wrapper {
 	dpp::guild_member member;
 	dpp::message response;

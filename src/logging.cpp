@@ -9,8 +9,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 std::shared_ptr<spdlog::logger> log_startup(std::string_view log_filename) {
-	ushort const EIGHT_MEGABYTES = 8192;
-	uint const FIVE_GIGABYTES = 1024 * 1024 * 5;
+	ushort constexpr EIGHT_MEGABYTES = 8192;
+	uint constexpr FIVE_GIGABYTES = 1024 * 1024 * 5;
 	spdlog::init_thread_pool(EIGHT_MEGABYTES, 2);
 	std::vector<spdlog::sink_ptr> sinks;
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -80,6 +80,7 @@ void create_prepared_statements(pqxx::connection *connection) {
 	connection->prepare("permanent_timeout", "INSERT INTO permanent_timeouts(timeout_id, user_id, guild_id, author_id, reason) VALUES($1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT permanent_timeouts_pkey DO UPDATE SET REASON = $5");
 	connection->prepare("hardban_get", "SELECT user_id FROM hardbans WHERE guild_id = $1");
 	connection->prepare("view_warnings", "SELECT warn_id, reason FROM warnings WHERE guild_id = $1 AND user_id = $2");
+	connection->prepare("view_guild_warnings", "SELECT warn_id, user_id, mod_id, reason FROM warnings WHERE guild_id = $1");
 	connection->prepare("warning_lookup", "SELECT user_id FROM warnings WHERE warn_id = $1 AND guild_id = $2");
 	connection->prepare("remove_warning", "DELETE FROM warnings WHERE warn_id = $1 AND guild_id = $2 RETURNING warn_id");
 	connection->prepare("clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id");

@@ -17,12 +17,12 @@ void view_warnings::wrapper_function() {
 }
 
 void view_warnings::check_permissions() {
-	auto bot_user = command.bot->me;
-	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
-	auto bot_roles_sorted = get_roles_sorted(bot_member);
-	auto member_roles_sorted = get_roles_sorted(member);
-	auto* bot_top_role = *bot_roles_sorted.begin();
-	auto* member_top_role = *member_roles_sorted.begin();
+	auto const bot_user = command.bot->me;
+	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
+	auto const bot_roles_sorted = get_roles_sorted(bot_member);
+	auto const member_roles_sorted = get_roles_sorted(member);
+	auto const* bot_top_role = *bot_roles_sorted.begin();
+	auto const* member_top_role = *member_roles_sorted.begin();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -57,11 +57,11 @@ void view_warnings::process_response() {
 		return;
 	}
 	pqxx::work transaction{*command.connection};
-	auto result = transaction.exec_prepared("view_warnings", std::to_string(command.guild->id), std::to_string(member.user_id));
+	auto const result = transaction.exec_prepared("view_warnings", std::to_string(command.guild->id), std::to_string(member.user_id));
 	transaction.commit();
 	response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
 	if(!result.empty()) {
-		auto time_now = std::time(nullptr);
+		auto const time_now = std::time(nullptr);
 		auto embed = dpp::embed()
 								.set_color(color::INFO_COLOR)
 								.set_title(std::format("Warnings for member **{}**", member.get_user()->format_username()))

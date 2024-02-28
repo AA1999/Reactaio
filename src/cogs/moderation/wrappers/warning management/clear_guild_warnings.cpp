@@ -16,14 +16,14 @@ void clear_guild_warnings::wrapper_function() {
 }
 
 void clear_guild_warnings::check_permissions() {
-	auto bot_user = command.bot->me;
-	auto bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
-	auto bot_roles = get_roles_sorted(bot_member);
+	auto const bot_user = command.bot->me;
+	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
 	auto* bot_top_role = *bot_roles.begin();
 
-	if(!bot_top_role->has_moderate_members()) {
+	if(!bot_top_role->has_manage_guild()) {
 		cancel_operation = true;
-		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot's top role has Moderate Members permission.");
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot's top role has Manage Server permission.");
 	}
 
 	//TODO check if author has permission to do this by either specified role or Moderate Members perm

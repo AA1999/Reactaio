@@ -68,12 +68,12 @@ void delete_warning::process_response() {
 		return;
 	}
 	pqxx::work transaction{*command.connection};
-	auto result = transaction.exec_prepared1("remove_warning", warning_id, std::to_string(command.guild->id));
+	auto const result = transaction.exec_prepared1("remove_warning", warning_id, std::to_string(command.guild->id));
 	transaction.commit();
 	response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
 	if(!result["warn_id"].is_null()) {
-		auto time_now = std::time(nullptr);
-		auto embed = dpp::embed()
+		auto const time_now = std::time(nullptr);
+		auto const embed = dpp::embed()
 							 .set_color(color::INFO_COLOR)
 							 .set_title(std::format("Warning {} for member **{}** has been removed.", warning_id, member.get_user()->format_username()))
 							 .set_timestamp(time_now)

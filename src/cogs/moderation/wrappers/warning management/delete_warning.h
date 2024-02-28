@@ -6,6 +6,9 @@
 
 #include "../simple_wrapper.h"
 
+/**
+ * @brief delete_warning - Wrapper to handle deleting a warning.
+ */
 class delete_warning: public simple_wrapper {
 	std::string warning_id;
 
