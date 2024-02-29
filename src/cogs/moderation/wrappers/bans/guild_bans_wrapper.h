@@ -6,8 +6,6 @@
 
 #include "../../wrappers/guild_wrapper.h"
 
-#include <unordered_map>
-
 /**
  * @brief guild_bans_wrapper - A wrapper used for getting all the bans from a guild.
  */

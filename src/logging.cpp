@@ -81,6 +81,7 @@ void create_prepared_statements(pqxx::connection *connection) {
 	connection->prepare("hardban_get", "SELECT user_id FROM hardbans WHERE guild_id = $1");
 	connection->prepare("view_warnings", "SELECT warn_id, reason FROM warnings WHERE guild_id = $1 AND user_id = $2");
 	connection->prepare("view_guild_warnings", "SELECT warn_id, user_id, mod_id, reason FROM warnings WHERE guild_id = $1");
+	connection->prepare("view_guild_muted_members", "SELECT case_id, action, mod_id, punished_id, action, duration, reason FROM modcase WHERE guild_id = $1 AND (action = 'Mute' OR action = 'Timeout')");
 	connection->prepare("warning_lookup", "SELECT user_id FROM warnings WHERE warn_id = $1 AND guild_id = $2");
 	connection->prepare("remove_warning", "DELETE FROM warnings WHERE warn_id = $1 AND guild_id = $2 RETURNING warn_id");
 	connection->prepare("clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id");

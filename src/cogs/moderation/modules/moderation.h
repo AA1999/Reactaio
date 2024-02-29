@@ -101,6 +101,13 @@ namespace reactaio::moderation {
 	void view_muted_list(moderation_command command);
 
 	/**
+	 * @brief view_modcase - View a moderation case.
+	 * @param case_id
+	 * @param command The wrapper struct containing all the information for the action. ie. guild, reason for the action, server settings etc.
+	 */
+	void view_modase(case_t case_id, moderation_command command);
+
+	/**
 	 * @brief view_member_warnings - View all warnings for a member of the server.
 	 * @param member The member for the warning lookup.
 	 * @param command The wrapper struct containing all the information for the action. ie. guild, reason for the action, server settings etc.

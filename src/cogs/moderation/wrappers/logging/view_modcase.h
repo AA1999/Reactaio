@@ -30,11 +30,11 @@ class view_modcase: public simple_wrapper {
 
 public:
 	/**
-	 @brief The main constructor of the class used to get data from the command.
+	 * @brief The main constructor of the class used to get data from the command.
+	 * @param case_id The case id to view.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
-	 * @param member The member to clear the warnings for.
 	 */
-	view_modcase(moderation_command command, std::string case_id): simple_wrapper(std::move(command)), case_id(std::move(case_id)){}
+	view_modcase(std::string case_id, moderation_command command): simple_wrapper(std::move(command)), case_id(std::move(case_id)){}
 	~view_modcase() override = default;
 
 };

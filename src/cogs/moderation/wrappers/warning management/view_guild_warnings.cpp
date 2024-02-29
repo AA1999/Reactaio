@@ -80,5 +80,5 @@ void view_guild_warnings::process_response() {
 		return;;
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response("This member has no warnings.");
+		command.interaction->edit_response("This server has no warnings.");
 }

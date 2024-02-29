@@ -11,6 +11,8 @@
 #include "../wrappers/warning management/clear_guild_warnings.h"
 #include "../wrappers/warning management/view_warnings.h"
 #include "../wrappers/warning management/view_guild_warnings.h"
+#include "../wrappers/logging/view_modcase.h"
+#include "../wrappers/logging/view_muted_members.h"
 #include "../wrappers/ban/ban_wrapper.h"
 #include "../wrappers/softban/softban_wrapper.h"
 #include "../wrappers/hardban/hardban_wrapper.h"
@@ -83,7 +85,13 @@ namespace reactaio::moderation {
 	}
 
 	void view_muted_list(moderation_command command) {
+		view_muted_members view_muted{command};
+		view_muted();
+	}
 
+	void view_modase(case_t case_id, moderation_command command) {
+		class view_modcase view_moderation_case{std::to_string(case_id), command};
+		view_moderation_case();
 	}
 
 	void view_member_warnings(dpp::guild_member member, moderation_command command) {

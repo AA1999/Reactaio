@@ -17,10 +17,10 @@ void view_modcase::wrapper_function() {
 }
 
 void view_modcase::check_permissions() {
-	auto bot_user = command.bot->me;
-	auto bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto* bot_top_role = *bot_roles.begin();
+	auto const bot_user = command.bot->me;
+	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const* bot_top_role = *bot_roles.begin();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
