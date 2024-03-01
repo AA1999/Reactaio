@@ -22,7 +22,7 @@
 class command_wrapper {
 
 protected:
-	std::optional<duration> duration;
+	std::optional<reactaio::internal::duration> duration;
 
 	std::vector<std::string> errors{};
 	std::vector<dpp::embed> embeds;

@@ -72,8 +72,8 @@ std::vector<std::string> get_tokens(std::string_view string) {
 	return result;
 }
 
-std::optional<duration> parse_human_time(std::string_view string) {
-	duration res{};
+std::optional<reactaio::internal::duration> parse_human_time(std::string_view string) {
+	reactaio::internal::duration res{};
 	auto tokens = get_tokens(remove_non_alphanumeric(string));
 
 	if (tokens.size() % 2 == 0) // size must be even
@@ -83,8 +83,8 @@ std::optional<duration> parse_human_time(std::string_view string) {
 		if (is_all_digit(tokens.at(2UL * i)) && !is_all_digit(tokens.at(2UL * i + 1))) {
 			auto const number = std::stoull(tokens.at(2UL * i));
 			auto const unit	  = tokens.at(2 * i + 1);
-			for (uint j{0}; j < units.size(); ++j) {
-				auto [u, names] = units.at(j);
+			for (uint j{0}; j < reactaio::internal::units.size(); ++j) {
+				auto [u, names] = reactaio::internal::units.at(j);
 				if (includes(names, unit))
 					res.values.at(j) += (int)number;
 			}

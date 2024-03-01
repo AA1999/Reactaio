@@ -27,7 +27,7 @@
  */
 template <typename T>
 requires std::ranges::range<T>
-bool includes(const T& vector, const typename T::value_type& key) {
+constexpr bool includes(const T& vector, const typename T::value_type& key) {
 	return std::ranges::find(vector, key) != std::ranges::end(vector);
 }
 
@@ -140,7 +140,7 @@ std::vector<std::string> get_tokens(std::string_view string);
  * @param string The string to be parsed.
  * @return Equivalent time format. For example 2d -> 2 days.
  */
-std::optional<duration> parse_human_time(std::string_view string);
+std::optional<reactaio::internal::duration> parse_human_time(std::string_view string);
 
 
 /**

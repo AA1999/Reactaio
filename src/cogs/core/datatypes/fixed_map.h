@@ -97,7 +97,7 @@ namespace reactaio::internal {
 		 * @brief begin - Returns an iterator to the beginning of the map.
 		 * @return Iterator pointing to the first element.
 		 */
-		[[nodiscard]] constexpr const_iterator_t  begin() const noexcept {
+		[[nodiscard]] constexpr const_iterator_t begin() const noexcept {
 			return m_array.begin();
 		}
 
