@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <string>
+#include <sstream>
+#include <chrono>
 
 std::vector<std::string> join_with_limit(const std::vector<std::string> &vector, std::size_t length) {
 	std::vector<std::string> result;
@@ -97,7 +99,7 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view st
 	return res;
 }
 
-std::vector<dpp::role*> get_guild_roles_sorted(dpp::guild* guild, bool descending) {
+std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending) {
 	std::vector<dpp::role*> roles;
 	auto guild_roles = guild->roles;
 	for(auto const& role_id: guild_roles)
@@ -132,4 +134,12 @@ for(auto const& role_id: member_roles)
 		});
 	}
 	return roles;
+}
+
+std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view const timestamp, std::string_view const format) {
+	std::istringstream parser{std::string{timestamp}};
+	std::tm time{};
+	parser >> std::get_time(&time, std::string{format}.c_str());
+	auto const as_time_t{std::mktime(&time)};
+	return std::chrono::system_clock::from_time_t(as_time_t);
 }

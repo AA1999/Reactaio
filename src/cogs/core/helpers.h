@@ -176,3 +176,11 @@ std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending = tr
  * @return A sorted vector of member roles.
  */
 std::vector<dpp::role*> get_roles_sorted(const dpp::guild_member& member, bool descending = true);
+
+/**
+ * @brief parse_psql_timestamp - Parses a timestamp string into a std::chrono::time_point
+ * @param timestamp
+ * @param format
+ * @return
+ */
+std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view const timestamp, std::string_view const format);

@@ -12,3 +12,4 @@ extern inline ullong constexpr max_timeout_seconds = 2419200;
 extern inline ushort constexpr bot_max_embeds = 10;
 extern inline ushort constexpr max_guild_ban_fetch = 1000;
 extern inline uint8_t constexpr max_timeout_days = 28;
+extern inline std::string_view constexpr iso_format{"%Y-%m-%d %H:%M:%S"};
