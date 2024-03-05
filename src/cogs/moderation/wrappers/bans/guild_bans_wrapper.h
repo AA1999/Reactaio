@@ -4,20 +4,20 @@
 
 #pragma once
 
-#include "../../wrappers/guild_wrapper.h"
+#include "../../wrappers/recursive_wrapper.h"
 
 /**
  * @brief guild_bans_wrapper - A wrapper used for getting all the bans from a guild.
  */
-class guild_bans_wrapper: public guild_wrapper {
+class guild_bans_wrapper: public recursive_wrapper {
 	std::vector<dpp::ban> bans;
 	std::vector<std::string> banned_usernames;
 
 	/**
-	 * @brief get_all_guild_bans - Fetches all the bans from a guild recursively.
+	 * @brief recursive_call - Fetches all the bans from a guild recursively.
 	 * @param after The snowflake matching the search. Defaults to 1 because all snowflakes will certainly be bigger than 1.
 	 */
-	void get_all_guild_bans(dpp::snowflake after = 1);
+	void recursive_call(dpp::snowflake after = 1) override;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
@@ -35,10 +35,8 @@ class guild_bans_wrapper: public guild_wrapper {
 	void process_response();
 
 
-	void lambda_callback([[maybe_unused]] dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override {}
-
 public:
 	~guild_bans_wrapper() override = default;
 	guild_bans_wrapper() = delete;
-	using guild_wrapper::guild_wrapper;
+	using recursive_wrapper::recursive_wrapper;
 };

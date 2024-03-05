@@ -14,7 +14,7 @@ void guild_bans_wrapper::wrapper_function() {
 	check_permissions();
 	if(cancel_operation)
 		return;
-	get_all_guild_bans();
+	recursive_call();
 	process_response();
 }
 
@@ -36,7 +36,7 @@ void guild_bans_wrapper::check_permissions() {
 
 }
 
-void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
+void guild_bans_wrapper::recursive_call(dpp::snowflake after) {
 	command.bot->guild_get_bans(command.guild->id, 0, after, max_guild_ban_fetch, [this, after](dpp::confirmation_callback_t const& completion){
 		if(completion.is_error()) {
 			auto error = completion.get_error();
@@ -54,7 +54,7 @@ void guild_bans_wrapper::get_all_guild_bans(dpp::snowflake after) {
 
 			if(event_map.size() < max_guild_ban_fetch) // All bans are fetched.
 				return;
-			get_all_guild_bans(new_after);
+			recursive_call(new_after);
 		}
 	});
 }
