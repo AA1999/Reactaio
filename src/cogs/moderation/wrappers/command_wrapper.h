@@ -10,8 +10,6 @@
 
 #include <dpp/dpp.h>
 #include <optional>
-#include <pqxx/pqxx>
-#include <string_view>
 #include <utility>
 #include <vector>
 

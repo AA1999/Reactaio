@@ -55,7 +55,7 @@ namespace reactaio::internal {
 				m_keys.push_back(key);
 				m_values.push_back(value);
 			}
- 		}
+		}
 
 		/**
 		 * @brief pop - Removes the element with the specified key from the fifo map.
@@ -96,13 +96,13 @@ namespace reactaio::internal {
 		 * @param value The value to look up.
 		 * @return The key that points to the value.
 		 */
-		 const K& find_key(const V& value) const {
+		const K& find_key(const V& value) const {
 			auto iterator = std::ranges::find(m_values, value);
 			if(iterator != m_values.end()) {
 				auto const index = std::distance(begin(m_values), iterator);
 				return m_keys.at(index);
 			}
-			throw std::out_of_range{std::vformat("Lookup of key to value {} failed, value doesn't exist in map.", std::make_format_args(value))};
+			throw std::out_of_range{std::vformat("Value {} lookup failed.", std::make_format_args(value))};
 		}
 
 		/**

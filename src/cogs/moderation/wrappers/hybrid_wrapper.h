@@ -6,7 +6,6 @@
 
 #include "command_wrapper.h"
 
-#include <dpp/dpp.h>
 #include <variant>
 #include <vector>
 

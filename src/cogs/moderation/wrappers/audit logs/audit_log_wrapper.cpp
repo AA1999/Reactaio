@@ -90,9 +90,10 @@ void audit_log_wrapper::process_response() {
 	message.set_flags(dpp::m_ephemeral);
 
 	std::vector<std::string> audit_logs;
-	std::for_each(std::execution::par_unseq, audit_entries_.begin(), audit_entries_.end(), [&](const dpp::audit_entry entry) {
+	for(auto const& entry: audit_entries_ ) {
 		auto const user_id = entry.user_id;
-		auto const& type_string = audit_log_events.find_key(entry.type);
+		auto type_string = audit_log_events.find_key(entry.type);
+		replace_all(type_string, "_", " ");
 		auto const audit_type = to_titlecase(type_string);
 		auto const target_id = entry.user_id;
 		auto const audit_changes = entry.changes;
@@ -102,8 +103,8 @@ void audit_log_wrapper::process_response() {
 		});
 		const std::string changes = join(changes_vector, ", ");
 		auto const member = dpp::find_guild_member(command.guild->id, user_id);
-		audit_logs.push_back(std::vformat("Action: {} done by {} to {} {}", std::make_format_args(audit_type, member.get_mention(), target_id, changes)));
-	});
+		audit_logs.push_back(std::vformat("Action: {} done by {} to {} {}", std::make_format_args(audit_type, member.get_mention(), std::to_string(target_id), changes)));
+	}
 	auto const time_now = std::time(nullptr);
 
 	auto base_embed = dpp::embed()

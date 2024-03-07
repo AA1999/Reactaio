@@ -98,3 +98,20 @@ constexpr std::string to_titlecase(std::string string) {
 	}
 	return string;
 }
+
+/**
+ * @brief Replaces all instances of a match in a string with the given alternative.
+ * @param string The string to perform the find-replace in.
+ * @param find The string to find.
+ * @param replace The string to replace.
+ * @return The string with all the found matches replaced.
+ */
+constexpr void replace_all(std::string& string, std::string_view const& find, std::string_view const& replace) {
+	if(find.empty())
+		return;
+	std::size_t pos{};
+	while((pos = string.find(find, pos)) != std::string::npos) {
+		string.replace(pos, find.length(), replace);
+		pos += replace.length();
+	}
+}

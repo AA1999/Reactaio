@@ -90,14 +90,14 @@ void view_muted_members::process_response() {
 	std::for_each(std::execution::par_unseq, command.guild->members.begin(), command.guild->members.end(), [&](std::pair<dpp::snowflake, dpp::guild_member> const& pair) {
 		auto const& [snowflake, member] = pair;
 		if(member.is_communication_disabled()) {
-				auto end = member.communication_disabled_until;
-				auto embed{embed_template};
-				auto const future = dpp::utility::timestamp(end, dpp::utility::tf_relative_time);
-				embed.set_title("Timeout: ");
-				embed.add_field("Member: ", member.get_mention(), true);
-				embed.add_field("Timeout until: ", future, true);
-				response.add_embed(embed);
-			}
+			auto end = member.communication_disabled_until;
+			auto embed{embed_template};
+			auto const future = dpp::utility::timestamp(end, dpp::utility::tf_relative_time);
+			embed.set_title("Timeout: ");
+			embed.add_field("Member: ", member.get_mention(), true);
+			embed.add_field("Timeout until: ", future, true);
+			response.add_embed(embed);
+		}
 	});
 
 	if(response.embeds.size() > bot_max_embeds) {

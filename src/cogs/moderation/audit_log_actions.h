@@ -65,3 +65,12 @@ extern inline const reactaio::internal::fifo_map<std::string, dpp::audit_type> a
 		{"creator_monetization_request_created", dpp::audit_type::aut_creator_monetization_request_created},
 		{"creator_monetization_terms_accepted", dpp::audit_type::aut_creator_monetization_terms_accepted}
 };
+
+#define NAME_OF(variable) ((decltype(&(variable)))nullptr, #variable)
+
+template<>
+struct std::formatter<dpp::audit_type>: std::formatter<std::string> {
+	auto format(dpp::audit_type const& type, format_context& context) const {
+		return formatter<string>::format(std::format("{}", NAME_OF(type)), context);
+	}
+};

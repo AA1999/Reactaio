@@ -220,7 +220,7 @@ namespace reactaio::internal {
 		 * @param dur The new values for the duration.
 		 * @return Should be *this
 		 */
-		duration& operator=(const duration& dur) = default;
+		duration& operator= (const duration& dur) = default;
 	};
 
 }
