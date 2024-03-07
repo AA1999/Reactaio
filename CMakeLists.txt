@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(Reactaio VERSION 1.0 DESCRIPTION "A multi-purpose AIO discord bot written in C++.")
 
-file(GLOB_RECURSE sources src/*.cpp src/*.h )
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp src/*.h )
 
 add_executable(${PROJECT_NAME}
         ${sources}
