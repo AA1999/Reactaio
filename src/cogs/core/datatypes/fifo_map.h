@@ -27,9 +27,9 @@ namespace reactaio::internal {
 		 * @param key The key of the intended element.
 		 * @return The element that matches the key. If it doesn't exist, returns std::nullopt instead.
 		 */
-		std::optional<std::ptrdiff_t> find(const K& key) const {
-			const auto iterator = std::find(begin(m_keys), end(m_keys), key);
-			return iterator != end(m_keys) ? std::optional(std::distance(begin(m_keys), iterator)) : std::nullopt;
+		constexpr std::optional<std::ptrdiff_t> find(const K& key) const {
+			const auto iterator = std::ranges::find(m_keys, key);
+			return iterator != m_keys.end() ? std::optional(std::distance(m_keys.begin(), iterator)) : std::nullopt;
 		}
 
 
@@ -62,7 +62,7 @@ namespace reactaio::internal {
 		 * @param key The key of the element that is supposed to be removed.
 		 * @return The value of the element that was removed.
 		 */
-		std::optional<K> pop(const K& key) {
+		constexpr std::optional<K> pop(const K& key) {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
 				m_keys.erase(index);
@@ -75,7 +75,7 @@ namespace reactaio::internal {
 		 * @brief size - Size of the FIFO map.
 		 * @return An integer that's the length of this map.
 		 */
-		[[nodiscard]] std::size_t size() const {
+		[[nodiscard]] constexpr std::size_t size() const {
 			return m_keys.size();
 		}
 
@@ -84,11 +84,25 @@ namespace reactaio::internal {
 		 * @param key - Key for the lookup.
 		 * @return The element associated with the key.
 		 */
-		const V & operator[](const K& key) const {
+		constexpr V & operator[](const K& key) const {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
 				return m_values[index];
 			}
+		}
+
+		/**
+		 * @brief Finds the key pointing to the given value.
+		 * @param value The value to look up.
+		 * @return The key that points to the value.
+		 */
+		 const K& find_key(const V& value) const {
+			auto iterator = std::ranges::find(m_values, value);
+			if(iterator != m_values.end()) {
+				auto const index = std::distance(begin(m_values), iterator);
+				return m_keys.at(index);
+			}
+			throw std::out_of_range{std::vformat("Lookup of key to value {} failed, value doesn't exist in map.", std::make_format_args(value))};
 		}
 
 		/**
@@ -97,7 +111,7 @@ namespace reactaio::internal {
 		 * @return The element associated with the key.
 		 * @throw std::out_of_range If the key doesn't exist.
 		 */
-		const V& at(const K& key) const {
+		constexpr V& at(const K& key) const {
 			if(auto key_index = find(key)) {
 				auto index = key_index.value();
 				return m_values.at(index);

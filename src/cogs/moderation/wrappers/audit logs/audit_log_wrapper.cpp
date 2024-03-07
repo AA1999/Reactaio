@@ -1,0 +1,132 @@
+//
+// Created by arshia on 3/4/24.
+//
+
+#include <execution>
+
+#include "audit_log_wrapper.h"
+#include "../../../core/colors.h"
+#include "../../../core/consts.h"
+#include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/helpers.h"
+#include "../../audit_log_actions.h"
+
+
+void audit_log_wrapper::wrapper_function() {
+	check_permissions();
+	if(!cancel_operation)
+		process_response();
+}
+
+void audit_log_wrapper::check_permissions() {
+	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+
+	auto bot_roles = get_roles_sorted(bot_member);
+	auto bot_top_role = *bot_roles.begin();
+
+	auto author_roles = get_roles_sorted(command.author);
+	auto author_top_role = *author_roles.begin();
+
+	if (!bot_top_role->has_view_audit_log()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the View Audit Log permission is enabled.");
+	}
+
+	//TODO Check for permission to either Ban Members in discord or a specified role in bot (adding to db soon)
+}
+
+void audit_log_wrapper::recursive_call(dpp::snowflake after) {
+	command.bot->guild_auditlog_get(command.guild->id, 0, 0, 0, after, max_guild_audit_log_fetch, [this, after](dpp::confirmation_callback_t const& callback) {
+		if(callback.is_error()) {
+			auto const error = callback.get_error();
+			errors.push_back(std::format("Error {}: {}", error.code, error.human_readable));
+			return;
+		}
+		auto audit_map = callback.get<dpp::auditlog>();
+		auto new_after{after};
+		for(auto const& entry: audit_map.entries) {
+			audit_entries_.push_back(entry);
+			if(entry.user_id > new_after)
+				new_after = entry.user_id;
+		}
+		recursive_call(new_after);
+	});
+}
+
+void audit_log_wrapper::process_response() {
+	auto message = dpp::message(command.channel_id, "");
+	auto const* author_user = command.author.get_user();
+	if (has_error()) {
+		auto format_split = join_with_limit(errors, bot_max_embed_chars);
+		auto const time_now = std::time(nullptr);
+		auto base_embed		= dpp::embed()
+								  .set_title("Error while fetching guild audit log: ")
+								  .set_color(color::ERROR_COLOR)
+								  .set_timestamp(time_now);
+		if(format_split.size() == 1) {
+			base_embed.set_description(format_split[0]);
+			message.add_embed(base_embed);
+		}
+		else {
+			for (auto const& error : format_split) {
+				auto embed{base_embed};
+				embed.set_description(error);
+				message.add_embed(embed);
+			}
+		}
+		if(command.interaction) { // This is always true but a failsafe
+			if(are_all_errors())
+				message.set_flags(dpp::m_ephemeral); // Invisible error message.
+			if(format_split.size() == 1)
+				command.interaction->edit_response(message);
+			else {
+				message_paginator paginator{message, command};
+				paginator.start();
+			}
+		}
+		return;
+	}
+
+	message.set_flags(dpp::m_ephemeral);
+
+	std::vector<std::string> audit_logs;
+	std::for_each(std::execution::par_unseq, audit_entries_.begin(), audit_entries_.end(), [&](const dpp::audit_entry entry) {
+		auto const user_id = entry.user_id;
+		auto const& type_string = audit_log_events.find_key(entry.type);
+		auto const audit_type = to_titlecase(type_string);
+		auto const target_id = entry.user_id;
+		auto const audit_changes = entry.changes;
+		std::vector<std::string> changes_vector;
+		std::ranges::transform(audit_changes, std::back_inserter(changes_vector), [](dpp::audit_change const& change) {
+			return std::format("changed property {} from {} to {}.", change.key, change.old_value, change.new_value);
+		});
+		const std::string changes = join(changes_vector, ", ");
+		auto const member = dpp::find_guild_member(command.guild->id, user_id);
+		audit_logs.push_back(std::vformat("Action: {} done by {} to {} {}", std::make_format_args(audit_type, member.get_mention(), target_id, changes)));
+	});
+	auto const time_now = std::time(nullptr);
+
+	auto base_embed = dpp::embed()
+							  .set_title("Error while fetching guild audit logs: ")
+							  .set_color(color::INFO_COLOR)
+							  .set_timestamp(time_now);
+	auto const format_split = join_with_limit(audit_logs, bot_max_embed_chars);
+	if(format_split.size() == 1) {
+		base_embed.set_description(format_split.at(0));
+		message.add_embed(base_embed);
+		if(command.interaction) {
+			command.interaction->edit_response(message);
+			return;
+		}
+	}
+
+	for(auto const& ban: format_split) {
+		auto embed{base_embed};
+		embed.set_description(ban);
+		message.add_embed(embed);
+	}
+	if(command.interaction) {
+		message_paginator paginator{message, command};
+		paginator.start();
+	}
+}

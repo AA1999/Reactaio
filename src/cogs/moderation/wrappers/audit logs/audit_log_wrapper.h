@@ -32,8 +32,6 @@ class audit_log_wrapper: public recursive_wrapper {
 	 */
 	void process_response();
 
-
-	void lambda_callback([[maybe_unused]] dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) override;
 public:
 	audit_log_wrapper() = delete;
 	~audit_log_wrapper() override = default;

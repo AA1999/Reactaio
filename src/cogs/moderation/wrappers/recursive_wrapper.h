@@ -22,7 +22,7 @@ class recursive_wrapper: public command_wrapper{
 	/**
 	*@brief recursive_call - Recursive call needed to get all the data.
 	*/
-	virtual void recursive_call(dpp::snowflake after = 1);
+	virtual void recursive_call(dpp::snowflake after = 1) = 0;
 public:
 	/**
 	 @brief The main constructor of the class used to get data from the command.
