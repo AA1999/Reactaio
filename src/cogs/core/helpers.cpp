@@ -33,7 +33,7 @@ std::vector<std::string> join_with_limit(const std::vector<std::string> &vector,
 }
 
 
-std::vector<std::string_view> find_all_of(std::string_view string, std::string_view find) {
+std::vector<std::string_view> find_all_of(std::string_view const string, std::string_view const find) {
 	std::vector<std::string_view> results;
 	std::size_t position{0};
 	while((position = string.find(find, position)) != std::string_view::npos) {
@@ -53,7 +53,7 @@ std::vector<std::size_t> find_index_all(std::string_view string, std::string_vie
 	return positions;
 }
 
-std::vector<std::string> get_tokens(std::string_view string) {
+std::vector<std::string> get_tokens(std::string_view const string) {
 	std::string str{string};
 	str.append(" ");
 	std::vector<std::string> result{};
@@ -74,7 +74,7 @@ std::vector<std::string> get_tokens(std::string_view string) {
 	return result;
 }
 
-std::optional<reactaio::internal::duration> parse_human_time(std::string_view string) {
+std::optional<reactaio::internal::duration> parse_human_time(std::string_view const string) {
 	reactaio::internal::duration res{};
 	auto tokens = get_tokens(remove_non_alphanumeric(string));
 

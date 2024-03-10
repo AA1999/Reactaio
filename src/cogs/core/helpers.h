@@ -49,7 +49,7 @@ constexpr bool includes(std::string_view string, std::string_view find) {
  * @param find The substring to find.
  * @return a std::vector finding all the substrings that occur
  */
-std::vector<std::string_view> find_all_of(std::string_view string, std::string_view find);
+std::vector<std::string_view> find_all_of(std::string_view const string, std::string_view const find);
 
 /**
  * @brief find_index_all - Finds all indexes of a substring occurrence in a string.
@@ -66,7 +66,7 @@ std::vector<std::size_t> find_index_all(std::string_view string, std::string_vie
  * @return The count of the members that aren't bots.
  */
 constexpr member_t non_bot_members(dpp::guild* guild) {
-	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
+	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member const& member){
 		return !member.get_user()->is_bot();
 	});
 }
@@ -77,7 +77,7 @@ constexpr member_t non_bot_members(dpp::guild* guild) {
  * @return The count of the members that are bots.
  */
 constexpr member_t bot_members(dpp::guild* guild) {
-	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member& member){
+	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member const& member){
 		return member.get_user()->is_bot();
 	});
 }
@@ -116,7 +116,6 @@ constexpr std::string join(const std::vector<std::string>& vector, std::string_v
 		else
 			result.append(separator).append(element);
 	return result;
-
 }
 
 /**
@@ -133,14 +132,14 @@ std::vector<std::string> join_with_limit(const std::vector<std::string>& vector,
  * @param string The string to tokenize.
  * @return A vector of tokenized day/week etc. formats
  */
-std::vector<std::string> get_tokens(std::string_view string);
+std::vector<std::string> get_tokens(std::string_view const string);
 
 /**
  * @brief parse_human_time Converts the string format into a time format.
  * @param string The string to be parsed.
  * @return Equivalent time format. For example 2d -> 2 days.
  */
-std::optional<reactaio::internal::duration> parse_human_time(std::string_view string);
+std::optional<reactaio::internal::duration> parse_human_time(std::string_view const string);
 
 
 /**
