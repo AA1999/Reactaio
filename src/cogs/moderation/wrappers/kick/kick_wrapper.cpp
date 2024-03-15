@@ -181,7 +181,7 @@ void kick_wrapper::process_kicks() {
 				dpp::message(std::format("You have been kicked from {} by {}. Reason: {}.", command.guild->name,
 										 member.get_user()->format_username(), command.reason)));
 		}
-		command.bot->set_audit_reason(std::string{command.reason}).guild_member_kick(command.guild->id, member.user_id, [this, member](auto const& completion) {
+		command.bot->set_audit_reason(std::format("Kicked by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_kick(command.guild->id, member.user_id, [this, member](auto const& completion) {
 			lambda_callback(completion, member);
 		});
 	}

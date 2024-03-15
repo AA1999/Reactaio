@@ -265,7 +265,7 @@ void softban_wrapper::process_softbans() {
 									 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-		command.bot->guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
+		command.bot->set_audit_reason(std::format("Softbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});
 

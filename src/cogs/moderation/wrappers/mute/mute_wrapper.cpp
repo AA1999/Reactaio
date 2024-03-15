@@ -222,7 +222,7 @@ void mute_wrapper::process_mutes() {
 				auto future = now + time_delta;
 				auto future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
-					command.bot->guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
+					command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
 						lambda_callback(completion, member);
 					});
 				}
@@ -230,7 +230,7 @@ void mute_wrapper::process_mutes() {
 		}
 		else {
 			for(auto const& member: members) {
-				command.bot->guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
+				command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
 					lambda_callback(completion, member);
 				});
 			}
@@ -249,7 +249,7 @@ void mute_wrapper::process_mutes() {
 			return;
 		}
 		for(auto const& member: members) {
-			command.bot->set_audit_reason(std::string{command.reason}).guild_member_add_role(command.guild->id, member.user_id, mute_role_id, [this, member](auto& completion){
+			command.bot->set_audit_reason(std::format("Muted by {} for {} for reason: {}", command.author.get_user()->format_username(), duration->to_string(true), command.reason)).guild_member_add_role(command.guild->id, member.user_id, mute_role_id, [this, member](auto& completion){
 				if(completion.is_error()) {
 					auto error = completion.get_error();
 					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));

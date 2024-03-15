@@ -118,7 +118,7 @@ void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completi
 
 void unban_wrapper::process_unbans() {
 	for(auto* user: users) {
-		command.bot->set_audit_reason(std::string(command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
+		command.bot->set_audit_reason(std::format("Unbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
 			lambda_callback(completion, user);
 		});
 	}

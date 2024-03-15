@@ -181,11 +181,11 @@ void unmute_wrapper::process_unmutes() {
 	use_mute_callback = mute_role != nullptr;
 	for(auto const& member: members) {
 		if(mute_role != nullptr) {
-			command.bot->set_audit_reason(std::string{command.reason}).guild_member_delete_role(command.guild->id, member.user_id, mute_role->id, [this, member](auto const& completion){
+			command.bot->set_audit_reason(std::format("Unmuted by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_delete_role(command.guild->id, member.user_id, mute_role->id, [this, member](auto const& completion){
 				lambda_callback(completion, member);
 			});
 		}
-		command.bot->set_audit_reason(std::string{command.reason}).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t callback){
+		command.bot->set_audit_reason(std::format("Timeout removed by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t callback){
 			lambda_callback(callback, member);
 		});
 	}
