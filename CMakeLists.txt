@@ -17,6 +17,7 @@ target_link_libraries(${PROJECT_NAME}
         spdlog
         pqxx
         pq
+        fmt
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -30,4 +31,3 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -pipe -O3  -fexperimental-library -v -Wall -Wextra -Wpedantic -fuse-ld=lld")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -std=c++20 -fexperimental-library")
-set(CMAKE_CXX_COMPILER "clang++")
