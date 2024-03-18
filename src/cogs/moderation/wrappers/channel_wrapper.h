@@ -7,7 +7,8 @@
 #include "command_wrapper.h"
 
 class channel_wrapper: public command_wrapper {
-	dpp::channel channel;
+protected:
+	std::vector<dpp::channel> channels;
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
@@ -23,9 +24,9 @@ class channel_wrapper: public command_wrapper {
 	/**
 	 * @brief lambda_callback - This is a function that's called when an API call is made.
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
-	 * @param user User object that the callback is made on.
+	 * @param channel User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, dpp::user* user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) = 0;
 
 public:
 	channel_wrapper() = delete;
@@ -34,9 +35,9 @@ public:
 	/**
 	 * @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
-	 * @param channel The channel that the command is used for.
+	 * @param channels The channels that the command is used for.
 	*/
-	explicit channel_wrapper(moderation_command command, const dpp::channel& channel): command_wrapper(std::move(command)), channel(channel){};
+	explicit channel_wrapper(moderation_command command, const std::vector<dpp::channel>& channels): command_wrapper(std::move(command)), channels(channels){};
 
 	/**
 	 * @brief are_all_errors - Checks if the operation had any errors.
