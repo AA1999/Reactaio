@@ -18,7 +18,7 @@ protected:
 	std::vector<std::variant<dpp::guild_member, dpp::user*>> snowflakes;
 	std::vector<dpp::user*> users_with_errors;
 	std::vector<dpp::user*> users;
-	std::vector<dpp::guild_member> members;
+	std::vector<dpp::guild_member*> members;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.

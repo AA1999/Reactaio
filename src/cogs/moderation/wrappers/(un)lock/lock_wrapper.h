@@ -21,6 +21,11 @@ class lock_wrapper: public channel_wrapper {
 	void wrapper_function() override;
 
 	/**
+	 * @brief Sends the resulting response to the wrapper message object as embed(s).
+	 */
+	void process_response() override;
+
+	/**
 	 * @brief Lambda callback after the API calls are made.
 	 * @param completion The compeltion object that indicates if the API call was suceessful.
 	 * @param channel Channel that the API call is made for.
@@ -31,6 +36,8 @@ class lock_wrapper: public channel_wrapper {
 	 * @brief Locks all the given channels. On error the errors will be sent to the errors vector.
 	 */
 	void process_locks();
+
+
 
 public:
 	lock_wrapper() = delete;

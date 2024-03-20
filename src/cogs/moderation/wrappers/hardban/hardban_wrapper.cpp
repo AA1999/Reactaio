@@ -12,12 +12,12 @@
 
 
 void hardban_wrapper::wrapper_function() {
-	for(auto& member_or_user: snowflakes) {
+	for(auto & member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(*member_ptr);
+			members.push_back(member_ptr);
 			users.push_back(member_ptr->get_user());
 		}
-		else if(auto* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
+		else if(auto const* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
 			users.push_back(*user_ptr);
 		}
 		else { // Will never happen but failsafe
@@ -28,7 +28,7 @@ void hardban_wrapper::wrapper_function() {
 	}
 
 	if (invalid_user) {
-		auto split = join_with_limit(errors, bot_max_embed_chars);
+		auto const split = join_with_limit(errors, bot_max_embed_chars);
 
 		error_message = dpp::message(command.channel_id, "");
 		auto const time_now = std::time(nullptr);
@@ -65,8 +65,8 @@ void hardban_wrapper::wrapper_function() {
 				command.bot->direct_message_create(command.author.user_id, error_message);
 			}
 			else {
-				auto webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
-				auto webhook = dpp::webhook{webhook_url};
+				auto const webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
+				auto const webhook = dpp::webhook{webhook_url};
 				command.bot->execute_webhook(webhook, error_message);
 			}
 		}
@@ -124,14 +124,14 @@ void hardban_wrapper::check_permissions() {
 	}
 
 	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(member);
+		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(member.user_id == author_user->id) { // If for some reason you felt like hardbanning yourself, being the server owner.
+		if(member->user_id == author_user->id) { // If for some reason you felt like hardbanning yourself, being the server owner.
 			cancel_operation = true;
 			errors.emplace_back("❌ Why are you trying to hard ban yourself, server owner? lmfao");
 		}
-		if(command.bot->me.id == member.user_id) { // If you decided to ban the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to ban the bot (ReactAIO)
 			errors.emplace_back("❌ Can't hard ban myself lmfao.");
 			cancel_operation = true;
 		}
@@ -146,7 +146,7 @@ void hardban_wrapper::check_permissions() {
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
 				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
-									   (role_mentions), [](dpp::role* role){
+									   (role_mentions), [](dpp::role const* role){
 										   return role->get_mention();
 									   });
 				std::string role_mentions_str = join(role_mentions, " , ");
@@ -156,7 +156,7 @@ void hardban_wrapper::check_permissions() {
 
 		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to hard ban. Please "
-										 "move the bot role above the members and below your staff roles.", member.get_mention()));
+										 "move the bot role above the members and below your staff roles.", member->get_mention()));
 			cancel_operation = true;
 		}
 	}
@@ -244,8 +244,6 @@ void hardban_wrapper::process_hardbans() {
 										 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-
-
 		command.bot->set_audit_reason(std::format("Hardbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});

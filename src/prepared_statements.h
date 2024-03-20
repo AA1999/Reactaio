@@ -15,6 +15,7 @@ namespace reactaio::internal {
 		{"kick_modlog", "SELECT member_kick, modlog, public_modlog FROM config WHERE guild_id = $1"},
 		{"casecount", "SELECT case_id FROM modcase WHERE guild_id = $1 ORDER BY case_id DESC LIMIT 1"},
 		{"ban_modlog", "SELECT member_ban_add, modlog, public_modlog FROM config WHERE guild_id = $1"},
+		{"channel_modlog", "SELECT channel_overwrite_create, channel_overwrite_update, channel_overwrite_delete, modlog, public_modlog FROM config WHERE guild_id = $1"},
 		{"modlog", "SELECT modlog, public_modlog FROM config WHERE guild_id = $1"},
 		{"botlog", "SELECT bot_error_logs FROM config WHERE guild_id = $1"},
 		{"modcase_insert", "INSERT INTO modcase(guild_id, case_id, action, mod_id, punished_id, reason) VALUES($1, $2, $3, $4, $5, $6)"},

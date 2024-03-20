@@ -14,3 +14,4 @@ extern inline ushort constexpr max_guild_ban_fetch = 1000;
 extern inline std::uint8_t constexpr  max_guild_audit_log_fetch = 100;
 extern inline std::uint8_t constexpr max_timeout_days = 28;
 extern inline std::string_view constexpr iso_format{"%Y-%m-%d %H:%M:%S"};
+extern inline std::uint32_t constexpr max_ban_remove_seconds = 604800;

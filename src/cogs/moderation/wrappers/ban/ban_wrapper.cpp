@@ -17,7 +17,7 @@
 void ban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(*member_ptr);
+			members.push_back(member_ptr);
 			users.push_back(member_ptr->get_user());
 		}
 		else if(auto* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
@@ -456,12 +456,12 @@ void ban_wrapper::check_permissions() {
 
 	//TODO Check permission if the user has Ban members or is a moderator by role (adding this in the db)
 
-	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(member);
+	for(auto const member: members) {
+		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(command.author.user_id == member.user_id) { // If for some reason you decided to ban yourself lol
-			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
+		if(command.author.user_id == member->user_id) { // If for some reason you decided to ban yourself lol
+			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
 				errors.emplace_back("❌ Why are you banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
@@ -471,13 +471,13 @@ void ban_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member.user_id == command.guild->owner_id) { // Banning the server owner lmfao
+		if(!ignore_owner_repeat && member->user_id == command.guild->owner_id) { // Banning the server owner lmfao
 			errors.emplace_back("❌ You can't ban the server owner lmfao.");
 			cancel_operation = true;
 		}
 
 
-		if(command.bot->me.id == member.user_id) { // If you decided to ban the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to ban the bot (ReactAIO)
 			errors.emplace_back("❌ Can't ban myself lmfao.");
 			cancel_operation = true;
 		}
@@ -503,13 +503,13 @@ void ban_wrapper::check_permissions() {
 		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to ban. Please "
 			                                "move the bot role above the members and below your staff roles.",
-			                                member.get_mention()));
+			                                member->get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't ban them.",
-			                                member.get_mention()));
+			                                member->get_mention()));
 			cancel_operation = true;
 		}
 	}

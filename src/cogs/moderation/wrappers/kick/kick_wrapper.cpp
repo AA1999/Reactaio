@@ -52,10 +52,10 @@ void kick_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
-					   std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-						   return dpp::find_role(role_id);
-					   });
+		std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles),
+			[](const dpp::snowflake role_id){
+				return dpp::find_role(role_id);
+			});
 	}
 
 
@@ -95,7 +95,7 @@ void kick_wrapper::check_permissions() {
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
 				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
-							   (role_mentions), [](dpp::role* role){
+							   (role_mentions), [](dpp::role const* role){
 								   return role->get_mention();
 							   });
 				std::string role_mentions_str = join(role_mentions, " , ");
@@ -141,7 +141,7 @@ void kick_wrapper::check_permissions() {
 		else {
 			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
 			transaction.commit();
-			auto bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
+			auto const bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
 			if(!bot_error_webhook_url_field.is_null()) {
 				auto bot_error_webhook_url = bot_error_webhook_url_field.as<std::string>();
 				dpp::webhook bot_error_webhook{bot_error_webhook_url};
@@ -158,13 +158,13 @@ void kick_wrapper::check_permissions() {
 
 void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
 	if (completion.is_error()) {
-		auto error = completion.get_error();
+		auto const error = completion.get_error();
 		errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.", member.get_user()->format_username(), error.code, error.human_readable));
 		members_with_errors.push_back(member);
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
-		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
 								  reactaio::internal::mod_action_name::KICK, std::to_string(command.author.user_id),
@@ -305,7 +305,7 @@ void kick_wrapper::process_response() {
 		auto transaction = pqxx::work{*command.connection};
 		auto query = transaction.exec_prepared("kick_modlog", std::to_string(command.guild->id));
 		transaction.commit();
-		auto member_kick_webhook_url = query[0]["member_kick"];
+		auto const member_kick_webhook_url = query[0]["member_kick"];
 		if(!member_kick_webhook_url.is_null()) {
 			auto member_kick_webhook = dpp::webhook{member_kick_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;
@@ -329,7 +329,7 @@ void kick_wrapper::process_response() {
 
 			command.bot->execute_webhook(member_kick_webhook, log);
 		}
-		auto modlog_webhook_url = query[0]["modlog"];
+		auto const modlog_webhook_url = query[0]["modlog"];
 		if(!modlog_webhook_url.is_null()) {
 			auto modlog_webhook = dpp::webhook{modlog_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;

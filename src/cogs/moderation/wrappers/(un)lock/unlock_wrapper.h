@@ -29,8 +29,10 @@ class unlock_wrapper: public channel_wrapper {
 	 */
 	void process_unlocks();
 
+	void process_response() override;
+
 public:
 	unlock_wrapper() = delete;
-	~unlock_wrapper()() override = default;
+	~unlock_wrapper() override = default;
 	using channel_wrapper::channel_wrapper;
 };

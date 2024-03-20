@@ -13,7 +13,7 @@
 void softban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(*member_ptr);
+			members.push_back(member_ptr);
 			users.push_back(member_ptr->get_user());
 		}
 		else if(auto* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
@@ -115,12 +115,12 @@ void softban_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the Ban Members permission is enabled.");
 	}
 
-	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(member);
+	for(auto const member: members) {
+		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(command.author.user_id == member.user_id) { // If for some reason you decided to soft ban yourself lol
-			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
+		if(command.author.user_id == member->user_id) { // If for some reason you decided to soft ban yourself lol
+			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
 				errors.emplace_back("❌ Why are you soft banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
@@ -130,13 +130,13 @@ void softban_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member.user_id == command.guild->owner_id) { // Banning the server owner lmfao
+		if(!ignore_owner_repeat && member->user_id == command.guild->owner_id) { // Banning the server owner lmfao
 			errors.emplace_back("❌ You can't soft ban the server owner lmfao.");
 			cancel_operation = true;
 		}
 
 
-		if(command.bot->me.id == member.user_id) { // If you decided to soft ban the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to soft ban the bot (ReactAIO)
 			errors.emplace_back("❌ Can't soft ban myself lmfao.");
 			cancel_operation = true;
 		}
@@ -162,13 +162,13 @@ void softban_wrapper::check_permissions() {
 		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to soft ban. Please "
 										 "move the bot role above the members and below your staff roles.",
-										 member.get_mention()));
+										 member->get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't soft ban them.",
-										 member.get_mention()));
+										 member->get_mention()));
 			cancel_operation = true;
 		}
 	}
@@ -237,26 +237,7 @@ void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 }
 
 void softban_wrapper::process_softbans() {
-	uint ban_remove_days{0};
-	constexpr uint TO_SECONDS = 24 * 3600;
-
-	if(command.delete_message_days == 0) {
-		pqxx::work transaction{*command.connection};
-		auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
-		transaction.commit();
-		if(!ban_remove_days_query.empty()) {
-			ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
-			ban_remove_days *= TO_SECONDS;
-		}
-		else {
-			errors.emplace_back("❌ Cannot have delete message days set to 0 in a soft ban command. Either set it in the config or specify it in the command.");
-			return;
-		}
-	}
-	else
-		ban_remove_days = command.delete_message_days;
-
-	auto* author_user = command.author.get_user();
+	auto const* author_user = command.author.get_user();
 
 	for (auto* user: users) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
@@ -265,7 +246,7 @@ void softban_wrapper::process_softbans() {
 									 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-		command.bot->set_audit_reason(std::format("Softbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
+		command.bot->set_audit_reason(std::format("Softbanned by {} for reason: {}.", command.author.get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, max_ban_remove_seconds , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});
 

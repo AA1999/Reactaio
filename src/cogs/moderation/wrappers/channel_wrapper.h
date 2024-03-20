@@ -9,6 +9,7 @@
 class channel_wrapper: public command_wrapper {
 protected:
 	std::vector<dpp::channel> channels;
+	std::vector<dpp::channel> channels_with_errors;
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
@@ -20,6 +21,11 @@ protected:
 	 * 	@note This is an abstract function.
 	 */
 	void wrapper_function() override = 0;
+
+	/**
+	 * @brief Sends the resulting response to the wrapper message object as embed(s).
+	 */
+	virtual void process_response() = 0;
 
 	/**
 	 * @brief lambda_callback - This is a function that's called when an API call is made.
@@ -45,6 +51,6 @@ public:
 	 * @return false if there were no errors in the operation.
 	 */
 	[[nodiscard]] constexpr bool are_all_errors() const override {
-		return has_error();
+		return channels_with_errors.size() == channels.size();
 	}
 };

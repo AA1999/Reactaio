@@ -18,17 +18,17 @@
 #include <vector>
 
 /**
- * @brief includes - Whether if the specific element exists in the map.
- * @tparam T Type of the vector.
- * @param vector The vector to look the element up.
+ * @brief includes - Whether if the specific element exists in the range.
+ * @tparam T Type of the range.
+ * @param range The range to look the element up.
  * @param key The element to look up.
  * @return true if the element exists
  * @return false otherwise
  */
 template <typename T>
 requires std::ranges::range<T>
-constexpr bool includes(const T& vector, const typename T::value_type& key) {
-	return std::ranges::find(vector, key) != std::ranges::end(vector);
+constexpr bool includes(const T& range, const typename T::value_type& key) {
+	return std::ranges::find(range, key) != std::ranges::end(range);
 }
 
 /**
