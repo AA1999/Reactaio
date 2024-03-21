@@ -13,11 +13,11 @@
 void softban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(member_ptr);
-			users.push_back(member_ptr->get_user());
+			members.push_back(std::make_shared<dpp::guild_member>(*member_ptr));
+			users.push_back(std::make_shared<dpp::user>(*member_ptr->get_user()));
 		}
-		else if(auto* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
-			users.push_back(*user_ptr);
+		else if(auto const* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
+			users.push_back(std::make_shared<dpp::user>(**user_ptr));
 		}
 		else { // Will never happen but failsafe
 			invalid_user = true;
@@ -115,7 +115,7 @@ void softban_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the Ban Members permission is enabled.");
 	}
 
-	for(auto const member: members) {
+	for(auto const& member: members) {
 		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
@@ -218,7 +218,7 @@ void softban_wrapper::check_permissions() {
 	}
 }
 
-void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
+void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("❌ Unable to soft ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
@@ -239,7 +239,7 @@ void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 void softban_wrapper::process_softbans() {
 	auto const* author_user = command.author.get_user();
 
-	for (auto* user: users) {
+	for (auto user: users) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 
 			std::string dm_message = std::format("You have been soft banned from {} by {}. Reason: {}.", command.guild->name,
@@ -314,19 +314,19 @@ void softban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::user*> softbanned_users;
+		shared_vector<dpp::user> softbanned_users;
 		std::vector<std::string> softbanned_usernames;
 		std::vector<std::string> softbanned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(softbanned_users), [this](dpp::user* user){
-			return !includes(users_with_errors, user);
+		std::ranges::copy_if(users, std::back_inserter(softbanned_users), [this](std::shared_ptr<dpp::user> const& user){
+			return !contains(users_with_errors, user);
 		});
 
-		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_usernames), [](dpp::user const* user) {
+		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_usernames), [](std::shared_ptr<dpp::user> const& user) {
 			return std::format("**{}**", user->format_username());
 		});
 
-		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_mentions), [](dpp::user const* member) {
+		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_mentions), [](std::shared_ptr<dpp::user> const& member) {
 			return member->get_mention();
 		});
 

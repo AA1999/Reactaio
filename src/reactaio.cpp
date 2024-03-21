@@ -28,12 +28,12 @@ int main() {
 												to_string(db_config.at("port")), to_string(db_config.at("dbname")), to_string(db_config.at("user")),
 												to_string(db_config.at("password")));
 
-	pqxx::connection connection{connection_config};
 
+	auto connection{std::make_shared<pqxx::connection>(connection_config)};
 
 	// PostgreSQL prepared statements
 
-	create_prepared_statements(&connection);
+	create_prepared_statements(connection);
 
 	// Set up spdlog logger
 
@@ -41,7 +41,7 @@ int main() {
 
 	auto log = log_startup(log_name);
 
-	log->info(std::format("Successfully connected to database {} at port {}.", connection.dbname(), connection.port()));
+	log->info(std::format("Successfully connected to database {} at port {}.", connection->dbname(), connection->port()));
 
 	bot.on_ready([&bot, &log]([[maybe_unused]] const dpp::ready_t& event) {
 		log->info(std::format("{}({}) is ready!", bot.me.format_username(), bot.me.id.str()));

@@ -11,8 +11,8 @@
  */
 class user_wrapper : public command_wrapper {
 protected:
-	std::vector<dpp::user*> users;
-	std::vector<dpp::user*> users_with_errors;
+	shared_vector<dpp::user> users;
+	shared_vector<dpp::user> users_with_errors;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
@@ -33,7 +33,7 @@ protected:
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::user* user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] std::shared_ptr<dpp::user> user) = 0;
 
 public:
 	/**
@@ -41,7 +41,7 @@ public:
 	 * @param users The list of dpp::user* objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	user_wrapper(const std::vector<dpp::user*>& users, moderation_command& command): command_wrapper(std::move(command)), users(users){}
+	user_wrapper(const shared_vector<dpp::user>& users, moderation_command& command): command_wrapper(std::move(command)), users(users){}
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.

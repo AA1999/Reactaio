@@ -24,6 +24,10 @@
 #include <utility>
 
 namespace reactaio::moderation {
+
+	template <typename T>
+	using shared_vector = std::vector<std::shared_ptr<T>>;
+
 	void kick(const std::vector<dpp::guild_member>& members, moderation_command command) {
 		kick_wrapper kick_members{members, command};
 		kick_members();
@@ -74,7 +78,7 @@ namespace reactaio::moderation {
 		unmute_members();
 	}
 
-	void unban(const std::vector<dpp::user*> &users, moderation_command command) {
+	void unban(const shared_vector<dpp::user> &users, moderation_command command) {
 		unban_wrapper unban_users{users, command};
 		unban_users();
 	}

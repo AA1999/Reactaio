@@ -16,9 +16,9 @@
 class hybrid_wrapper: public command_wrapper {
 protected:
 	std::vector<std::variant<dpp::guild_member, dpp::user*>> snowflakes;
-	std::vector<dpp::user*> users_with_errors;
-	std::vector<dpp::user*> users;
-	std::vector<dpp::guild_member*> members;
+	shared_vector<dpp::user> users_with_errors;
+	shared_vector<dpp::user> users;
+	shared_vector<dpp::guild_member> members;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
@@ -37,7 +37,7 @@ protected:
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, dpp::user* user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, std::shared_ptr<dpp::user> user) = 0;
 
 public:
 

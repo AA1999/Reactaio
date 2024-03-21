@@ -14,11 +14,11 @@
 void hardban_wrapper::wrapper_function() {
 	for(auto & member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(member_ptr);
-			users.push_back(member_ptr->get_user());
+			members.push_back(std::make_shared<dpp::guild_member>(*member_ptr));
+			users.push_back(std::make_shared<dpp::user>(*member_ptr->get_user()));
 		}
 		else if(auto const* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
-			users.push_back(*user_ptr);
+			users.push_back(std::make_shared<dpp::user>(**user_ptr));
 		}
 		else { // Will never happen but failsafe
 			invalid_user = true;
@@ -205,7 +205,7 @@ void hardban_wrapper::check_permissions() {
 	}
 }
 
-void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
+void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("❌ Unable to hard ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
@@ -235,7 +235,7 @@ void hardban_wrapper::process_hardbans() {
 
 	auto* author_user = command.author.get_user();
 
-	for (auto* user : users) {
+	for (auto const& user : users) {
 		if (command.interaction) { // If this was done in automod, DMing lots of users WILL result in a rate limit
 
 			std::string dm_message;
@@ -311,20 +311,21 @@ void hardban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::user*> hard_banned_users;
+		shared_vector<dpp::user> hard_banned_users;
 		std::vector<std::string> hard_banned_usernames;
 		std::vector<std::string> hard_banned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(hard_banned_users), [this](dpp::user* user){
-			return !includes(users_with_errors, user);
+		std::ranges::copy_if(users, std::back_inserter(hard_banned_users), [this](std::shared_ptr<dpp::user> const& user){
+			return !contains(users_with_errors, user);
 		});
 
-		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_usernames), [](dpp::user const* user) {
+
+		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_usernames), [](std::shared_ptr<dpp::user> const& user) {
 			return std::format("**{}**", user->format_username());
 		});
 
-		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_mentions), [](dpp::user const* member) {
-			return member->get_mention();
+		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_mentions), [](std::shared_ptr<dpp::user> const& user) {
+			return user->get_mention();
 		});
 
 		auto usernames = join(hard_banned_usernames, ", ");

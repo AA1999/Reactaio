@@ -62,7 +62,7 @@ void view_muted_members::process_response() {
 		std::for_each(std::execution::par_unseq, command.guild->members.begin(), command.guild->members.end(), [&](std::pair<dpp::snowflake, dpp::guild_member> const& pair) {
 			auto const& [snowflake, member] = pair;
 			auto member_roles = get_roles_sorted(member);
-			if(includes(member_roles, mute_role)) {
+			if(contains(member_roles, mute_role)) {
 				auto const query = transaction.exec_prepared1("view_tempmute", std::to_string(member.user_id), std::to_string(command.guild->id));
 				transaction.commit();
 				if(query["user_id"].is_null())

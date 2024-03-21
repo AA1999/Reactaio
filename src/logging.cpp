@@ -50,7 +50,7 @@ void logger([[maybe_unused]] dpp::cluster* bot, const dpp::log_t& event,
 	}
 }
 
-void create_prepared_statements(pqxx::connection *connection) {
+void create_prepared_statements(std::shared_ptr<pqxx::connection> connection) {
 	std::ranges::for_each(reactaio::internal::prepated_statements, [&](auto const& pair) {
 		auto const& [key, value] = pair;
 		connection->prepare(key, value);

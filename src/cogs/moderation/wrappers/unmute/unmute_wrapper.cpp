@@ -153,7 +153,7 @@ void unmute_wrapper::check_permissions() {
 void unmute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
-		members_with_errors.push_back(member);
+		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	} else {
 		std::string dm_message;
@@ -185,7 +185,7 @@ void unmute_wrapper::process_unmutes() {
 				lambda_callback(completion, member);
 			});
 		}
-		command.bot->set_audit_reason(std::format("Timeout removed by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t callback){
+		command.bot->set_audit_reason(std::format("Timeout removed by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t const& callback){
 			lambda_callback(callback, member);
 		});
 	}
@@ -245,20 +245,18 @@ void unmute_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		auto unmuted_members = std::vector<dpp::guild_member>{};
-		auto unmuted_usernames = std::vector<std::string>{};
-		auto unmuted_mentions = std::vector<std::string>{};
+		shared_vector<dpp::guild_member> unmuted_members;
+		std::vector<std::string> unmuted_usernames;
+		std::vector<std::string> unmuted_mentions;
 
-		std::ranges::copy_if(members, std::back_inserter(unmuted_members), [this](dpp::guild_member const& member){
-			return !includes(members_with_errors, member);
+		filter(unmuted_members);
+
+		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_usernames), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_usernames), [](dpp::guild_member const& member) {
-			return std::format("**{}**", member.get_user()->format_username());
-		});
-
-		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_mentions), [](dpp::guild_member const& member) {
-			return member.get_mention();
+		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_mentions), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return member->get_mention();
 		});
 
 		auto usernames = join(unmuted_usernames, ", ");
@@ -307,7 +305,7 @@ void unmute_wrapper::process_response() {
 				embed_title = "Members unmuted: ";
 			else {
 				embed_title = "Member unmuted: ";
-				embed_image_url = unmuted_members.at(0).get_avatar_url();
+				embed_image_url = unmuted_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto mute_log = dpp::embed()
@@ -330,7 +328,7 @@ void unmute_wrapper::process_response() {
 				embed_title = "Members unmuted: ";
 			else {
 				embed_title = "Member unmuted: ";
-				embed_image_url = unmuted_members.at(0).get_avatar_url();
+				embed_image_url = unmuted_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto mute_log = dpp::embed()

@@ -3,12 +3,13 @@
 //
 
 #include "mute_wrapper.h"
-#include "../../mod_action.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
-#include "../../../core/helpers.h"
 #include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/helpers.h"
+#include "../../mod_action.h"
 
+#include <memory>
 
 
 void mute_wrapper::wrapper_function() {
@@ -154,7 +155,7 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 	if(duration) {
 		if(completion.is_error()) {
 			auto error = completion.get_error();
-			members_with_errors.push_back(member);
+			members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 			errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 		}
 		else {
@@ -173,7 +174,7 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 	}
 	if(completion.is_error()) {
 		auto error = completion.get_error();
-		members_with_errors.push_back(member);
+		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	}
 	else {
@@ -253,7 +254,7 @@ void mute_wrapper::process_mutes() {
 				if(completion.is_error()) {
 					auto error = completion.get_error();
 					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
-					members_with_errors.push_back(member);
+					members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 				}
 				else {
 					ullong mute_id = 0;
@@ -344,20 +345,18 @@ void mute_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		auto muted_members = std::vector<dpp::guild_member>{};
-		auto muted_usernames = std::vector<std::string>{};
-		auto muted_mentions = std::vector<std::string>{};
+		shared_vector<dpp::guild_member> muted_members;
+		std::vector<std::string> muted_usernames;
+		std::vector<std::string> muted_mentions;
 
-		std::ranges::copy_if(members, std::back_inserter(muted_members), [this](dpp::guild_member const& member){
-			return !includes(members_with_errors, member);
+		filter(muted_members);
+
+		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](dpp::guild_member const& member) {
-			return std::format("**{}**", member.get_user()->format_username());
-		});
-
-		std::ranges::transform(muted_members, std::back_inserter(muted_mentions), [](dpp::guild_member const& member) {
-			return member.get_mention();
+		std::ranges::transform(muted_members, std::back_inserter(muted_mentions), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return member->get_mention();
 		});
 
 		auto usernames = join(muted_usernames, ", ");
@@ -406,7 +405,7 @@ void mute_wrapper::process_response() {
 				embed_title = "Members muted: ";
 			else {
 				embed_title = "Member muted: ";
-				embed_image_url = muted_members.at(0).get_avatar_url();
+				embed_image_url = muted_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto mute_log = dpp::embed()
@@ -429,7 +428,7 @@ void mute_wrapper::process_response() {
 				embed_title = "Members muted: ";
 			else {
 				embed_title = "Member muted: ";
-				embed_image_url = muted_members.at(0).get_avatar_url();
+				embed_image_url = muted_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto mute_log = dpp::embed()

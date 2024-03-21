@@ -15,7 +15,7 @@
 class member_wrapper: public command_wrapper {
 protected:
 	std::vector<dpp::guild_member> members;
-	std::vector<dpp::guild_member> members_with_errors;
+	shared_vector<dpp::guild_member> members_with_errors;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
@@ -35,6 +35,16 @@ protected:
 	 * @param member Member object that the callback is made on.
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) = 0;
+
+	/**
+	 * @brief Inserts all the member objects with no error into the given vector.
+	 * @param output The vector to put the result in. This way we can have a constexpr function.
+	 */
+	constexpr void filter(shared_vector<dpp::guild_member>& output) {
+		std::ranges::copy(members | std::views::filter([this](dpp::guild_member const& member){return !contains(members_with_errors, std::make_shared<dpp::guild_member>(member));})
+								  | std::views::transform([](dpp::guild_member const& member){return std::make_shared<dpp::guild_member>(member);}),
+									std::back_inserter(output));
+	}
 
 public:
 	~member_wrapper() override = default;

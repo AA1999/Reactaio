@@ -7,17 +7,16 @@
 #include <dpp/dpp.h>
 #include <optional>
 #include <pqxx/pqxx>
-#include <string_view>
 
 /**
  * @brief discord_command - The base wrapper for a called bot command that contains all the required information to pass into the wrapper.
  */
 struct discord_command {
-	dpp::guild* guild;
+	std::shared_ptr<dpp::guild> guild;
 	dpp::guild_member author;
 	dpp::snowflake channel_id;
-	dpp::cluster* bot;
-	pqxx::connection* connection;
+	std::shared_ptr<dpp::cluster> bot;
+	std::shared_ptr<pqxx::connection> connection;
 	std::optional<dpp::slashcommand_t> interaction; // Sometimes the command can be issued with automod etc
 
 	discord_command() = delete;
@@ -31,7 +30,7 @@ struct discord_command {
 	 * @param channel_id The channel command was invoked in.
 	 * @param interaction The slash command interaction (if called from a slash command)
 	 */
-	discord_command(dpp::cluster* bot, pqxx::connection* connection, dpp::guild* guild, dpp::guild_member  author,
+	discord_command(std::shared_ptr<dpp::cluster> const& bot, std::shared_ptr<pqxx::connection> const& connection, std::shared_ptr<dpp::guild> const& guild, dpp::guild_member  author,
 				 const dpp::snowflake& channel_id, const std::optional<dpp::slashcommand_t>& interaction) : guild(guild),
 																											author(std::move(author)),
 																											channel_id(channel_id),

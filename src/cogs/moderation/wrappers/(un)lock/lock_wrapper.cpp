@@ -127,11 +127,9 @@ void lock_wrapper::process_response() {
 	}
 	if (!are_all_errors()) {
 		std::vector<std::string> locked_mentions;
-		std::vector<dpp::channel> locked_channels;
+		shared_vector<dpp::channel> locked_channels;
 
-		std::ranges::set_symmetric_difference(channels, channels_with_errors, std::back_inserter(locked_channels), [](dpp::channel const& channel, dpp::channel const& channel2) {
-			return channel.id != channel2.id;
-		});
+		filter(locked_channels);
 
 		std::ranges::transform(channels, std::back_inserter(locked_mentions), [](dpp::channel const& channel) {
 			return std::format("{}", channel.get_mention());

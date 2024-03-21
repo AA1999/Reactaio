@@ -32,4 +32,4 @@ void logger([[maybe_unused]] dpp::cluster* bot, const dpp::log_t& event,
  * @brief create_prepared_statements - Creates prepared statements for the SQL connection.
  * @param connection The active Postgresql connection.
  */
-void create_prepared_statements(pqxx::connection *connection);
+void create_prepared_statements(std::shared_ptr<pqxx::connection> connection);

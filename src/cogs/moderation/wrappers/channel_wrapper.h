@@ -9,7 +9,7 @@
 class channel_wrapper: public command_wrapper {
 protected:
 	std::vector<dpp::channel> channels;
-	std::vector<dpp::channel> channels_with_errors;
+	shared_vector<dpp::channel> channels_with_errors;
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
@@ -33,6 +33,16 @@ protected:
 	 * @param channel User object that the callback is made on.
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) = 0;
+
+	/**
+	 * @brief Inserts all the channel objects with no error into the given vector.
+	 * @param output The vector to put the result in. This way we can have a constexpr function.
+	 */
+	constexpr void filter(shared_vector<dpp::channel>& output) {
+		std::ranges::copy(channels | std::views::filter([this](dpp::channel const& channel){return !contains(channels_with_errors, std::make_shared<dpp::channel>(channel));})
+								  | std::views::transform([](dpp::channel const& channel){return std::make_shared<dpp::channel>(channel);}),
+									std::back_inserter(output));
+	}
 
 public:
 	channel_wrapper() = delete;

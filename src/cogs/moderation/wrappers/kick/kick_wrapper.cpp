@@ -160,7 +160,7 @@ void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 	if (completion.is_error()) {
 		auto const error = completion.get_error();
 		errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.", member.get_user()->format_username(), error.code, error.human_readable));
-		members_with_errors.push_back(member);
+		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
@@ -250,20 +250,18 @@ void kick_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::guild_member> kicked_members;
+		shared_vector<dpp::guild_member> kicked_members;
 		std::vector<std::string> kicked_usernames;
 		std::vector<std::string> kicked_mentions;
 
-		std::ranges::copy_if(members, std::back_inserter(kicked_members), [this](dpp::guild_member const& member){
-			return !includes(members_with_errors, member);
+		filter(kicked_members);
+
+		std::ranges::transform(kicked_members, std::back_inserter(kicked_usernames), [](auto const& member) {
+			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(kicked_members, std::back_inserter(kicked_usernames), [](dpp::guild_member const& member) {
-			return std::format("**{}**", member.get_user()->format_username());
-		});
-
-		std::ranges::transform(kicked_members, std::back_inserter(kicked_mentions), [](dpp::guild_member const& member) {
-			return member.get_mention();
+		std::ranges::transform(kicked_members, std::back_inserter(kicked_mentions), [](auto const& member) {
+			return member->get_mention();
 		});
 
 		auto usernames = join(kicked_usernames, ", ");
@@ -313,7 +311,7 @@ void kick_wrapper::process_response() {
 				embed_title = "Members kicked: ";
 			else {
 				embed_title = "Member kicked: ";
-				embed_image_url = kicked_members.at(0).get_avatar_url();
+				embed_image_url = kicked_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
@@ -337,7 +335,7 @@ void kick_wrapper::process_response() {
 				embed_title = "Members kicked: ";
 			else {
 				embed_title = "Member kicked: ";
-				embed_image_url = kicked_members.at(0).get_avatar_url();
+				embed_image_url = kicked_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
@@ -356,7 +354,7 @@ void kick_wrapper::process_response() {
 		if(!public_modlog_webhook_url.is_null()) {
 			auto public_modlog_webhook = dpp::webhook{public_modlog_webhook_url.as<std::string>()};
 			std::string embed_title = kicked_members.size() > 1 ? "Members kicked: " : "Member kicked: ";
-			std::string embed_image_url = kicked_members.size() > 1 ? kicked_members.at(0).get_avatar_url() : "";
+			std::string embed_image_url = kicked_members.size() > 1 ? kicked_members.at(0)->get_avatar_url() : "";
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
 					.set_color(color::LOG_COLOR)

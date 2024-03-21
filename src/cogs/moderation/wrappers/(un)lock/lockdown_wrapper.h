@@ -22,7 +22,7 @@ class lockdown_wrapper: public guild_wrapper {
 	 * @param completion The compeltion object that indicates if the API call was suceessful.
 	 * @param channel Channel that the API call is made for.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel);
 
 	/**
 	 * @brief Locks all the set server channels. On error the errors will be sent to the errors vector.

@@ -8,20 +8,21 @@
 #include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
-#include <dpp/dpp.h>
-#include <format>
 #include <algorithm>
 #include <chrono>
+#include <dpp/dpp.h>
+#include <format>
+#include <memory>
 
 
 void ban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(member_ptr);
-			users.push_back(member_ptr->get_user());
+			members.push_back(std::make_shared<dpp::guild_member>(*member_ptr));
+			users.push_back(std::make_shared<dpp::user>(*member_ptr->get_user()));
 		}
-		else if(auto* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
-			users.push_back(*user_ptr);
+		else if(auto const* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
+			users.push_back(std::make_shared<dpp::user>(**user_ptr));
 		}
 		else { // Will never happen but failsafe
 			invalid_user = true;
@@ -84,7 +85,7 @@ void ban_wrapper::wrapper_function() {
 	process_response();
 }
 
-void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user* user) {
+void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("❌ Unable to ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
@@ -138,7 +139,7 @@ void ban_wrapper::process_bans() {
 
 	auto* author_user = command.author.get_user();
 
-	for (auto* user : users) {
+	for (auto const& user : users) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 
 			std::string dm_message;
@@ -226,20 +227,20 @@ void ban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::user*> banned_users;
+		shared_vector<dpp::user> banned_users;
 		std::vector<std::string> banned_usernames;
 		std::vector<std::string> banned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(banned_users), [this](dpp::user* user){
-			return !includes(users_with_errors, user);
+		std::ranges::copy_if(users, std::back_inserter(banned_users), [this](std::shared_ptr<dpp::user> const& user){
+			return !contains(users_with_errors, user);
 		});
 
-		std::ranges::transform(banned_users, std::back_inserter(banned_usernames), [](dpp::user const* user) {
+		std::ranges::transform(banned_users, std::back_inserter(banned_usernames), [](std::shared_ptr<dpp::user> const& user) {
 			return std::format("**{}**", user->format_username());
 		});
 
-		std::ranges::transform(banned_users, std::back_inserter(banned_mentions), [](dpp::user const* member) {
-            return member->get_mention();
+		std::ranges::transform(banned_users, std::back_inserter(banned_mentions), [](std::shared_ptr<dpp::user> const& user) {
+            return user->get_mention();
 		});
 
 		auto usernames = join(banned_usernames, ", ");
@@ -456,7 +457,7 @@ void ban_wrapper::check_permissions() {
 
 	//TODO Check permission if the user has Ban members or is a moderator by role (adding this in the db)
 
-	for(auto const member: members) {
+	for(auto const& member: members) {
 		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 

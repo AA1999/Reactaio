@@ -87,7 +87,7 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 			auto const unit	  = tokens.at(2 * i + 1);
 			for (uint j{0}; j < reactaio::internal::units.size(); ++j) {
 				auto [u, names] = reactaio::internal::units.at(j);
-				if (includes(names, unit))
+				if (contains(names, unit))
 					res.values.at(j) += (int)number;
 			}
 		}

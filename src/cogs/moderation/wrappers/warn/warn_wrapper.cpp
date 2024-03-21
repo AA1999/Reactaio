@@ -158,7 +158,7 @@ void warn_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 		auto error = completion.get_error();
 		errors.push_back(std::format("Unable to DM user **{}**. Warning registered. Error{}: {}",
 									 member.get_user()->format_username(), error.code, error.human_readable));
-		members_with_errors.push_back(member);
+		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
 	}
 	auto transaction = pqxx::work{*command.connection};
 	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
@@ -236,20 +236,18 @@ void warn_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::guild_member> warned_members;
+		shared_vector<dpp::guild_member> warned_members;
 		std::vector<std::string> warned_usernames;
 		std::vector<std::string> warned_mentions;
 
-		std::ranges::copy_if(members, std::back_inserter(warned_members), [this](dpp::guild_member const& member){
-			return !includes(members_with_errors, member);
+		filter(warned_members);
+
+		std::ranges::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_usernames), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_usernames), [](dpp::guild_member const& member) {
-			return std::format("**{}**", member.get_user()->format_username());
-		});
-
-		std::ranges::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_mentions), [](dpp::guild_member const& member) {
-			return member.get_mention();
+		std::ranges::transform(warned_members.begin(), warned_members.end(), std::back_inserter(warned_mentions), [](std::shared_ptr<dpp::guild_member> const& member) {
+			return member->get_mention();
 		});
 
 		auto usernames = join(warned_usernames, ", ");
@@ -298,7 +296,7 @@ void warn_wrapper::process_response() {
 				embed_title = "Members warned: ";
 			else {
 				embed_title = "Member warned: ";
-				embed_image_url = warned_members.at(0).get_avatar_url();
+				embed_image_url = warned_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto warn_log = dpp::embed()
@@ -321,7 +319,7 @@ void warn_wrapper::process_response() {
 				embed_title = "Members warned: ";
 			else {
 				embed_title = "Member warned: ";
-				embed_image_url = warned_members.at(0).get_avatar_url();
+				embed_image_url = warned_members.at(0)->get_avatar_url();
 			}
 			time_now = std::time(nullptr);
 			auto warn_log = dpp::embed()

@@ -18,27 +18,27 @@
 #include <vector>
 
 /**
- * @brief includes - Whether if the specific element exists in the range.
- * @tparam T Type of the range.
+ * @brief Whether if the specific element exists in the range.
+ * @tparam R Type of the range.
  * @param range The range to look the element up.
  * @param key The element to look up.
  * @return true if the element exists
  * @return false otherwise
  */
-template <typename T>
-requires std::ranges::range<T>
-constexpr bool includes(const T& range, const typename T::value_type& key) {
+template <typename R>
+requires std::ranges::range<R>
+constexpr bool contains(const R& range, const typename R::value_type& key) {
 	return std::ranges::find(range, key) != std::ranges::end(range);
 }
 
 /**
- * @brief includes - Whether if a string can be found inside another string
+ * @brief Whether if a string can be found inside another string
  * @param string String to look up the substring inside.
  * @param find The substring to find.
  * @return true if the string is found
  * @return false otherwise
  */
-constexpr bool includes(std::string_view string, std::string_view find) {
+constexpr bool contains(std::string_view string, std::string_view find) {
 	return string.find(find) != std::string_view::npos;
 }
 
@@ -65,7 +65,7 @@ std::vector<std::size_t> find_index_all(std::string_view string, std::string_vie
  * @param guild The guild to count the non-bot members in.
  * @return The count of the members that aren't bots.
  */
-constexpr member_t non_bot_members(dpp::guild* guild) {
+constexpr member_t non_bot_members(std::shared_ptr<dpp::guild> const& guild) {
 	return std::ranges::count_if(guild->members | std::views::values, [] (dpp::guild_member const& member){
 		return !member.get_user()->is_bot();
 	});

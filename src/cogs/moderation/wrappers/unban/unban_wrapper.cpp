@@ -43,21 +43,21 @@ void unban_wrapper::check_permissions() {
 	auto transaction = pqxx::transaction{*command.connection};
 	auto hard_bans_query = transaction.exec_prepared("hardban_get", std::to_string(command.guild->id));
 
-	std::unordered_set<dpp::user*> hard_bans;
+	std::unordered_set<std::shared_ptr<dpp::user>> hard_bans;
 	for(auto const& row: hard_bans_query)
-		hard_bans.insert(dpp::find_user(row["user_id"].as<snowflake_t>()));
+		hard_bans.insert(std::make_shared<dpp::user>(*dpp::find_user(row["user_id"].as<snowflake_t>())));
 
 	hard_bans.erase(nullptr); // Removing any chance of a null pointer.
 
-	std::vector<dpp::user*> illegal_bans;
-	std::ranges::copy_if(users, std::back_inserter(illegal_bans), [hard_bans](dpp::user* user){
+	shared_vector<dpp::user> illegal_bans;
+	std::ranges::copy_if(users, std::back_inserter(illegal_bans), [hard_bans](std::shared_ptr<dpp::user> const& user){
 		return hard_bans.contains(user);
 	});
 
 	if(!illegal_bans.empty() && command.author.user_id != command.guild->owner_id) {
 		cancel_operation = true;
 		users_with_errors.insert(users_with_errors.end(), illegal_bans.begin(), illegal_bans.end());
-		std::ranges::transform(illegal_bans, std::back_inserter(errors), [](dpp::user* user){
+		std::ranges::transform(illegal_bans, std::back_inserter(errors), [](std::shared_ptr<dpp::user> const& user){
 			return std::format("User **{}** is hard banned by the server owner and can only be unbanned by said individual.", user->format_username());
 		});
 	}
@@ -100,7 +100,7 @@ void unban_wrapper::check_permissions() {
 	}
 }
 
-void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, dpp::user *user) {
+void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
 	if(completion.is_error()) {
 		auto error = completion.get_error();
 		errors.emplace_back(std::format("❌ Error {}: {}", error.code, error.message));
@@ -117,7 +117,7 @@ void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completi
 }
 
 void unban_wrapper::process_unbans() {
-	for(auto* user: users) {
+	for(auto const& user: users) {
 		command.bot->set_audit_reason(std::format("Unbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
 			lambda_callback(completion, user);
 		});
@@ -186,19 +186,19 @@ void unban_wrapper::process_response() {
 		}
 	}
 	if (!are_all_errors()) {
-		std::vector<dpp::user*> unbanned_users;
+		shared_vector<dpp::user> unbanned_users;
 		std::vector<std::string> unbanned_usernames;
 		std::vector<std::string> unbanned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](dpp::user* user){
-			return !includes(users_with_errors, user);
+		std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](std::shared_ptr<dpp::user> const& user){
+			return !contains(users_with_errors, user);
 		});
 
-		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_usernames), [](dpp::user* user){
+		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_usernames), [](std::shared_ptr<dpp::user> const& user){
 			return std::format("**{}**", user->username);
 		});
 
-		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_mentions), [](dpp::user* user) {
+		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_mentions), [](std::shared_ptr<dpp::user> const& user) {
 			return user->get_mention();
 		});
 
