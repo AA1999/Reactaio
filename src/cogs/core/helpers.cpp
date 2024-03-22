@@ -102,6 +102,7 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending) {
 	std::vector<dpp::role*> roles;
 	auto guild_roles = guild->roles;
+	roles.reserve(guild_roles.size());
 	for(auto const& role_id: guild_roles)
 		roles.emplace_back(dpp::find_role(role_id));
 	if(descending) {

@@ -11,6 +11,9 @@
 #include <vector>
 
 namespace reactaio::moderation {
+
+	using member_user_variant = std::variant<dpp::guild_member, std::shared_ptr<dpp::user>>;
+
 	/**
 	 * @brief kick - Removes a member/list of members from the guild.
 	 * @param members The members that are supposed to be removed.
@@ -23,21 +26,21 @@ namespace reactaio::moderation {
 	 * @param users_or_members The mix of members and users that are supposed to be removed.
 	 * @param command The wrapper struct containing all the information for the action. ie. guild, reason for kick, server settings etc.
 	 */
-	void ban(const std::vector<std::variant<dpp::guild_member, dpp::user*>>& users_or_members, moderation_command command);
+	void ban(const std::vector<member_user_variant> &users_or_members, moderation_command command);
 
 	/**
 	 * @brief softban - Bans and then unbans a member/user/list of members and users from the guild. (Used to purge messages from former/current members).
 	 * @param users_or_members The mix of members and users that are supposed to be removed.
 	 * @param command The wrapper struct containing all the information for the action. ie. guild, reason for ban, server settings etc.
 	 */
-	void softban(const std::vector<std::variant<dpp::guild_member, dpp::user*>>& users_or_members, moderation_command command);
+	void softban(const std::vector<member_user_variant> &users_or_members, moderation_command command);
 
 	/**
 	 * @brief hardban - Bans a member permanently. Only the server owner can use this command and unban hardbanned members/users.
 	 * @param users_or_members The mix of members and users that are supposed to be hardbanned.
 	 * @param command The wrapper struct containing all the information for the action. ie. guild, reason for ban, server settings etc.
 	 */
-	void hardban(const std::vector<std::variant<dpp::guild_member, dpp::user*>>& users_or_members, const moderation_command& command);
+	void hardban(const std::vector<member_user_variant> &users_or_members, const moderation_command &command);
 
 	/**
 	 * @brief mute - Removes the ability for a member/list of members to chat. Uses the discord timeout feature if specified.

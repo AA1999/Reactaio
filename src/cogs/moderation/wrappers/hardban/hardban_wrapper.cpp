@@ -12,12 +12,12 @@
 
 
 void hardban_wrapper::wrapper_function() {
-	for(auto & member_or_user: snowflakes) {
+	for(auto const& member_or_user: snowflakes) {
 		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
 			members.push_back(std::make_shared<dpp::guild_member>(*member_ptr));
 			users.push_back(std::make_shared<dpp::user>(*member_ptr->get_user()));
 		}
-		else if(auto const* user_ptr = std::get_if<dpp::user*>(&member_or_user)) {
+		else if(auto const* user_ptr = std::get_if<std::shared_ptr<dpp::user>>(&member_or_user)) {
 			users.push_back(std::make_shared<dpp::user>(**user_ptr));
 		}
 		else { // Will never happen but failsafe

@@ -15,7 +15,10 @@
 
 class hybrid_wrapper: public command_wrapper {
 protected:
-	std::vector<std::variant<dpp::guild_member, dpp::user*>> snowflakes;
+
+	using member_user_variant = std::variant<dpp::guild_member, std::shared_ptr<dpp::user>>;
+
+	std::vector<member_user_variant> snowflakes;
 	shared_vector<dpp::user> users_with_errors;
 	shared_vector<dpp::user> users;
 	shared_vector<dpp::guild_member> members;
@@ -56,7 +59,7 @@ public:
 	 * @param snowflakes The list of dpp::user* and dpp::guild_member objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	hybrid_wrapper(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &snowflakes, moderation_command& command)
+	hybrid_wrapper(const std::vector<member_user_variant> &snowflakes, moderation_command& command)
 		: command_wrapper(std::move(command)), snowflakes(snowflakes) {}
 
 };

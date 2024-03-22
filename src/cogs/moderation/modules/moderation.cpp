@@ -33,17 +33,17 @@ namespace reactaio::moderation {
 		kick_members();
 	}
 
-	void ban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, moderation_command command) {
+	void ban(const std::vector<member_user_variant> &users_or_members, moderation_command command) {
 		ban_wrapper ban_users{users_or_members, command};
 		ban_users();
 	}
 
-	void softban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, moderation_command command) {
+	void softban(const std::vector<member_user_variant> &users_or_members, moderation_command command) {
 		softban_wrapper softban_users{users_or_members, command};
 		softban_users();
 	}
 
-	void hardban(const std::vector<std::variant<dpp::guild_member, dpp::user *>> &users_or_members, const moderation_command &command) {
+	void hardban(const std::vector<member_user_variant> &users_or_members, const moderation_command &command) {
 		hardban_wrapper hardban_users(users_or_members, const_cast<moderation_command&>(command));
 		hardban_users();
 	}
