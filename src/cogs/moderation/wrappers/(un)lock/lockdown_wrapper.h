@@ -29,6 +29,11 @@ class lockdown_wrapper: public guild_wrapper {
 	 */
 	void process_lockdown();
 
+	/**
+	 * @brief Sends the resulting response to the wrapper message object as embed(s).
+	 */
+	void process_response();
+
 public:
 	lockdown_wrapper() = delete;
 	~lockdown_wrapper() override = default;
