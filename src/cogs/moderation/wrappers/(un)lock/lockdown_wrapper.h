@@ -3,10 +3,12 @@
 //
 
 #pragma once
-#include "../guild_wrapper.h"
+#include <utility>
+
+#include "../channel_wrapper.h"
 
 
-class lockdown_wrapper: public guild_wrapper {
+class lockdown_wrapper: public channel_wrapper {
 	/**
 	 * @brief Checks if both the command invoker and the bot have sufficient permissions.
 	 */
@@ -22,7 +24,7 @@ class lockdown_wrapper: public guild_wrapper {
 	 * @param completion The compeltion object that indicates if the API call was suceessful.
 	 * @param channel Channel that the API call is made for.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel);
+	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) override;
 
 	/**
 	 * @brief Locks all the set server channels. On error the errors will be sent to the errors vector.
@@ -32,10 +34,16 @@ class lockdown_wrapper: public guild_wrapper {
 	/**
 	 * @brief Sends the resulting response to the wrapper message object as embed(s).
 	 */
-	void process_response();
+	void process_response() override;
 
 public:
 	lockdown_wrapper() = delete;
 	~lockdown_wrapper() override = default;
-	using guild_wrapper::guild_wrapper;
+	explicit lockdown_wrapper(moderation_command command): channel_wrapper(std::move(command), {}) {
+		std::vector<dpp::channel> _channels;
+		std::ranges::transform(command.guild->channels, std::back_inserter(_channels), [](dpp::snowflake const channel_id) {
+			return *dpp::find_channel(channel_id);
+		});
+		std::ranges::move(_channels, std::back_inserter(channels));
+	}
 };

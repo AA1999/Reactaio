@@ -36,6 +36,7 @@ namespace reactaio::internal {
 		{"get_timeout_id", "SELECT timeout_id FROM permanent_timeouts WHERE guild_id = $1 ORDER BY timeout_id DESC LIMIT 1"},
 		{"permanent_timeout", "INSERT INTO permanent_timeouts(timeout_id, user_id, guild_id, author_id, reason) VALUES($1, $2, $3, $4, $5) ON CONFLICT ON CONSTRAINT permanent_timeouts_pkey DO UPDATE SET REASON = $5"},
 		{"hardban_get", "SELECT user_id FROM hardbans WHERE guild_id = $1"},
+		{"lockdowns_get", "SELECT lockdown_channels FROM config WHERE guild = $1"},
 		{"view_warnings", "SELECT warn_id, reason FROM warnings WHERE guild_id = $1 AND user_id = $2"},
 		{"view_guild_warnings", "SELECT warn_id, user_id, mod_id, reason FROM warnings WHERE guild_id = $1"},
 		{"view_guild_muted_members", "SELECT case_id, action, mod_id, punished_id, action, duration, reason FROM modcase WHERE guild_id = $1 AND (action = 'Mute' OR action = 'Timeout')"},
