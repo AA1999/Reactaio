@@ -9,12 +9,13 @@
 #include "datatypes/parser_item.h"
 
 #include <dpp/dpp.h>
+#include <format>
 #include <optional>
+#include <pqxx/pqxx>
+#include <set>
+#include <ranges>
 #include <string>
 #include <string_view>
-#include <pqxx/pqxx>
-#include <format>
-#include <ranges>
 #include <vector>
 
 /**
@@ -44,23 +45,43 @@ constexpr bool contains(std::string_view string, std::string_view find) {
 
 
 /**
- * @brief find_all_off - Find all instances of a string inside another string.
+ * @brief Find all instances of a string inside another string.
  * @param string The string to find the substring inside.
  * @param find The substring to find.
  * @return a std::vector finding all the substrings that occur
  */
-std::vector<std::string_view> find_all_of(std::string_view const string, std::string_view const find);
+std::vector<std::string_view> find_all_of(std::string_view string, std::string_view find);
 
 /**
- * @brief find_index_all - Finds all indexes of a substring occurrence in a string.
+ * @brief Finds all indexes of a substring occurrence in a string.
  * @param string The string to find the occurrences inside
  * @param find The substring to find.
  * @return A std::vector of all the indexes with the substring match.
  */
-std::vector<std::size_t> find_index_all(std::string_view string, std::string_view find);
+std::set<std::size_t> find_index_all(std::string_view string, std::string_view find);
+
 
 /**
- * @brief non_bot_members - Counts all the dpp::guild_members from a guild if they're not a bot account.
+ * @brief Lookup for all instances of a value in a range.
+ * @tparam R Type of the range.
+ * @param range The range to perform the lookup in.
+ * @param value The value to find all instances of.
+ * @return A vector consisting of the indexes of all the instances of the given value.
+ */
+template <typename R>
+requires std::ranges::range<R>
+std::set<std::size_t> find_index_all(const R& range, const typename R::value_type& value) {
+	std::set<std::size_t> indexes;
+	auto iterator = std::ranges::begin(range);
+	while((iterator = std::ranges::find(range, value) != std::ranges::end(range))) {
+		indexes.insert(std::ranges::distance(std::ranges::begin(range), iterator));
+		++iterator;
+	}
+	return indexes;
+}
+
+/**
+ * @brief Counts all the dpp::guild_members from a guild if they're not a bot account.
  * @note This function won't and cannot count the self-bot accounts as a bot.
  * @param guild The guild to count the non-bot members in.
  * @return The count of the members that aren't bots.
@@ -72,7 +93,7 @@ constexpr member_t non_bot_members(std::shared_ptr<dpp::guild> const& guild) {
 }
 
 /**
- * @brief bot_members - Counts all the dpp::guild_members from a guild if they're a bot account
+ * @brief Counts all the dpp::guild_members from a guild if they're a bot account
  * @param guild The guild to count the bot members in.
  * @return The count of the members that are bots.
  */
@@ -83,7 +104,7 @@ constexpr member_t bot_members(dpp::guild* guild) {
 }
 
 /**
- * @brief ordinal - Returns the ordinal format of a number
+ * @brief Returns the ordinal format of a number. 1st, 2nd, 3rd etc.
  * @param number The number given.
  * @return The ordinal format of the number.
  */
@@ -101,12 +122,12 @@ constexpr std::string ordinal(ullong number) {
 
 
 /**
- * @brief join - Joins a vector of strings into one string by a separator.
+ * @brief Joins a vector of strings into one string by a separator.
  * @param vector The vector to join.
  * @param separator The separator to add to the end of each element.
  * @return A string created from concatenating all the vector elements.
  */
-constexpr std::string join(const std::vector<std::string>& vector, std::string_view separator) {
+constexpr std::string join(const std::vector<std::string>& vector, std::string_view const separator) {
 	if(vector.empty())
 		return "";
 	std::string result;
@@ -119,7 +140,7 @@ constexpr std::string join(const std::vector<std::string>& vector, std::string_v
 }
 
 /**
- * @brief join_with_limit - Makes sized slices of a vector.
+ * @brief Makes sized slices of a vector.
  * @param vector The vector to be sliced.
  * @param length The length limit.
  * @return
@@ -128,22 +149,22 @@ std::vector<std::string> join_with_limit(const std::vector<std::string>& vector,
 
 
 /**
- * @brief get_tokens - Tokenizer for converting a string into a time format.
+ * @briefTokenizer for converting a string into a time format.
  * @param string The string to tokenize.
  * @return A vector of tokenized day/week etc. formats
  */
-std::vector<std::string> get_tokens(std::string_view const string);
+std::vector<std::string> get_tokens(std::string_view string);
 
 /**
  * @brief parse_human_time Converts the string format into a time format.
  * @param string The string to be parsed.
  * @return Equivalent time format. For example 2d -> 2 days.
  */
-std::optional<reactaio::internal::duration> parse_human_time(std::string_view const string);
+std::optional<reactaio::internal::duration> parse_human_time(std::string_view string);
 
 
 /**
- * @brief parse_sql_array - Parses a SQL query result into a proper array.
+ * @brief Parses a SQL query result into a proper array.
  * @tparam T Type of the resulting array.
  * @param field
  * @return
@@ -161,15 +182,15 @@ std::vector<T> parse_psql_array(const pqxx::field& field) {
 }
 
 /**
- * @brief get_roles_sorted - Returns a sorted vector of a guild's roles.
+ * @brief Returns a sorted vector of a guild's roles.
  * @param guild The guild to fetch the roles from.
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of guild roles.
  */
-std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending = true);
+shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild>& guild, bool descending = true);
 
 /**
- * @brief get_roles_sorted - Returns a sorted vector of a dpp::guild_member's roles.
+ * @brief Returns a sorted vector of a dpp::guild_member's roles.
  * @param member The member to fetch the roles from.
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of member roles.
@@ -177,9 +198,9 @@ std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending = tr
 std::vector<dpp::role*> get_roles_sorted(const dpp::guild_member& member, bool descending = true);
 
 /**
- * @brief parse_psql_timestamp - Parses a timestamp string into a std::chrono::time_point
+ * @brief Parses a timestamp string into a std::chrono::time_point
  * @param timestamp
  * @param format
  * @return
  */
-std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view const timestamp, std::string_view const format);
+std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view timestamp, std::string_view format);

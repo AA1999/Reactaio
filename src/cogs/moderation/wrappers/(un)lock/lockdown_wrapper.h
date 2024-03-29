@@ -9,6 +9,9 @@
 
 
 class lockdown_wrapper: public channel_wrapper {
+
+	shared_vector<dpp::channel> channel_ptrs;
+
 	/**
 	 * @brief Checks if both the command invoker and the bot have sufficient permissions.
 	 */
@@ -39,11 +42,15 @@ class lockdown_wrapper: public channel_wrapper {
 public:
 	lockdown_wrapper() = delete;
 	~lockdown_wrapper() override = default;
-	explicit lockdown_wrapper(moderation_command command): channel_wrapper(std::move(command), {}) {
-		std::vector<dpp::channel> _channels;
-		std::ranges::transform(command.guild->channels, std::back_inserter(_channels), [](dpp::snowflake const channel_id) {
-			return *dpp::find_channel(channel_id);
-		});
-		std::ranges::move(_channels, std::back_inserter(channels));
+	explicit lockdown_wrapper(moderation_command command): channel_wrapper(std::move(command), {}) {}
+
+	/**
+	 * @brief are_all_errors - Checks if the operation had any errors.
+	 * @return true if there were errors in the operation.
+	 * @return false if there were no errors in the operation.
+	 */
+	[[nodiscard]] constexpr bool are_all_errors() const override {
+		return channels_with_errors.size() == channel_ptrs.size();
 	}
+
 };

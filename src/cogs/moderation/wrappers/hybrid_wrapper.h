@@ -6,6 +6,7 @@
 
 #include "command_wrapper.h"
 
+
 #include <variant>
 #include <vector>
 
@@ -15,8 +16,6 @@
 
 class hybrid_wrapper: public command_wrapper {
 protected:
-
-	using member_user_variant = std::variant<dpp::guild_member, std::shared_ptr<dpp::user>>;
 
 	std::vector<member_user_variant> snowflakes;
 	shared_vector<dpp::user> users_with_errors;

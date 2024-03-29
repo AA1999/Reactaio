@@ -36,18 +36,18 @@ std::vector<std::string> join_with_limit(const std::vector<std::string> &vector,
 std::vector<std::string_view> find_all_of(std::string_view const string, std::string_view const find) {
 	std::vector<std::string_view> results;
 	std::size_t position{0};
-	while((position = string.find(find, position)) != std::string_view::npos) {
+	while ((position = string.find(find, position)) != std::string_view::npos) {
 		results.push_back(string.substr(position, find.length()));
 		position += find.length();
 	}
 	return results;
 }
 
-std::vector<std::size_t> find_index_all(std::string_view string, std::string_view find) {
-	std::vector<std::size_t> positions;
+std::set<std::size_t> find_index_all(std::string_view string, std::string_view find) {
+	std::set<std::size_t> positions;
 	std::size_t position{0};
 	while((position = string.find(find, position)) != std::string_view::npos) {
-		positions.push_back(position);
+		positions.insert(position);
 		position += find.length();
 	}
 	return positions;
@@ -78,20 +78,19 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	reactaio::internal::duration res{};
 	auto tokens = get_tokens(remove_non_alphanumeric(string));
 
-	if (tokens.size() % 2 == 0) // size must be even
+	if (tokens.size() % 2 == 0)// size must be even
 		return std::nullopt;
 
 	for (uint i{0}; i < tokens.size(); ++i) {
 		if (is_all_digit(tokens.at(2UL * i)) && !is_all_digit(tokens.at(2UL * i + 1))) {
 			auto const number = std::stoull(tokens.at(2UL * i));
-			auto const unit	  = tokens.at(2 * i + 1);
+			auto const unit = tokens.at(2 * i + 1);
 			for (uint j{0}; j < reactaio::internal::units.size(); ++j) {
 				auto [u, names] = reactaio::internal::units.at(j);
 				if (contains(names, unit))
-					res.values.at(j) += (int)number;
+					res.values.at(j) += (int) number;
 			}
-		}
-		else
+		} else
 			// one of the values isn't of the correct format
 			// eg: 2 numbers, or 2 words in a row
 			return std::nullopt;
@@ -99,19 +98,19 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	return res;
 }
 
-std::vector<dpp::role*> get_roles_sorted(dpp::guild* guild, bool descending) {
-	std::vector<dpp::role*> roles;
+shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild>& guild, bool descending) {
+	shared_vector<dpp::role> roles;
 	auto guild_roles = guild->roles;
 	roles.reserve(guild_roles.size());
 	for(auto const& role_id: guild_roles)
 		roles.emplace_back(dpp::find_role(role_id));
 	if(descending) {
-		std::ranges::sort(roles, std::ranges::greater{}, [](dpp::role* role){
+		std::ranges::sort(roles, std::ranges::greater{}, [](std::shared_ptr<dpp::role> const& role){
 			return role->position;
 		});
 	}
 	else {
-		std::ranges::sort(roles, std::ranges::less{}, [](dpp::role* role){
+		std::ranges::sort(roles, std::ranges::less{}, [](std::shared_ptr<dpp::role> const& role){
 			return role->position;
 		});
 	}

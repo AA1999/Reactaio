@@ -12,8 +12,6 @@
 
 namespace reactaio::moderation {
 
-	using member_user_variant = std::variant<dpp::guild_member, std::shared_ptr<dpp::user>>;
-
 	/**
 	 * @brief kick - Removes a member/list of members from the guild.
 	 * @param members The members that are supposed to be removed.

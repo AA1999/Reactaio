@@ -21,9 +21,6 @@ class command_wrapper {
 
 protected:
 
-	template <typename T>
-	using shared_vector = std::vector<std::shared_ptr<T>>;
-
 	std::optional<reactaio::internal::duration> duration;
 
 	std::vector<std::string> errors{};

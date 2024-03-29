@@ -2,23 +2,24 @@
 // Created by arshia on 3/18/24.
 //
 
-#include "lock_wrapper.h"
+#include "lockdown_wrapper.h"
 
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
+#include <pstl/glue_execution_defs.h>
 
-void lock_wrapper::wrapper_function() {
+void lockdown_wrapper::wrapper_function() {
 	check_permissions();
 	if(cancel_operation)
 		return;
-	process_locks();
+	process_lockdown();
 	process_response();
 }
 
-void lock_wrapper::check_permissions() {
+void lockdown_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
@@ -34,6 +35,13 @@ void lock_wrapper::check_permissions() {
 
 	// TODO Check for roles that are allowed to use this command.
 
+	pqxx::work transaction{*command.connection};
+	auto const query = transaction.exec_prepared1("lockdowns_get", command.guild->id.str());
+	transaction.commit();
+	if(query["lockdown_channels"].is_null()) {
+		cancel_operation = true;
+		errors.emplace_back("No channels set for the lockdown, please set the lockdown channels in the bot config.");
+	}
 	if(cancel_operation) {
 		auto messages = join_with_limit(errors, bot_max_embed_chars);
 		message_paginator paginator{dpp::message{command.channel_id, ""}, messages, command};
@@ -41,9 +49,47 @@ void lock_wrapper::check_permissions() {
 	}
 }
 
-void lock_wrapper::process_locks() {
-	if (channels.empty())
-		channels.push_back(*dpp::find_channel(command.channel_id));
+void lockdown_wrapper::lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) {
+	if(completion.is_error()) {
+		auto error = completion.get_error();
+		errors.push_back(std::format("Error code {}: {}.", error.code, error.human_readable));
+		auto channel_ptr = std::make_shared<dpp::channel>(channel);
+		if(std::ranges::find(channels_with_errors, channel_ptr) == channels_with_errors.end())
+			channels_with_errors.push_back(channel_ptr);
+	}
+}
+
+void lockdown_wrapper::process_lockdown() {
+	pqxx::work transaction{*command.connection};
+	auto const query = transaction.exec_prepared1("lockdowns_get", command.guild->id);
+	transaction.commit();
+	auto channel_ids = parse_psql_array<dpp::snowflake>(query["lockdown_channels"]);
+	std::ranges::transform(channel_ids, std::back_inserter(channel_ptrs), [](dpp::snowflake const& channel_id){
+		return std::make_shared<dpp::channel>(*dpp::find_channel(channel_id));
+	});
+	if(std::ranges::count(channel_ptrs, nullptr) == channel_ptrs.size()) {
+		std::ranges::copy(channel_ptrs, std::back_inserter(channels_with_errors)); // This is done so that are_all_errors can return true, it has no practical use since it will all be nullptr anyways
+		std::ranges::transform(channel_ids, std::back_inserter(errors), [](dpp::snowflake const& channel_id) {
+			return std::format("Cannot find channel with id {}. Possibly a deleted channnel?", std::to_string(channel_id));
+		});
+		return;
+	}
+	auto const invalid_channels = find_index_all(channel_ptrs, nullptr);
+	if(!invalid_channels.empty()) {
+		std::ranges::copy_if(channel_ptrs, std::back_inserter(channels_with_errors), [](std::shared_ptr<dpp::channel> const& channel) {
+			return channel == nullptr;
+		});
+		std::ranges::transform(invalid_channels, std::back_inserter(errors), [channel_ids](std::size_t index) {
+			return std::format("Cannot find channel with id {}. Possibly a deleted channel?", std::to_string(channel_ids.at(index)));
+		});
+	}
+	shared_vector<dpp::channel> channel_ptrs_copy; // Cannot alter the current pointer vector since are_all_errors will return false always.
+	std::ranges::copy(channel_ptrs, std::back_inserter(channel_ptrs_copy));
+	std::erase(channel_ptrs_copy, nullptr);
+	std::ranges::transform(channel_ptrs_copy, std::back_inserter(channels), [](std::shared_ptr<dpp::channel> const& channel_ptr) {
+		return *channel_ptr;
+	});
+
 	for(auto const& channel: channels) {
 		command.bot->set_audit_reason(std::format("Locked by {} for reason: {}.", command.author.get_user()->format_username(), command.reason)).channel_edit_permissions(channel, command.guild->id, 0, dpp::permissions::p_send_messages,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
 			lambda_callback(completion, channel);
@@ -51,32 +97,15 @@ void lock_wrapper::process_locks() {
 	}
 }
 
-void lock_wrapper::lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) {
-	if (completion.is_error()) {
-		auto const error = completion.get_error();
-		errors.push_back(std::format("Unable to lock channel {}. Error Code {}: {}", channel.get_mention(), error.code, error.human_readable));
-		auto const channel_ptr = std::make_shared<dpp::channel>(channel);
-		if(std::ranges::find(channels_with_errors, channel_ptr) == channels_with_errors.end())
-			channels_with_errors.push_back(channel_ptr);
-		return;
-	}
-	auto transaction = pqxx::work{*command.connection};
-	auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-	auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
-	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCK,
-							  std::to_string(command.author.user_id), std::to_string(channel.id), command.reason);
-	transaction.commit();
-}
-
-void lock_wrapper::process_response() {
-	auto message = dpp::message(command.channel_id, "");
+void lockdown_wrapper::process_response() {
+auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author.get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
-								  .set_title("Error while locking channel(s): ")
+								  .set_title("Error while locking down the server: ")
 								  .set_color(color::ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
@@ -130,6 +159,7 @@ void lock_wrapper::process_response() {
 	}
 	if (!are_all_errors()) {
 		std::vector<std::string> locked_mentions;
+		std::vector<std::string> locked_ids;
 		shared_vector<dpp::channel> locked_channels;
 
 		filter(locked_channels);
@@ -138,20 +168,23 @@ void lock_wrapper::process_response() {
 			return std::format("{}", channel->get_mention());
 		});
 
+		std::ranges::transform(locked_channels, std::back_inserter(locked_ids), [](auto const& channel) {
+			return std::to_string(channel->id);
+		});
+
+		pqxx::work transaction{*command.connection};
+		auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
+		auto const channel_ids = join(locked_ids, ", ");
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCKDOWN,
+								  std::to_string(command.author.user_id), channel_ids, command.reason);
+		transaction.commit();
+
 		auto mentions = join(locked_mentions, ", ");
 
 		std::string const title{"Locked"};
-		std::string description;
-		std::string gif_url;
-
-		if (channels.size() == 1) { // TODO find a proper gif for both
-			description = std::format("{} has been locked.", mentions);
-			gif_url		= "https://media3.giphy.com/media/LOoaJ2lbqmduxOaZpS/giphy.gif";
-		}
-		else {
-			description = std::format("{} have been locked.", mentions);
-			gif_url		= "https://i.gifer.com/1Daz.gif";
-		}
+		std::string description{std::format("Server has been locked down. Channels: {}", mentions)};
+		std::string gif_url; //TODO find a proper gif
 
 		auto time_now	= std::time(nullptr);
 		auto reason_str = std::string{command.reason};
@@ -169,10 +202,9 @@ void lock_wrapper::process_response() {
 
 		// Modlogs
 
-		auto transaction = pqxx::work{*command.connection};
 		auto query = transaction.exec_prepared("channel_modlog", std::to_string(command.guild->id));
 		transaction.commit();
-		std::string const embed_title = std::format("Channel{} locked: ", locked_channels.size() == 1 ? "" : "s");
+		std::string const embed_title = std::format("Server locked down. Channel{} affected: ", locked_channels.size() == 1 ? "" : "s");
 		auto const channel_overwrite_update_webhook_url = query[0]["channel_overwrite_update"];
 		if(!channel_overwrite_update_webhook_url.is_null()) {
 			auto channel_overwrite_update_webhook = dpp::webhook{channel_overwrite_update_webhook_url.as<std::string>()};
@@ -194,7 +226,7 @@ void lock_wrapper::process_response() {
 		auto modlog_webhook_url = query[0]["modlog"];
 		if(!modlog_webhook_url.is_null()) {
 			auto modlog_webhook = dpp::webhook{modlog_webhook_url.as<std::string>()};
-			description = std::format("{} have been locked.", mentions);
+			description = std::format("Server locked down. Affected channels: {}.", mentions);
 
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
@@ -211,7 +243,7 @@ void lock_wrapper::process_response() {
 		auto public_modlog_webhook_url = query[0]["public_modlog"];
 		if(!public_modlog_webhook_url.is_null()) {
 			auto public_modlog_webhook = dpp::webhook{public_modlog_webhook_url.as<std::string>()};
-			description = std::format("{} have been locked.", mentions);
+			description = std::format("Server locked down. Affected channels: {}.", mentions);
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
 								   .set_color(color::LOG_COLOR)
@@ -241,3 +273,5 @@ void lock_wrapper::process_response() {
 	else
 		command.bot->message_create(message);
 }
+
+
