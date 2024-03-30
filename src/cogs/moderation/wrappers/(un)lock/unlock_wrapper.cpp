@@ -127,14 +127,12 @@ void unlock_wrapper::process_response() {
 	}
 	if (!are_all_errors()) {
 		std::vector<std::string> unlocked_mentions;
-		std::vector<dpp::channel> unlocked_channels;
+		shared_vector<dpp::channel> unlocked_channels;
 
-		std::ranges::set_symmetric_difference(channels, channels_with_errors, std::back_inserter(unlocked_channels), [](dpp::channel const& channel, dpp::channel const& channel2) {
-			return channel.id != channel2.id;
-		});
+		filter(unlocked_channels);
 
-		std::ranges::transform(channels, std::back_inserter(unlocked_mentions), [](dpp::channel const& channel) {
-			return std::format("{}", channel.get_mention());
+		std::ranges::transform(unlocked_channels, std::back_inserter(unlocked_mentions), [](auto const& channel) {
+			return std::format("{}", channel->get_mention());
 		});
 
 		auto mentions = join(unlocked_mentions, ", ");

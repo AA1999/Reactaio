@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "../../core/aliases.h"
 #include "../../core/discord_command.h"
 
 #include <string_view>

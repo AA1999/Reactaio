@@ -73,7 +73,7 @@ requires std::ranges::range<R>
 std::set<std::size_t> find_index_all(const R& range, const typename R::value_type& value) {
 	std::set<std::size_t> indexes;
 	auto iterator = std::ranges::begin(range);
-	while((iterator = std::ranges::find(range, value) != std::ranges::end(range))) {
+	while((iterator = std::ranges::find(range, value)) != std::ranges::end(range)) {
 		indexes.insert(std::ranges::distance(std::ranges::begin(range), iterator));
 		++iterator;
 	}

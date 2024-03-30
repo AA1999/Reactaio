@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../../core/aliases.h"
 #include "moderation_command.h"
 
 #include <dpp/dpp.h>
