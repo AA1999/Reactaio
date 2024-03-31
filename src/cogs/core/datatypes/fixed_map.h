@@ -25,21 +25,31 @@ namespace reactaio::internal {
 	 */
 	template <typename Key, typename Value, std::size_t size, typename Hash = std::hash<Key>, typename KeyEqual = std::equal_to<Key>, typename Allocator = std::allocator<std::pair<const Key, Value>>>
 	class fixed_map {
-		mutable std::array<std::pair<Key, Value>, size> m_array;
+
+		struct value_type {
+			Key key;
+			Value value;
+		};
+
+		mutable std::array<value_type, size> m_array;
 
 		[[nodiscard]] std::unordered_map<Key, Value, Hash, KeyEqual, Allocator>& get_map() const noexcept {
 			static std::unordered_map<Key, Value, Hash, KeyEqual, Allocator> map {m_array.begin(), m_array.end()};
 			return map;
 		}
 
-		using iterator_t = std::array<std::pair<Key, Value>, size>::iterator;
-		using const_iterator_t = std::array<std::pair<Key, Value>, size>::const_iterator;
+		using iterator = typename std::array<value_type, size>::iterator;
+		using const_iterator = typename std::array<value_type, size>::const_iterator;
+		using key_type = Key;
 
 		[[nodiscard]] constexpr Value& lookup(const Key& key, bool check = true) const {
 			if (std::is_constant_evaluated()) {
-				for (auto& [array_key, value]: this->m_array)
-					if (array_key == key)
-						return value;
+				auto find = std::ranges::find(m_array, key, [key](value_type const& element) {
+					return element.key == key;
+				});
+				if(find != m_array.end()) {
+
+				}
 				if(check)
 					throw std::out_of_range{std::format("Key {} doesn't exist in the map.", key)};
 				assert(false);
@@ -59,7 +69,7 @@ namespace reactaio::internal {
 		 * @brief Creates a fixed map from an initializer list.
 		 * @param list The initializer to fill the map with.
 		 */
-		constexpr fixed_map(const std::initializer_list<std::pair<Key, Value>> list) {
+		constexpr fixed_map(const std::initializer_list<value_type> list) {
 			if(list.size() > size)
 				throw std::out_of_range{"The given initializer list is bigger than the allocated size for the map."};
 			std::copy(list.begin(), list.end(), m_array.begin());
@@ -97,7 +107,7 @@ namespace reactaio::internal {
 		 * @brief begin - Returns an iterator to the beginning of the map.
 		 * @return Iterator pointing to the first element.
 		 */
-		[[nodiscard]] constexpr const_iterator_t begin() const noexcept {
+		[[nodiscard]] constexpr const_iterator begin() const noexcept {
 			return m_array.begin();
 		}
 
@@ -105,7 +115,7 @@ namespace reactaio::internal {
 		 * @brief begin - Returns a const iterator to the beginning of the map.
 		 * @return Const iterator pointing to the first element.
 		 */
-		[[nodiscard]] constexpr iterator_t begin() noexcept {
+		[[nodiscard]] constexpr iterator begin() noexcept {
 			return m_array.begin();
 		}
 
@@ -113,7 +123,7 @@ namespace reactaio::internal {
 		 * @brief begin - Returns an iterator to the beginning of the map.
 		 * @return Iterator pointing to the first element.
 		 */
-		[[nodiscard]] constexpr const_iterator_t end() const noexcept {
+		[[nodiscard]] constexpr const_iterator end() const noexcept {
 			return m_array.end();
 		}
 
@@ -121,7 +131,7 @@ namespace reactaio::internal {
 		 * @brief begin - Returns an iterator to the end of the map.
 		 * @return Iterator pointing to the last element.
 		 */
-		[[nodiscard]] constexpr iterator_t end() noexcept {
+		[[nodiscard]] constexpr iterator end() noexcept {
 			return m_array.end();
 		}
 
