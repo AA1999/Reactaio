@@ -103,18 +103,36 @@ namespace reactaio::internal {
 			return m_container.size();
 		}
 
+
+		/**
+		 * @brief How many elements can be added until it can no longer hold any?
+		 * @return The maximum size that this container can have according to the library implementation.
+		 */
 		[[nodiscard]] constexpr size_type max_size() const noexcept {
 			return m_container.max_size();
 		}
 
+		/**
+		 * @brief Allocated capacity.
+		 * @return The maximum elements this container can have before needing to reallocate memory.
+		 */
 		[[nodiscard]] constexpr size_type capacity() const noexcept {
 			return m_container.capacity();
 		}
 
+		/**
+		 * @brief Returns true if the container has no elements.
+		 * @return true if the container is empty
+		 * @return false if the container is not empty
+		 */
 		[[nodiscard]] constexpr bool empty() const noexcept {
 			return m_container.empty();
 		}
 
+		/**
+		 * @brief Swap elements with other container.
+		 * @param other Other container to swap with.
+		 */
 		constexpr void swap(unique_vector& other) noexcept {
 			m_container.swap(other.m_container);
 		}
@@ -152,12 +170,19 @@ namespace reactaio::internal {
 				m_container.insert(iter, std::move(value));
 		}
 
+		/**
+		 * @brief Removes the last element of the container.
+		 * @return A reference to the last element that was removed.
+		 */
 		constexpr reference pop_back() {
 			auto pop = front();
 			m_container.pop_back();
 			return pop;
 		}
 
+		/**
+		 * @brief Removes all elements of the container.
+		 */
 		constexpr void clear() noexcept {
 			m_container.clear();
 		}
