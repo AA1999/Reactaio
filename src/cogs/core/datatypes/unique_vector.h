@@ -187,5 +187,43 @@ namespace reactaio::internal {
 			m_container.clear();
 		}
 
+		/**
+		 * @brief Random access lookup function.
+		 * @param index The element index
+		 * @return Reference to the element at that index.
+		 * @throw std::out_of_range on out of bounds.
+		 */
+		[[nodiscard]] constexpr reference at(size_type index) {
+			return m_container.at(index);
+		}
+
+		/**
+		 * @brief Random access lookup function.
+		 * @param index The element index
+		 * @return Const reference to the element at that index.
+		 * @throw std::out_of_range on out of bounds.
+		 */
+		[[nodiscard]] constexpr const_reference at(size_type index) const {
+			return m_container.at(index);
+		}
+
+		/**
+		 * @brief Random access lookup operator. No bounds checking.
+		 * @param index The index for the lookup.
+		 * @return Reference to the element at that index.
+		 */
+		[[nodiscard]] reference operator[](size_type index) {
+			return m_container[index];
+		}
+
+		/**
+		 * @brief Random access lookup operator. No bounds checking.
+		 * @param index The index for the lookup.
+		 * @return Const reference to the element corresponding to the index.
+		 */
+		[[nodiscard]] constexpr const_reference operator [](size_type index) const {
+			return m_container[index];
+		}
+
 	};
 }
