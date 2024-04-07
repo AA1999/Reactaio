@@ -22,8 +22,6 @@ namespace reactaio::internal {
 		using const_iterator = typename std::vector<T>::const_iterator;
 		using reference = typename std::vector<T>::reference;
 		using const_reference = typename std::vector<T>::const_reference;
-		using pointer = typename std::vector<T>::pointer;
-		using const_pointer = typename std::vector<T>::const_pointer;
 		using size_type = typename std::vector<T>::size_type;
 		using difference_type = std::iter_difference_t;
 		using value_type = T;
