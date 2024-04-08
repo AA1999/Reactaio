@@ -186,6 +186,26 @@ namespace reactaio::internal {
 		}
 
 		/**
+		 * @brief Removes element at the given position.
+		 * @param position Iterator to the element being removed.
+		 * @return Iterator after the removed element.
+		*/
+		[[nodiscard]] constexpr iterator erase(const_iterator position) {
+			return m_container.erase(position);
+		}
+
+		/**
+		 * 
+		 * @param fisrt Start of the range that is going to be removed.
+		 * @param last End of the range that's going to be removed.
+		 * @return end() if last == end()
+		 * @return last if the given range is empty
+		 */
+		[[nodiscard]] constexpr iterator erase(const_iterator fisrt, const_iterator last) {
+			return m_container.erase(fisrt, last);
+		}
+
+		/**
 		 * @brief Random access lookup function.
 		 * @param index The element index
 		 * @return Reference to the element at that index.
