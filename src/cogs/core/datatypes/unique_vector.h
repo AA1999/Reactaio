@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <compare>
 
 namespace reactaio::internal {
 	/**
@@ -25,6 +26,16 @@ namespace reactaio::internal {
 		using size_type = typename std::vector<T>::size_type;
 		using difference_type = std::iter_difference_t;
 		using value_type = T;
+
+
+		/**
+		 * @brief Three-way comparison operator.
+		 * @param other The other vector to compare to.
+		 * @return std::weak_ordering according to how the comparison operator works.
+		 */
+		[[nodiscard]] constexpr auto operator<=>(const unique_vector& other) const {
+			return m_container <=> other;
+		}
 
 		/**
 		 * @brief Beginning of the vector.
