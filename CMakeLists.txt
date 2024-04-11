@@ -5,12 +5,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp src/*.h )
 
-add_executable(${PROJECT_NAME}
-        ${sources}
-)
-
 find_package(nlohmann_json 3.11.2 REQUIRED)
 find_package(DPP 10.0.30 REQUIRED)
+
+add_executable(${PROJECT_NAME} ${sources})
 
 target_link_libraries(${PROJECT_NAME}
         ${DPP_LIBRARIES}

@@ -8,6 +8,8 @@
 #include <variant>
 #include <dpp/dpp.h>
 
+#include "datatypes/unique_vector.h"
+
 using ullong	  = unsigned long long int;
 using ushort	  = unsigned short;
 using warn_t	  = ullong;
@@ -18,7 +20,7 @@ using count_t	  = ullong;
 using snowflake_t = std::uint64_t;
 using color_t     = std::uint32_t;
 
-using member_user_variant = std::variant<dpp::guild_member, std::shared_ptr<dpp::user>>;
-
 template <typename T>
-using shared_vector = std::vector<std::shared_ptr<T>>;
+using shared_set = reactaio::internal::unique_vector<std::shared_ptr<T>>;
+
+using member_user_variant_set = shared_set<std::variant<dpp::guild_member, dpp::user>>;
