@@ -21,6 +21,6 @@ using snowflake_t = std::uint64_t;
 using color_t     = std::uint32_t;
 
 template <typename T>
-using shared_set = reactaio::internal::unique_vector<std::shared_ptr<T>>;
+using shared_vector = reactaio::internal::unique_vector<std::shared_ptr<T>>;
 
-using member_user_variant_set = shared_set<std::variant<dpp::guild_member, dpp::user>>;
+using member_user_variant= shared_vector<std::variant<dpp::guild_member, dpp::user>>;
