@@ -24,7 +24,7 @@ namespace reactaio::internal {
 		using reference = typename std::vector<T>::reference;
 		using const_reference = typename std::vector<T>::const_reference;
 		using size_type = typename std::vector<T>::size_type;
-		using difference_type = std::iter_difference_t;
+		using difference_type = std::iter_difference_t<T>;
 		using value_type = T;
 
 
@@ -34,7 +34,8 @@ namespace reactaio::internal {
 		 * @return std::weak_ordering according to how the comparison operator works.
 		 */
 		[[nodiscard]] constexpr auto operator<=>(const unique_vector& other) const {
-			return m_container <=> other;
+			m_container.reserve(2);
+			return m_container <=> other.m_container;
 		}
 
 		/**
@@ -252,6 +253,31 @@ namespace reactaio::internal {
 		 */
 		[[nodiscard]] constexpr const_reference operator [](size_type index) const {
 			return m_container[index];
+		}
+
+		/**
+		 * @brief Increases the capacity (How many elements it can hold without memory reallocation) of the vector to the given number.
+		 * @param new_size The size to reserve for the vector.
+		 */
+		constexpr void reserve(size_type new_size) {
+			m_container.reserve(new_size);
+		}
+
+		/**
+		 * @brief Resizes the container to the given size. Does nothing if new_size == size().
+		 * @param new_size New size of the container.
+		 */
+		constexpr void resize(size_type new_size) {
+			m_container.resize(new_size);
+		}
+
+		/**
+		 * @brief Resizes the container with the given values until the size is increased to the given size. Does nothing if new_size == size().
+		 * @param new_size New size of the container.
+		 * @param value The value to insert until the size is new_size.
+		 */
+		constexpr void resize(size_type new_size, const T& value) {
+			m_container.resize(new_size, value);
 		}
 
 	};
