@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <vector>
-#include <compare>
+#include <ranges>
 
 namespace reactaio::internal {
 	/**
@@ -24,19 +24,31 @@ namespace reactaio::internal {
 		using reference = typename std::vector<T>::reference;
 		using const_reference = typename std::vector<T>::const_reference;
 		using size_type = typename std::vector<T>::size_type;
-		using difference_type = std::iter_difference_t<T>;
+		using difference_type = typename std::vector<T>::difference_type;
 		using value_type = T;
 
 
 		/**
-		 * @brief Three-way comparison operator.
-		 * @param other The other vector to compare to.
-		 * @return std::weak_ordering according to how the comparison operator works.
+		 * @brief Equalily comparison operator.
+		 * @param other Object to compare this to.
+		 * @return true if the underlying containers are equal.
+		 * @return false if the underlying containers are not equal.
 		 */
-		[[nodiscard]] constexpr auto operator<=>(const unique_vector& other) const {
-			m_container.reserve(2);
-			return m_container <=> other.m_container;
+		[[nodiscard]] constexpr bool operator ==(const unique_vector& other) const {
+			return m_container == other.m_container;
 		}
+
+		/**
+		 * @brief Inequality comparison operator.
+		 * @param other Object to compare this to.
+		 * @return true if the underlying containers are not equal.
+		 * @return false if the underlying containers are equal.
+		 */
+		[[nodiscard]] constexpr bool operator !=(const unique_vector& other) const {
+			return !(this == other);
+		}
+
+
 
 		/**
 		 * @brief Beginning of the vector.
@@ -150,8 +162,9 @@ namespace reactaio::internal {
 		/**
 		 * @brief Appends the given element value to the container so that it's sorted.
 		 * @param value The value to insert inside the vector.
+		 * @note This function is called push_back due to the requirement for compatibility with std::back_inserter.
 		 */
-		constexpr void insert(value_type const &value) {
+		constexpr void push_back(value_type const &value) {
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
 				m_container.insert(iter, value);
@@ -160,8 +173,9 @@ namespace reactaio::internal {
 		/**
 		 * @brief Moves the given element to the end of the container.
 		 * @param value The value to be moved inside the vector.
+		 * @note This function is called push_back due to the requirement for compatibility with std::back_inserter.
 		 */
-		constexpr void insert(value_type &&value) {
+		constexpr void push_back(value_type &&value) {
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
 				m_container.insert(iter, std::move(value));
@@ -215,6 +229,14 @@ namespace reactaio::internal {
 		 */
 		[[nodiscard]] constexpr iterator erase(const_iterator fisrt, const_iterator last) {
 			return m_container.erase(fisrt, last);
+		}
+
+		/**
+		 * @brief Removes the given value from the container.
+		 * @param value Value to be removed from the container.
+		 */
+		constexpr void erase(const value_type& value) {
+			std::erase(m_container, value);
 		}
 
 		/**
@@ -279,6 +301,5 @@ namespace reactaio::internal {
 		constexpr void resize(size_type new_size, const T& value) {
 			m_container.resize(new_size, value);
 		}
-
 	};
 }
