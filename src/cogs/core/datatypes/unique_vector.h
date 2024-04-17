@@ -6,13 +6,13 @@
 
 #include <algorithm>
 #include <vector>
-#include <ranges>
 
 namespace reactaio::internal {
 	/**
 	 * @brief A vector with all unique elements.
 	 * @note The reason a std::set/std::unordered_set isn't used is because of its heavy memory usage.
 	 * @tparam T Type of the container data.
+	 * @note This container is always sorted.
 	 */
 	template<typename T>
 	class unique_vector {
@@ -26,6 +26,32 @@ namespace reactaio::internal {
 		using size_type = typename std::vector<T>::size_type;
 		using difference_type = typename std::vector<T>::difference_type;
 		using value_type = T;
+
+		~unique_vector() = default;
+
+		unique_vector(): m_container(){};
+
+		/**
+		 * @brief Creates the container from an initializer list.
+		 * @param initializer_list The initializer list to construct the container from.
+		 */
+		unique_vector(std::initializer_list<T> const& initializer_list): m_container() {
+			for(auto const& element: initializer_list)
+				push_back(element);
+		}
+
+		/**
+		 * @brief Creates the container from a range with the same value_type.
+		 * @tparam R Type of the range.
+		 * @param range The range to create the container from.
+		 */
+		template <typename R>
+		requires std::ranges::range<R>
+		explicit unique_vector(const R& range): m_container() {
+			insert(range);
+		}
+
+
 
 
 		/**
@@ -192,6 +218,19 @@ namespace reactaio::internal {
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
 				m_container.insert(iter, std::move(value));
+		}
+
+		/**
+		 * @brief Places the given range inside the container except the common elements.
+		 * @tparam R Type of the range.
+		 * @param range The given range to append.
+		 */
+		template <typename R>
+		requires std::ranges::range<R>
+		constexpr void insert(const R& range) {
+			static_assert(std::is_same_v<typename R::value_type, value_type>, "Types of the given range and the current container don't match.");
+			for(auto const& element: range)
+				push_back(element);
 		}
 
 		/**
