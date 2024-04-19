@@ -10,7 +10,7 @@
 /**
  * @brief clear_guild_warnings - Wrapper to handle clearing guild warnings.
  */
-class clear_guild_warnings: public simple_wrapper {
+class clear_guild_warnings final: public simple_wrapper {
 	dpp::message response;
 
 	/**

@@ -10,7 +10,7 @@
 /**
  * @brief unban_wrapper - Functor that processes the unban operation for a list of dpp::user* objects.
  */
-class unban_wrapper: public user_wrapper {
+class unban_wrapper final: public user_wrapper {
 	/**
 	 * @brief wrapper_function - Function called when the () operator is called. Unbans all the given members/users from the guild and returns any errors/success message.
 	 */
@@ -38,7 +38,7 @@ class unban_wrapper: public user_wrapper {
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] std::shared_ptr<dpp::user> user) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] user_ptr const &user) override;
 
 public:
 	using user_wrapper::user_wrapper;

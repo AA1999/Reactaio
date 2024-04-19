@@ -9,8 +9,8 @@
 #include <vector>
 #include <dpp/dpp.h>
 
-class audit_log_wrapper: public recursive_wrapper {
-	std::vector<dpp::audit_entry> audit_entries_;
+class audit_log_wrapper final: public recursive_wrapper {
+	shared_vector<dpp::audit_entry> audit_entries_;
 
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.

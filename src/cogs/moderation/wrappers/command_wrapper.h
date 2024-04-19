@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../core/datatypes/duration.h"
+#include "../../core/datatypes/unique_vector.h"
 #include "../../core/helpers.h"
 #include "../modules/moderation_command.h"
 
@@ -17,11 +18,13 @@
  * @brief command_wrapper - The base abstract functor class for all moderation actions. This class is only supposed to be used as a base class and not have direct instances
  */
 
+namespace internal = reactaio::internal;
+
 class command_wrapper {
 
 protected:
 
-	std::optional<reactaio::internal::duration> duration;
+	std::optional<internal::duration> duration;
 
 	std::vector<std::string> errors{};
 	std::vector<dpp::embed> embeds;
@@ -29,6 +32,7 @@ protected:
 	moderation_command command;
 
 	dpp::message error_message;
+
 
 	bool cancel_operation{false};
 

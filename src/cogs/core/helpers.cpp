@@ -76,7 +76,7 @@ std::vector<std::string> get_tokens(std::string_view const string) {
 
 std::optional<reactaio::internal::duration> parse_human_time(std::string_view const string) {
 	reactaio::internal::duration res{};
-	auto tokens = get_tokens(remove_non_alphanumeric(string));
+	auto const tokens = get_tokens(remove_non_alphanumeric(string));
 
 	if (tokens.size() % 2 == 0)// size must be even
 		return std::nullopt;
@@ -84,11 +84,11 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	for (uint i{0}; i < tokens.size(); ++i) {
 		if (is_all_digit(tokens.at(2UL * i)) && !is_all_digit(tokens.at(2UL * i + 1))) {
 			auto const number = std::stoull(tokens.at(2UL * i));
-			auto const unit = tokens.at(2 * i + 1);
+			auto const& unit = tokens.at(2 * i + 1);
 			for (uint j{0}; j < reactaio::internal::units.size(); ++j) {
 				auto [u, names] = reactaio::internal::units.at(j);
 				if (contains(names, unit))
-					res.values.at(j) += (int) number;
+					res.values.at(j) += static_cast<uint64_t>(number);
 			}
 		} else
 			// one of the values isn't of the correct format
@@ -98,38 +98,37 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	return res;
 }
 
-shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild>& guild, bool descending) {
+shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &guild, bool descending) {
 	shared_vector<dpp::role> roles;
 	auto guild_roles = guild->roles;
 	roles.reserve(guild_roles.size());
-	for(auto const& role_id: guild_roles)
-		roles.emplace_back(dpp::find_role(role_id));
-	if(descending) {
-		std::ranges::sort(roles, std::ranges::greater{}, [](std::shared_ptr<dpp::role> const& role){
+	for (auto const &role_id: guild_roles)
+		roles.insert(dpp::find_role(role_id));
+	if (descending) {
+		std::ranges::sort(roles, std::ranges::greater{}, [](std::shared_ptr<dpp::role> const &role) {
 			return role->position;
 		});
-	}
-	else {
-		std::ranges::sort(roles, std::ranges::less{}, [](std::shared_ptr<dpp::role> const& role){
+	} else {
+		std::ranges::sort(roles, std::ranges::less{}, [](std::shared_ptr<dpp::role> const &role) {
 			return role->position;
 		});
 	}
 	return roles;
 }
 
-std::vector<dpp::role*> get_roles_sorted(const dpp::guild_member& member, bool descending) {
-	std::vector<dpp::role*> roles;
+shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member& member, bool descending) {
+	shared_vector<dpp::role> roles;
 	auto member_roles = member.get_roles();
 	roles.reserve(member_roles.size());
 for(auto const& role_id: member_roles)
-		roles.emplace_back(dpp::find_role(role_id));
+		roles.insert(dpp::find_role(role_id));
 	if(descending) {
-		std::ranges::sort(roles, std::ranges::greater{}, [](dpp::role* role){
+		std::ranges::sort(roles, std::ranges::greater{}, [](const std::shared_ptr<dpp::role>& role){
 			return role->position;
 		});
 	}
 	else {
-		std::ranges::sort(roles, std::ranges::less{}, [](dpp::role* role){
+		std::ranges::sort(roles, std::ranges::less{}, [](const std::shared_ptr<dpp::role>& role){
 			return role->position;
 		});
 	}

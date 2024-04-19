@@ -6,7 +6,7 @@
 
 #include "../simple_wrapper.h"
 
-class change_reason: public simple_wrapper {
+class change_reason final: public simple_wrapper {
 	std::string case_id;
 	dpp::message response;
 
@@ -29,7 +29,7 @@ public:
 	/**
 	 @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
-	 * @param member The member to clear the warnings for.
+	 * @param case_id The case to change the reason for.
 	 */
 	change_reason(moderation_command command, std::string case_id): simple_wrapper(std::move(command)), case_id(std::move(case_id)){}
 	~change_reason() override = default;

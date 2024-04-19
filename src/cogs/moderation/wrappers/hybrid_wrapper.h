@@ -17,7 +17,7 @@
 class hybrid_wrapper: public command_wrapper {
 protected:
 
-	std::vector<member_user_variant> snowflakes;
+	internal::unique_vector<member_user_variant> snowflakes;
 	shared_vector<dpp::user> users_with_errors;
 	shared_vector<dpp::user> users;
 	shared_vector<dpp::guild_member> members;
@@ -39,7 +39,7 @@ protected:
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, std::shared_ptr<dpp::user> user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, user_ptr const &user) = 0;
 
 public:
 
@@ -58,7 +58,7 @@ public:
 	 * @param snowflakes The list of dpp::user* and dpp::guild_member objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	hybrid_wrapper(const std::vector<member_user_variant> &snowflakes, moderation_command& command)
+	hybrid_wrapper(const internal::unique_vector<member_user_variant> &snowflakes, moderation_command& command)
 		: command_wrapper(std::move(command)), snowflakes(snowflakes) {}
 
 };

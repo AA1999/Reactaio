@@ -6,7 +6,7 @@
 
 #include "../member_wrapper.h"
 
-class unmute_wrapper: public member_wrapper {
+class unmute_wrapper final: public member_wrapper {
 	/**
 	 * @brief wrapper_function - Function called when the () operator is called. Mutes/Times out all the given members in the guild and returns any errors/success message.
 	 */
@@ -35,7 +35,7 @@ class unmute_wrapper: public member_wrapper {
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param member Member object that the callback is made on.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] member_ptr const &member) override;
 
 	bool use_mute_callback{false};
 

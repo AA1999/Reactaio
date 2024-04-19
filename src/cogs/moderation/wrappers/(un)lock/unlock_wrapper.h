@@ -6,7 +6,7 @@
 #include "../channel_wrapper.h"
 
 
-class unlock_wrapper: public channel_wrapper {
+class unlock_wrapper final: public channel_wrapper {
 	/**
 	 * @brief Checks if both the command invoker and the bot have sufficient permissions.
 	 */
@@ -22,7 +22,7 @@ class unlock_wrapper: public channel_wrapper {
 	 * @param completion The compeltion object that indicates if the API call was suceessful.
 	 * @param channel Channel that the API call is made for.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) override;
 
 	/**
 	 * @brief Unlocks all the given channels. On error the errors will be sent to the errors vector.

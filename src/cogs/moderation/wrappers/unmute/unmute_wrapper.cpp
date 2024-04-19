@@ -25,10 +25,10 @@ void unmute_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
-	auto author_roles = get_roles_sorted(command.author);
-	auto author_top_role = *author_roles.begin();
+	auto author_roles = get_roles_sorted(*command.author);
+	auto author_top_role = author_roles.front();
 
 	bool is_owner{false};
 
@@ -41,24 +41,23 @@ void unmute_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Moderate Members permission.");
 	}
 
-	std::vector<dpp::role*> protected_roles;
+	shared_vector<dpp::role> protected_roles;
 
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
-							   std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-								   return dpp::find_role(role_id);
-							   });
+		std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
+			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
+		});
 	}
 
 
 	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(member);
+		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(command.author.user_id == member.user_id) { // If for some reason you decided to unmute yourself lol
-			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
+		if(command.author->user_id == member->user_id) { // If for some reason you decided to unmute yourself lol
+			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
 				errors.emplace_back("❌ Why are you unmuting yourself, server owner? lmfao");
 				is_owner = true;
 			}
@@ -68,30 +67,28 @@ void unmute_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!is_owner && member.user_id == command.guild->owner_id) { // Unmuting the server owner lmfao
+		if(!is_owner && member->user_id == command.guild->owner_id) { // Unmuting the server owner lmfao
 			errors.emplace_back("❌ You can't unmute the server owner lmfao.");
 			cancel_operation = true;
 		}
 
 
-		if(command.bot->me.id == member.user_id) { // If you decided to unmute the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to unmute the bot (ReactAIO)
 			errors.emplace_back("❌ Can't unmute myself lmfao.");
 			cancel_operation = true;
 		}
 
 		if(!protected_roles.empty()) {
 
-			std::vector<dpp::role*> member_protected_roles;
-			std::ranges::set_intersection(protected_roles.begin(), protected_roles.end(), member_roles.begin(),
-										  member_roles.end(), std::back_inserter(member_protected_roles));
+			shared_vector<dpp::role> member_protected_roles;
+			std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
 
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
-				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
-									   (role_mentions), [](dpp::role* role){
-										   return role->get_mention();
-									   });
+				std::ranges::transform(member_protected_roles, std::back_inserter(role_mentions), [](const role_ptr& role){
+					return role->get_mention();
+				});
 				std::string role_mentions_str = join(role_mentions, " , ");
 				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot unmute.", role_mentions_str));
 			}
@@ -100,13 +97,13 @@ void unmute_wrapper::check_permissions() {
 		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to unmute. Please "
 										 "move the bot role above the members and below your staff roles.",
-										 member.get_mention()));
+										 member->get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't unmute them.",
-										 member.get_mention()));
+										 member->get_mention()));
 			cancel_operation = true;
 		}
 	}
@@ -126,7 +123,7 @@ void unmute_wrapper::check_permissions() {
 		if(command.interaction) {
 			error_message.set_flags(dpp::m_ephemeral);
 			if(organized_errors.size() == 1)
-				command.interaction->edit_response(error_message);
+				(*command.interaction)->edit_response(error_message);
 			else {
 				message_paginator paginator{error_message, command};
 				paginator.start();
@@ -144,26 +141,26 @@ void unmute_wrapper::check_permissions() {
 			else {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
 										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author.user_id, error_message);
+				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 		}
 	}
 }
 
-void unmute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
+void unmute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, member_ptr const &member) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
-		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
+		members_with_errors.insert(member);
 		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	} else {
 		std::string dm_message;
 		if(use_mute_callback)
 			dm_message = std::format("Your timeout has been removed in {} by {}. Reason: {}",
-												 command.guild->name, command.author.get_user()->format_username(), command.reason);
+												 command.guild->name, command.author->get_user()->format_username(), command.reason);
 		else
 			dm_message = std::format("Your have been unmuted in {} by {}. Reason: {}",
-									 command.guild->name, command.author.get_user()->format_username(), command.reason);
-		command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+									 command.guild->name, command.author->get_user()->format_username(), command.reason);
+		command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
 	}
 }
 
@@ -181,18 +178,18 @@ void unmute_wrapper::process_unmutes() {
 	use_mute_callback = mute_role != nullptr;
 	for(auto const& member: members) {
 		if(mute_role != nullptr) {
-			command.bot->set_audit_reason(std::format("Unmuted by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_delete_role(command.guild->id, member.user_id, mute_role->id, [this, member](auto const& completion){
+			command.bot->set_audit_reason(std::format("Unmuted by: {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_delete_role(command.guild->id, member->user_id, mute_role->id, [this, member](auto const& completion){
 				lambda_callback(completion, member);
 			});
 		}
-		command.bot->set_audit_reason(std::format("Timeout removed by: {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout_remove(command.guild->id, member.user_id, [this, member](dpp::confirmation_callback_t const& callback){
+		command.bot->set_audit_reason(std::format("Timeout removed by: {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_timeout_remove(command.guild->id, member->user_id, [this, member](dpp::confirmation_callback_t const& callback){
 			lambda_callback(callback, member);
 		});
 	}
 }
 void unmute_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
@@ -229,7 +226,7 @@ void unmute_wrapper::process_response() {
 					embed.set_description(error);
 					automod_log.add_embed(embed);
 				}
-				command.bot->direct_message_create(command.author.user_id, automod_log);
+				command.bot->direct_message_create(command.author->user_id, automod_log);
 			}
 			else {
 				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
@@ -251,11 +248,11 @@ void unmute_wrapper::process_response() {
 
 		filter(unmuted_members);
 
-		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_usernames), [](std::shared_ptr<dpp::guild_member> const& member) {
+		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_usernames), [](member_ptr const& member) {
 			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_mentions), [](std::shared_ptr<dpp::guild_member> const& member) {
+		std::ranges::transform(unmuted_members, std::back_inserter(unmuted_mentions), [](member_ptr const& member) {
 			return member->get_mention();
 		});
 
@@ -314,7 +311,7 @@ void unmute_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been unmuted.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(mute_log);
@@ -337,7 +334,7 @@ void unmute_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been unmute.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(mute_log);
@@ -346,7 +343,7 @@ void unmute_wrapper::process_response() {
 	}
 	if (command.interaction) {
 		if(message.embeds.size() == 1)
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 		else {
 			message_paginator paginator{message, command};
 			paginator.start();
@@ -354,7 +351,7 @@ void unmute_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  reactaio::internal::mod_action_name::UNMUTE, dpp::utility::current_date_time());
 		transaction.commit();
 	}

@@ -9,7 +9,7 @@
 #include "../simple_wrapper.h"
 
 
-class view_modcase: public simple_wrapper {
+class view_modcase final: public simple_wrapper {
 	std::string case_id;
 	dpp::message response;
 

@@ -8,7 +8,7 @@
 
 class channel_wrapper: public command_wrapper {
 protected:
-	std::vector<dpp::channel> channels;
+	shared_vector<dpp::channel> channels;
 	shared_vector<dpp::channel> channels_with_errors;
 	/**
 	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
@@ -32,16 +32,14 @@ protected:
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param channel User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) = 0;
 
 	/**
 	 * @brief Inserts all the channel objects with no error into the given vector.
 	 * @param output The vector to put the result in. This way we can have a constexpr function.
 	 */
 	constexpr void filter(shared_vector<dpp::channel>& output) {
-		std::ranges::copy(channels | std::views::filter([this](dpp::channel const& channel){return !contains(channels_with_errors, std::make_shared<dpp::channel>(channel));})
-								  | std::views::transform([](dpp::channel const& channel){return std::make_shared<dpp::channel>(channel);}),
-									std::back_inserter(output));
+		output.insert_range(channels | std::views::filter([this](channel_ptr const& channel){return !contains(channels_with_errors, channel);}));
 	}
 
 public:
@@ -53,7 +51,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 * @param channels The channels that the command is used for.
 	*/
-	explicit channel_wrapper(moderation_command command, const std::vector<dpp::channel>& channels): command_wrapper(std::move(command)), channels(channels){};
+	explicit channel_wrapper(moderation_command command, const shared_vector<dpp::channel>& channels): command_wrapper(std::move(command)), channels(channels){};
 
 	/**
 	 * @brief are_all_errors - Checks if the operation had any errors.

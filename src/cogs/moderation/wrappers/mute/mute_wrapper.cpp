@@ -26,10 +26,10 @@ void mute_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
-	auto author_roles = get_roles_sorted(command.author);
-	auto author_top_role = *author_roles.begin();
+	auto author_roles = get_roles_sorted(*command.author);
+	auto const author_top_role = author_roles.front();
 
 	bool is_owner{false};
 
@@ -42,24 +42,24 @@ void mute_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Moderate Members permission.");
 	}
 
-	std::vector<dpp::role*> protected_roles;
+	shared_vector<dpp::role> protected_roles;
 
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
 		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
 		               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-			               return dpp::find_role(role_id);
+			               return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		               });
 	}
 
 
 	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(member);
+		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(command.author.user_id == member.user_id) { // If for some reason you decided to mute yourself lol
-			if(member.user_id == command.guild->owner_id) { // If you're also the server owner
+		if(command.author->user_id == member->user_id) { // If for some reason you decided to mute yourself lol
+			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
 				errors.emplace_back("❌ Why are you muting yourself, server owner? lmfao");
 				is_owner = true;
 			}
@@ -69,30 +69,28 @@ void mute_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!is_owner && member.user_id == command.guild->owner_id) { // Muting the server owner lmfao
+		if(!is_owner && member->user_id == command.guild->owner_id) { // Muting the server owner lmfao
 			errors.emplace_back("❌ You can't mute the server owner lmfao.");
 			cancel_operation = true;
 		}
 
 
-		if(command.bot->me.id == member.user_id) { // If you decided to mute the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to mute the bot (ReactAIO)
 			errors.emplace_back("❌ Can't mute myself lmfao.");
 			cancel_operation = true;
 		}
 
 		if(!protected_roles.empty()) {
 
-			std::vector<dpp::role*> member_protected_roles;
-			std::ranges::set_intersection(protected_roles.begin(), protected_roles.end(), member_roles.begin(),
-			                      member_roles.end(), std::back_inserter(member_protected_roles));
+			shared_vector<dpp::role> member_protected_roles;
+			std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
 
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
-				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
-				               (role_mentions), [](dpp::role* role){
-					               return role->get_mention();
-				               });
+				std::ranges::transform(member_protected_roles, std::back_inserter(role_mentions), [](const role_ptr& role){
+					return role->get_mention();
+				});
 				std::string role_mentions_str = join(role_mentions, " , ");
 				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot mute.", role_mentions_str));
 			}
@@ -101,13 +99,13 @@ void mute_wrapper::check_permissions() {
 		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to mute. Please "
 			                             "move the bot role above the members and below your staff roles.",
-			                             member.get_mention()));
+			                             member->get_mention()));
 			cancel_operation = true;
 		}
 
 		if(member_top_role->position > author_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't mute them.",
-			                             member.get_mention()));
+			                             member->get_mention()));
 			cancel_operation = true;
 		}
 	}
@@ -127,7 +125,7 @@ void mute_wrapper::check_permissions() {
 		if(command.interaction) {
 			error_message.set_flags(dpp::m_ephemeral);
 			if(organized_errors.size() == 1)
-				command.interaction->edit_response(error_message);
+				(*command.interaction)->edit_response(error_message);
 			else {
 				message_paginator paginator{error_message, command};
 				paginator.start();
@@ -145,17 +143,17 @@ void mute_wrapper::check_permissions() {
 			else {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
 				                          "sent to your DMs:");
-				command.bot->direct_message_create(command.author.user_id, error_message);
+				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 		}
 	}
 }
 
-void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, const dpp::guild_member &member) {
+void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, member_ptr const &member) {
 	if(duration) {
 		if(completion.is_error()) {
 			auto error = completion.get_error();
-			members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
+			members_with_errors.insert(member);
 			errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 		}
 		else {
@@ -166,15 +164,15 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 			std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																	   dpp::utility::time_format::tf_relative_time);
 			std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
-												 command.guild->name, command.author.get_user()->format_username(),
+												 command.guild->name, command.author->get_user()->format_username(),
 												 time_future_relative, command.reason);
-			command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+			command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
 		}
 		return;
 	}
 	if(completion.is_error()) {
 		auto error = completion.get_error();
-		members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
+		members_with_errors.insert(member);
 		errors.push_back(std::format("❌ Error code {}: {}", error.code, error.human_readable));
 	}
 	else {
@@ -188,16 +186,16 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 		auto time_delta = std::chrono::days{max_timeout_days};
 		auto future = now + time_delta;
 		auto future_ms = future.time_since_epoch().count();
-		transaction.exec_prepared("permanent_timeout", timeout_id, std::to_string(member.user_id),
-								  std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("permanent_timeout", timeout_id, std::to_string(member->user_id),
+								  std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  command.reason);
 		transaction.commit();
 		std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																   dpp::utility::time_format::tf_relative_time);
 		std::string dm_message = std::format("You have been timed out in {} by {} until {}. Reason: {}",
-											 command.guild->name, command.author.get_user()->format_username(),
+											 command.guild->name, command.author->get_user()->format_username(),
 											 time_future_relative, command.reason);
-		command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+		command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
 	}
 }
 
@@ -223,7 +221,7 @@ void mute_wrapper::process_mutes() {
 				auto future = now + time_delta;
 				auto future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
-					command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member.user_id, future_ms, [this, member](auto& completion){
+					command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member->user_id, future_ms, [this, member](auto& completion){
 						lambda_callback(completion, member);
 					});
 				}
@@ -231,7 +229,7 @@ void mute_wrapper::process_mutes() {
 		}
 		else {
 			for(auto const& member: members) {
-				command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member.user_id, max_timeout_seconds, [this, member](auto& completion){
+				command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member->user_id, max_timeout_seconds, [this, member](auto& completion) {
 					lambda_callback(completion, member);
 				});
 			}
@@ -250,11 +248,11 @@ void mute_wrapper::process_mutes() {
 			return;
 		}
 		for(auto const& member: members) {
-			command.bot->set_audit_reason(std::format("Muted by {} for {} for reason: {}", command.author.get_user()->format_username(), duration->to_string(true), command.reason)).guild_member_add_role(command.guild->id, member.user_id, mute_role_id, [this, member](auto& completion){
+			command.bot->set_audit_reason(std::format("Muted by {} for {} for reason: {}", command.author->get_user()->format_username(), duration->to_string(true), command.reason)).guild_member_add_role(command.guild->id, member->user_id, mute_role_id, [this, member](auto& completion){
 				if(completion.is_error()) {
 					auto error = completion.get_error();
 					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
-					members_with_errors.push_back(std::make_shared<dpp::guild_member>(member));
+					members_with_errors.insert(member);
 				}
 				else {
 					ullong mute_id = 0;
@@ -272,17 +270,17 @@ void mute_wrapper::process_mutes() {
 						std::string time_future_relative = dpp::utility::timestamp(future_ms,
 																				   dpp::utility::time_format::tf_relative_time);
 						std::string dm_message = std::format("You have been muted in {} by {} until {}. Reason: {}",
-															 command.guild->name, command.author.get_user()->format_username(),
+															 command.guild->name, command.author->get_user()->format_username(),
 															 time_future_relative, command.reason);
-						transaction.exec_prepared("tempmute", mute_id, std::to_string(member.user_id), std::to_string(command.guild->id), now_ms, future_ms);
+						transaction.exec_prepared("tempmute", mute_id, std::to_string(member->user_id), std::to_string(command.guild->id), now_ms, future_ms);
 						transaction.commit();
-						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+						command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
 					}
 					else {
 						std::string dm_message = std::format("You have been muted in {} by {} permanently. Reason: {}",
-															 command.guild->name, command.author.get_user()->format_username(),
+															 command.guild->name, command.author->get_user()->format_username(),
 															 command.reason);
-						command.bot->direct_message_create(member.user_id, dpp::message{dm_message});
+						command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
 					}
 				}
 			});
@@ -292,7 +290,7 @@ void mute_wrapper::process_mutes() {
 
 void mute_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
@@ -329,7 +327,7 @@ void mute_wrapper::process_response() {
 					embed.set_description(error);
 					automod_log.add_embed(embed);
 				}
-				command.bot->direct_message_create(command.author.user_id, automod_log);
+				command.bot->direct_message_create(command.author->user_id, automod_log);
 			}
 			else {
 				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
@@ -351,11 +349,11 @@ void mute_wrapper::process_response() {
 
 		filter(muted_members);
 
-		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](std::shared_ptr<dpp::guild_member> const& member) {
+		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](member_ptr const& member) {
 			return std::format("**{}**", member->get_user()->format_username());
 		});
 
-		std::ranges::transform(muted_members, std::back_inserter(muted_mentions), [](std::shared_ptr<dpp::guild_member> const& member) {
+		std::ranges::transform(muted_members, std::back_inserter(muted_mentions), [](member_ptr const& member) {
 			return member->get_mention();
 		});
 
@@ -414,7 +412,7 @@ void mute_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been muted.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(mute_log);
@@ -437,7 +435,7 @@ void mute_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been muted.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(mute_log);
@@ -446,7 +444,7 @@ void mute_wrapper::process_response() {
 	}
 	if (command.interaction) {
 		if(message.embeds.size() == 1)
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 		else {
 			message_paginator paginator{message, command};
 			paginator.start();
@@ -455,7 +453,7 @@ void mute_wrapper::process_response() {
 		pqxx::work transaction{*command.connection};
 		auto action_name = use_timeout ? reactaio::internal::mod_action_name::TIMEOUT : reactaio::internal::mod_action_name::MUTE;
 
-		transaction.exec_prepared("command_insert_duration", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("command_insert_duration", std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  action_name, duration.value().to_string(), dpp::utility::current_date_time());
 		transaction.commit();
 	}

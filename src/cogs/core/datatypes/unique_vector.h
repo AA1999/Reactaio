@@ -6,8 +6,10 @@
 
 #include <algorithm>
 #include <vector>
+#include <concepts>
 
 namespace reactaio::internal {
+
 	/**
 	 * @brief A vector with all unique elements.
 	 * @note The reason a std::set/std::unordered_set isn't used is because of its heavy memory usage.
@@ -47,12 +49,9 @@ namespace reactaio::internal {
 		 */
 		template <typename R>
 		requires std::ranges::range<R>
-		explicit unique_vector(const R& range): m_container() {
-			insert(range);
+		explicit unique_vector(R&& range): m_container() {
+			insert_range(range);
 		}
-
-
-
 
 		/**
 		 * @brief Equalily comparison operator.
@@ -190,10 +189,10 @@ namespace reactaio::internal {
 		 * @param value The value to insert inside the vector.
 		 * @note This function is called push_back due to the requirement for compatibility with std::back_inserter.
 		 */
-		constexpr void push_back(value_type const &value) {
+		constexpr void insert(value_type const &value) {
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
-				m_container.insert(iter, value);
+				m_container.emplace(iter, value);
 		}
 
 		/**
@@ -201,10 +200,10 @@ namespace reactaio::internal {
 		 * @param value The value to be moved inside the vector.
 		 * @note This function is called push_back due to the requirement for compatibility with std::back_inserter.
 		 */
-		constexpr void push_back(value_type &&value) {
+		constexpr void insert(value_type &&value) {
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
-				m_container.insert(iter, std::move(value));
+				m_container.emplace(iter, std::move(value));
 		}
 
 		/**
@@ -217,7 +216,7 @@ namespace reactaio::internal {
 			value_type value(std::forward<Args>(args)...);
 			auto iter = std::ranges::lower_bound(m_container, value);
 			if(*iter != value)
-				m_container.insert(iter, std::move(value));
+				m_container.emplace(iter, std::move(value));
 		}
 
 		/**
@@ -227,10 +226,9 @@ namespace reactaio::internal {
 		 */
 		template <typename R>
 		requires std::ranges::range<R>
-		constexpr void insert(const R& range) {
-			static_assert(std::is_same_v<typename R::value_type, value_type>, "Types of the given range and the current container don't match.");
+		constexpr void insert_range(R&& range) {
 			for(auto const& element: range)
-				push_back(element);
+				insert(element);
 		}
 
 		/**

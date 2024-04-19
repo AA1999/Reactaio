@@ -12,12 +12,12 @@
 
 void softban_wrapper::wrapper_function() {
 	for(auto& member_or_user: snowflakes) {
-		if(auto* member_ptr = std::get_if<dpp::guild_member>(&member_or_user)) {
-			members.push_back(std::make_shared<dpp::guild_member>(*member_ptr));
-			users.push_back(std::make_shared<dpp::user>(*member_ptr->get_user()));
+		if(auto const* member_pointer = std::get_if<member_ptr>(&member_or_user)) {
+			members.insert(*member_pointer);
+			users.insert((*member_pointer)->get_user());
 		}
-		else if(auto const user_ptr = std::get_if<std::shared_ptr<dpp::user>>(&member_or_user)) {
-			users.push_back(std::make_shared<dpp::user>(**user_ptr));
+		else if(auto const user_pointer = std::get_if<user_ptr>(&member_or_user)) {
+			users.insert(*user_pointer);
 		}
 		else { // Will never happen but failsafe
 			invalid_user = true;
@@ -49,7 +49,7 @@ void softban_wrapper::wrapper_function() {
 		if (command.interaction) {
 			error_message.set_flags(dpp::m_ephemeral); // Hidden error message
 			if(split.size() == 1)
-				command.interaction->edit_response(error_message);
+				(*command.interaction)->edit_response(error_message);
 			else {
 				message_paginator paginator{error_message, command};
 				paginator.start();
@@ -61,7 +61,7 @@ void softban_wrapper::wrapper_function() {
 			if(error_channel_query.empty()) {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
 										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author.user_id, error_message);
+				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 			else {
 				auto webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
@@ -88,10 +88,10 @@ void softban_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
-	auto author_roles = get_roles_sorted(command.author);
-	auto author_top_role = *author_roles.begin();
+	auto author_roles = get_roles_sorted(*command.author);
+	auto const& author_top_role = author_roles.front();
 
 	bool ignore_owner_repeat{false};
 
@@ -100,13 +100,13 @@ void softban_wrapper::check_permissions() {
 	transaction.commit();
 
 
-	std::vector<dpp::role*> protected_roles;
+	shared_vector<dpp::role> protected_roles;
 
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
 		std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-			return dpp::find_role(role_id);
+			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		});
 	}
 
@@ -119,7 +119,7 @@ void softban_wrapper::check_permissions() {
 		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(command.author.user_id == member->user_id) { // If for some reason you decided to soft ban yourself lol
+		if(command.author->user_id == member->user_id) { // If for some reason you decided to soft ban yourself lol
 			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
 				errors.emplace_back("❌ Why are you soft banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
@@ -143,15 +143,14 @@ void softban_wrapper::check_permissions() {
 
 		if(!protected_roles.empty()) {
 
-			std::vector<dpp::role*> member_protected_roles;
-			std::ranges::set_intersection(protected_roles.begin(), protected_roles.end(), member_roles.begin(),
-										  member_roles.end(), std::back_inserter(member_protected_roles));
+			shared_vector<dpp::role> member_protected_roles;
+			std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
 
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
-				std::ranges::transform(member_protected_roles.begin(), member_protected_roles.end(), std::back_inserter
-									   (role_mentions), [](dpp::role* role){
+				std::ranges::transform(member_protected_roles, std::back_inserter
+									   (role_mentions), [](const role_ptr& role){
 										   return role->get_mention();
 									   });
 				std::string role_mentions_str = join(role_mentions, " , ");
@@ -194,7 +193,7 @@ void softban_wrapper::check_permissions() {
 		if(command.interaction) {
 			error_message.set_flags(dpp::m_ephemeral);
 			if(organized_errors.size() == 1)
-				command.interaction->edit_response(error_message);
+				(*command.interaction)->edit_response(error_message);
 			else {
 				message_paginator paginator{error_message, command};
 				paginator.start();
@@ -212,17 +211,17 @@ void softban_wrapper::check_permissions() {
 			else {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
 										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author.user_id, error_message);
+				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 		}
 	}
 }
 
-void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
+void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, user_ptr const &user) {
 	if (completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("❌ Unable to soft ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
-		users_with_errors.push_back(user);
+		users_with_errors.insert(user);
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
@@ -230,23 +229,23 @@ void softban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-								  reactaio::internal::mod_action_name::SOFT_BAN, std::to_string(command.author.user_id),
+								  reactaio::internal::mod_action_name::SOFT_BAN, std::to_string(command.author->user_id),
 								  std::to_string(user->id), command.reason);
 		transaction.commit();
 	}
 }
 
 void softban_wrapper::process_softbans() {
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
-	for (auto user: users) {
+	for (const auto& user: users) {
 		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 
 			std::string dm_message = std::format("You have been soft banned from {} by {}. Reason: {}.", command.guild->name,
 									 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-		command.bot->set_audit_reason(std::format("Softbanned by {} for reason: {}.", command.author.get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, max_ban_remove_seconds , [this, user](auto const& completion) {
+		command.bot->set_audit_reason(std::format("Softbanned by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, max_ban_remove_seconds , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});
 
@@ -255,7 +254,7 @@ void softban_wrapper::process_softbans() {
 
 void softban_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
@@ -279,7 +278,7 @@ void softban_wrapper::process_response() {
 			if(are_all_errors())
 				message.set_flags(dpp::m_ephemeral); // Invisible error message.
 			if(format_split.size() == 1)
-				command.interaction->edit_response(message);
+				(*command.interaction)->edit_response(message);
 			else {
 				message_paginator paginator{message, command};
 				paginator.start();
@@ -298,7 +297,7 @@ void softban_wrapper::process_response() {
 					embed.set_description(error);
 					automod_log.add_embed(embed);
 				}
-				command.bot->direct_message_create(command.author.user_id, automod_log);
+				command.bot->direct_message_create(command.author->user_id, automod_log);
 			}
 			else {
 				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
@@ -387,7 +386,7 @@ void softban_wrapper::process_response() {
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(ban_log);
@@ -414,7 +413,7 @@ void softban_wrapper::process_response() {
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(ban_log);
@@ -438,7 +437,7 @@ void softban_wrapper::process_response() {
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(ban_log);
@@ -447,14 +446,14 @@ void softban_wrapper::process_response() {
 	}
 	if (command.interaction) {
 		if(message.embeds.size() == 1)
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 		else {
 			message_paginator paginator{message, command};
 			paginator.start();
 		}
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  reactaio::internal::mod_action_name::SOFT_BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}

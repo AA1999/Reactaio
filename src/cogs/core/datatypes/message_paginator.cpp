@@ -52,7 +52,7 @@ void message_paginator::start() {
 	m_message.add_component(action_row);
 
 	if(m_command.interaction) {
-		m_command.interaction->reply(m_message);
+		(*m_command.interaction)->reply(m_message);
 	}
 	else {
 		m_command.bot->message_create(m_message);
@@ -83,7 +83,7 @@ void message_paginator::forward() {
 		m_message.set_content(messages[current_page]);
 	}
 	if(m_command.interaction)
-		m_command.interaction->edit_response(m_message);
+		(*m_command.interaction)->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
 }
@@ -101,7 +101,7 @@ void message_paginator::backward() {
 		m_message.set_content(messages[current_page]);
 	}
 	if(m_command.interaction)
-		m_command.interaction->edit_response(m_message);
+		(*m_command.interaction)->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
 }
@@ -116,7 +116,7 @@ void message_paginator::skip_last() {
 		m_message.set_content(messages[current_page]);
 	}
 	if(m_command.interaction)
-		m_command.interaction->edit_response(m_message);
+		(*m_command.interaction)->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
 }
@@ -132,7 +132,7 @@ void message_paginator::skip_first() {
 		m_message.set_content(messages[current_page]);
 	}
 	if(m_command.interaction)
-		m_command.interaction->edit_response(m_message);
+		(*m_command.interaction)->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
 }
@@ -147,7 +147,7 @@ message_paginator::~message_paginator() {
 	m_message.add_component(action_row);
 
 	if(m_command.interaction)
-		m_command.interaction->edit_response(m_message);
+		(*m_command.interaction)->edit_response(m_message);
 	else
 		m_command.bot->message_edit(m_message);
 }

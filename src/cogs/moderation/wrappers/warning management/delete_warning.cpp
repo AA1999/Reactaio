@@ -19,7 +19,7 @@ void delete_warning::check_permissions() {
 	auto bot_user = command.bot->me;
 	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
 	auto bot_roles_sorted = get_roles_sorted(bot_member);
-	auto* bot_top_role = *bot_roles_sorted.begin();
+	auto bot_top_role = bot_roles_sorted.front();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -33,7 +33,7 @@ void delete_warning::check_permissions() {
 	if(!query["user_id"].is_null()) {
 		member = dpp::find_guild_member(command.guild->id, query["user_id"].as<snowflake_t>());
 		auto member_roles_sorted = get_roles_sorted(member);
-		auto* member_top_role = *member_roles_sorted.begin();
+		auto const member_top_role = member_roles_sorted.front();
 
 		if(member_top_role->position > bot_top_role->position) {
 			cancel_operation = true;
@@ -56,7 +56,7 @@ void delete_warning::process_response() {
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
-				command.interaction->edit_response(response);
+				(*command.interaction)->edit_response(response);
 				return;
 			}
 		}
@@ -80,10 +80,10 @@ void delete_warning::process_response() {
 							 .set_footer(dpp::embed_footer().set_text(std::format("User id {}", std::to_string(member.user_id))));
 		response.add_embed(embed);
 		if(command.interaction) { // Will always be true but failsafe
-			command.interaction->edit_response(response);
+			(*command.interaction)->edit_response(response);
 			return;
 		}
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response("Warning doesn't exist.");
+		(*command.interaction)->edit_response("Warning doesn't exist.");
 }

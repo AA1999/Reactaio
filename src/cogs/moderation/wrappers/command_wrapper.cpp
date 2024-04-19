@@ -4,7 +4,7 @@
 
 #include "command_wrapper.h"
 
-std::optional<dpp::message> command_wrapper::error() const {
+[[nodiscard]] std::optional<dpp::message> command_wrapper::error() const {
 	if (!has_error())
 		return std::nullopt;
 	return error_message;

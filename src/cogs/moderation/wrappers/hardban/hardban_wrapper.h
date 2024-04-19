@@ -11,7 +11,7 @@
  * @brief hardban_wrapper - Wrapper class to hard ban a series of users and members.
  * @note Due to security reasons, this can only be called by the server owner.
  */
-class hardban_wrapper: public hybrid_wrapper {
+class hardban_wrapper final: public hybrid_wrapper {
 
 	/**
 	 * @brief wrapper_function - The function that is called on operator() call and will process all the required steps to perform the operation.
@@ -38,7 +38,7 @@ class hardban_wrapper: public hybrid_wrapper {
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] std::shared_ptr<dpp::user> user) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] user_ptr const &user) override;
 
 	bool invalid_user{false};
 

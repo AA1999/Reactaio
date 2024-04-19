@@ -10,7 +10,7 @@
  * @brief ban_wrapper - Functor that processes the ban operation for a list of dpp::guild_member or dpp::user* objects.
  * @note This is only for the normal ban operation. Softban/Hardban operations have a different wrapper.
  */
-class ban_wrapper: public hybrid_wrapper {
+class ban_wrapper final: public hybrid_wrapper {
 	/**
 	 * @brief wrapper_function - Function called when the () operator is called. Bans all the given members/users from the guild and returns any errors/success message.
 	 */
@@ -38,7 +38,7 @@ class ban_wrapper: public hybrid_wrapper {
 	 * @param completion
 	 * @param user The user object the comeback is
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] std::shared_ptr<dpp::user> user) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] user_ptr const &user) override;
 
 	bool invalid_user{false};
 public:

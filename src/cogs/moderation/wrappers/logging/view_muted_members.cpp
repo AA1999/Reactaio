@@ -21,7 +21,7 @@ void view_muted_members::check_permissions() {
 	auto const bot_user = command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const* bot_top_role = *bot_roles.begin();
+	auto const& bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_manage_guild()) {
 		cancel_operation = true;
@@ -35,7 +35,7 @@ void view_muted_members::process_response() {
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
-				command.interaction->edit_response(response);
+				(*command.interaction)->edit_response(response);
 				return;
 			}
 		}
@@ -58,7 +58,7 @@ void view_muted_members::process_response() {
 						 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
 	if(!result["mute_role"].is_null()) {
 		auto const mute_id = result["mute_role"].as<snowflake_t>();
-		auto* mute_role = dpp::find_role(mute_id);
+		auto const mute_role = std::make_shared<dpp::role>(*dpp::find_role(mute_id));
 		std::for_each(std::execution::par_unseq, command.guild->members.begin(), command.guild->members.end(), [&](std::pair<dpp::snowflake, dpp::guild_member> const& pair) {
 			auto const& [snowflake, member] = pair;
 			auto member_roles = get_roles_sorted(member);
@@ -90,7 +90,7 @@ void view_muted_members::process_response() {
 	std::for_each(std::execution::par_unseq, command.guild->members.begin(), command.guild->members.end(), [&](std::pair<dpp::snowflake, dpp::guild_member> const& pair) {
 		auto const& [snowflake, member] = pair;
 		if(member.is_communication_disabled()) {
-			auto end = member.communication_disabled_until;
+			auto const end = member.communication_disabled_until;
 			auto embed{embed_template};
 			auto const future = dpp::utility::timestamp(end, dpp::utility::tf_relative_time);
 			embed.set_title("Timeout: ");
@@ -107,9 +107,9 @@ void view_muted_members::process_response() {
 	}
 
 	if(command.interaction) {
-		command.interaction->edit_response(response);
+		(*command.interaction)->edit_response(response);
 		return;;
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response("This guild has no muted/timed out members."); // This is a rather unlikely scenario but there might be a mod wanting to test this
+		(*command.interaction)->edit_response("This guild has no muted/timed out members."); // This is a rather unlikely scenario but there might be a mod wanting to test this
 }

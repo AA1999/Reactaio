@@ -11,10 +11,9 @@
 /**
  * @brief view_warnings - Wrapper for viewing warnings for a member.
  */
-class view_warnings: public simple_wrapper {
+class view_warnings final: public simple_wrapper {
 
-	dpp::guild_member member;
-
+	member_ptr member;
 	dpp::message response;
 
 	/**
@@ -38,7 +37,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 * @param member The member to check the warnings for.
 	 */
-	view_warnings(dpp::guild_member member, moderation_command command) : simple_wrapper(std::move(command)), member(std::move(member)){}
+	view_warnings(member_ptr member, moderation_command command) : simple_wrapper(std::move(command)), member(std::move(member)){}
 	~view_warnings() override = default;
 
 };

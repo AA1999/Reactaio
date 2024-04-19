@@ -8,7 +8,7 @@
 #include "../channel_wrapper.h"
 
 
-class lockdown_wrapper: public channel_wrapper {
+class lockdown_wrapper final: public channel_wrapper {
 
 	shared_vector<dpp::channel> channel_ptrs;
 
@@ -27,7 +27,7 @@ class lockdown_wrapper: public channel_wrapper {
 	 * @param completion The compeltion object that indicates if the API call was suceessful.
 	 * @param channel Channel that the API call is made for.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) override;
 
 	/**
 	 * @brief Locks all the set server channels. On error the errors will be sent to the errors vector.

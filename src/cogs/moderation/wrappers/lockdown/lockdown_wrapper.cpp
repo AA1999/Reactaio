@@ -23,10 +23,10 @@ void lockdown_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
-	auto author_roles = get_roles_sorted(command.author);
-	auto author_top_role = *author_roles.begin();
+	auto author_roles = get_roles_sorted(*command.author);
+	auto author_top_role = author_roles.front();
 
 	if(!bot_top_role->has_manage_roles()) {
 		cancel_operation = true;
@@ -49,13 +49,11 @@ void lockdown_wrapper::check_permissions() {
 	}
 }
 
-void lockdown_wrapper::lambda_callback(dpp::confirmation_callback_t const &completion, dpp::channel const &channel) {
+void lockdown_wrapper::lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) {
 	if(completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("Error code {}: {}.", error.code, error.human_readable));
-		auto channel_ptr = std::make_shared<dpp::channel>(channel);
-		if(std::ranges::find(channels_with_errors, channel_ptr) == channels_with_errors.end())
-			channels_with_errors.push_back(channel_ptr);
+		channels_with_errors.insert(channel);
 	}
 }
 
@@ -79,7 +77,7 @@ void lockdown_wrapper::process_lockdown() {
 		return;
 	}
 	if(!not_found_ids.empty()) {
-		std::ranges::copy_if(channel_ptrs, std::back_inserter(channels_with_errors), [](std::shared_ptr<dpp::channel> const& channel) {
+		std::ranges::copy_if(channel_ptrs, std::back_inserter(channels_with_errors), [](channel_ptr const& channel) {
 			return channel == nullptr;
 		});
 		std::ranges::transform(not_found_ids, std::back_inserter(errors), [](dpp::snowflake const& channel_id) {
@@ -88,13 +86,13 @@ void lockdown_wrapper::process_lockdown() {
 	}
 	shared_vector<dpp::channel> channel_ptrs_copy; // Cannot alter the current pointer vector since are_all_errors will return false always.
 	std::ranges::copy(channel_ptrs, std::back_inserter(channel_ptrs_copy));
-	std::erase(channel_ptrs_copy, nullptr);
-	std::ranges::transform(channel_ptrs_copy, std::back_inserter(channels), [](std::shared_ptr<dpp::channel> const& channel_ptr) {
-		return *channel_ptr;
+	channel_ptrs_copy.erase(nullptr);
+	std::ranges::transform(channel_ptrs_copy, std::back_inserter(channels), [](channel_ptr const& channel_ptr) {
+		return channel_ptr;
 	});
 
 	for(auto const& channel: channels) {
-		command.bot->set_audit_reason(std::format("Locked by {} for reason: {}.", command.author.get_user()->format_username(), command.reason)).channel_edit_permissions(channel, command.guild->id, 0, dpp::permissions::p_send_messages,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
+		command.bot->set_audit_reason(std::format("Locked by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).channel_edit_permissions(*channel, command.guild->id, 0, dpp::permissions::p_send_messages,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
 			lambda_callback(completion, channel);
 		});
 	}
@@ -102,7 +100,7 @@ void lockdown_wrapper::process_lockdown() {
 
 void lockdown_wrapper::process_response() {
 auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
@@ -126,7 +124,7 @@ auto message = dpp::message(command.channel_id, "");
 			if(are_all_errors())
 				message.set_flags(dpp::m_ephemeral); // Invisible error message.
 			if(format_split.size() == 1)
-				command.interaction->edit_response(message);
+				(*command.interaction)->edit_response(message);
 			else {
 				message_paginator paginator{message, command};
 				paginator.start();
@@ -145,7 +143,7 @@ auto message = dpp::message(command.channel_id, "");
 					embed.set_description(error);
 					automod_log.add_embed(embed);
 				}
-				command.bot->direct_message_create(command.author.user_id, automod_log);
+				command.bot->direct_message_create(command.author->user_id, automod_log);
 			}
 			else {
 				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
@@ -180,7 +178,7 @@ auto message = dpp::message(command.channel_id, "");
 		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		auto const channel_ids = join(locked_ids, ", ");
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCKDOWN,
-								  std::to_string(command.author.user_id), channel_ids, command.reason);
+								  std::to_string(command.author->user_id), channel_ids, command.reason);
 		transaction.commit();
 
 		auto mentions = join(locked_mentions, ", ");
@@ -219,7 +217,7 @@ auto message = dpp::message(command.channel_id, "");
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(lock_log);
@@ -237,7 +235,7 @@ auto message = dpp::message(command.channel_id, "");
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(lock_log);
@@ -253,7 +251,7 @@ auto message = dpp::message(command.channel_id, "");
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
-								   .add_field("Moderator: ", command.author.get_mention())
+								   .add_field("Moderator: ", command.author->get_mention())
 								   .add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(lock_log);
@@ -262,14 +260,14 @@ auto message = dpp::message(command.channel_id, "");
 	}
 	if (command.interaction) {
 		if(message.embeds.size() == 1)
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 		else {
 			message_paginator paginator{message, command};
 			paginator.start();
 		}
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  reactaio::internal::mod_action_name::LOCK, dpp::utility::current_date_time());
 		transaction.commit();
 	}

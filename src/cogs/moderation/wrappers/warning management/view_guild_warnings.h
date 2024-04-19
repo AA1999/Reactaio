@@ -10,7 +10,7 @@
 /**
  * @brief view_guild_warnings - Wrapper to handle viewing all guild warnings.
  */
-class view_guild_warnings: public simple_wrapper {
+class view_guild_warnings final: public simple_wrapper {
 	dpp::message response;
 
 	/**

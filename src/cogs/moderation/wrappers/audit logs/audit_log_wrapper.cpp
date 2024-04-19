@@ -4,12 +4,14 @@
 
 #include <execution>
 
-#include "audit_log_wrapper.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
 #include "../../../core/helpers.h"
 #include "../../audit_log_actions.h"
+#include "audit_log_wrapper.h"
+
+#include <memory>
 
 
 void audit_log_wrapper::wrapper_function() {
@@ -22,9 +24,9 @@ void audit_log_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
-	auto author_roles = get_roles_sorted(command.author);
+	auto author_roles = get_roles_sorted(*command.author);
 	auto author_top_role = *author_roles.begin();
 
 	if (!bot_top_role->has_view_audit_log()) {
@@ -45,7 +47,7 @@ void audit_log_wrapper::recursive_call(dpp::snowflake after) {
 		auto audit_map = callback.get<dpp::auditlog>();
 		auto new_after{after};
 		for(auto const& entry: audit_map.entries) {
-			audit_entries_.push_back(entry);
+			audit_entries_.insert(std::make_shared<dpp::audit_entry>(entry));
 			if(entry.user_id > new_after)
 				new_after = entry.user_id;
 		}
@@ -55,7 +57,6 @@ void audit_log_wrapper::recursive_call(dpp::snowflake after) {
 
 void audit_log_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
@@ -78,7 +79,7 @@ void audit_log_wrapper::process_response() {
 			if(are_all_errors())
 				message.set_flags(dpp::m_ephemeral); // Invisible error message.
 			if(format_split.size() == 1)
-				command.interaction->edit_response(message);
+				(*command.interaction)->edit_response(message);
 			else {
 				message_paginator paginator{message, command};
 				paginator.start();
@@ -91,12 +92,12 @@ void audit_log_wrapper::process_response() {
 
 	std::vector<std::string> audit_logs;
 	for(auto const& entry: audit_entries_ ) {
-		auto const user_id = entry.user_id;
-		auto type_string = audit_log_events.find_key(entry.type);
+		auto const user_id = entry->user_id;
+		auto type_string = audit_log_events.find_key(entry->type);
 		replace_all(type_string, "_", " ");
 		auto const audit_type = to_titlecase(type_string);
-		auto const target_id = entry.user_id;
-		auto const audit_changes = entry.changes;
+		auto const target_id = entry->user_id;
+		auto const audit_changes = entry->changes;
 		std::vector<std::string> changes_vector;
 		std::ranges::transform(audit_changes, std::back_inserter(changes_vector), [](dpp::audit_change const& change) {
 			return std::format("changed property {} from {} to {}.", change.key, change.old_value, change.new_value);
@@ -116,7 +117,7 @@ void audit_log_wrapper::process_response() {
 		base_embed.set_description(format_split.at(0));
 		message.add_embed(base_embed);
 		if(command.interaction) {
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 			return;
 		}
 	}

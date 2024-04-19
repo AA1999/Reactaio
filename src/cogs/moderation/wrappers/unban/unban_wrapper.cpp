@@ -2,8 +2,6 @@
 // Created by arshia on 3/12/23.
 //
 
-#include <unordered_set>
-
 #include "unban_wrapper.h"
 #include "../../../core/consts.h"
 #include "../../../core/helpers.h"
@@ -24,11 +22,11 @@ void unban_wrapper::wrapper_function() {
 
 void unban_wrapper::check_permissions() {
 	auto* bot_user = &command.bot->me;
-	auto author_roles = get_roles_sorted(command.author);
+	auto author_roles = get_roles_sorted(*command.author);
 	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
-	auto* author_top_role = *author_roles.begin();
+	auto author_top_role = author_roles.front();
 	auto bot_roles = get_roles_sorted(bot_member);
-	auto* bot_top_role = *bot_roles.begin();
+	auto bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_ban_members()) {
 		cancel_operation = true;
@@ -43,21 +41,21 @@ void unban_wrapper::check_permissions() {
 	auto transaction = pqxx::transaction{*command.connection};
 	auto hard_bans_query = transaction.exec_prepared("hardban_get", std::to_string(command.guild->id));
 
-	std::unordered_set<std::shared_ptr<dpp::user>> hard_bans;
+	shared_vector<dpp::user> hard_bans;
 	for(auto const& row: hard_bans_query)
 		hard_bans.insert(std::make_shared<dpp::user>(*dpp::find_user(row["user_id"].as<snowflake_t>())));
 
 	hard_bans.erase(nullptr); // Removing any chance of a null pointer.
 
 	shared_vector<dpp::user> illegal_bans;
-	std::ranges::copy_if(users, std::back_inserter(illegal_bans), [hard_bans](std::shared_ptr<dpp::user> const& user){
-		return hard_bans.contains(user);
+	std::ranges::copy_if(users, std::back_inserter(illegal_bans), [hard_bans](user_ptr const& user){
+		return contains(hard_bans, user);
 	});
 
-	if(!illegal_bans.empty() && command.author.user_id != command.guild->owner_id) {
+	if(!illegal_bans.empty() && command.author->user_id != command.guild->owner_id) {
 		cancel_operation = true;
-		users_with_errors.insert(users_with_errors.end(), illegal_bans.begin(), illegal_bans.end());
-		std::ranges::transform(illegal_bans, std::back_inserter(errors), [](std::shared_ptr<dpp::user> const& user){
+		users_with_errors.insert_range(illegal_bans);
+		std::ranges::transform(illegal_bans, std::back_inserter(errors), [](user_ptr const& user){
 			return std::format("User **{}** is hard banned by the server owner and can only be unbanned by said individual.", user->format_username());
 		});
 	}
@@ -77,7 +75,7 @@ void unban_wrapper::check_permissions() {
 		if(command.interaction) {
 			error_message.set_flags(dpp::m_ephemeral);
 			if(organized_errors.size() == 1)
-				command.interaction->edit_response(error_message);
+				(*command.interaction)->edit_response(error_message);
 			else {
 				message_paginator paginator{error_message, command};
 				paginator.start();
@@ -94,31 +92,31 @@ void unban_wrapper::check_permissions() {
 			} else {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
 										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author.user_id, error_message);
+				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 		}
 	}
 }
 
-void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, std::shared_ptr<dpp::user> user) {
+void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, user_ptr const &user) {
 	if(completion.is_error()) {
 		auto error = completion.get_error();
 		errors.emplace_back(std::format("❌ Error {}: {}", error.code, error.message));
-		users_with_errors.push_back(user);
+		users_with_errors.insert(user);
 		return;
 	}
 	auto transaction = pqxx::transaction{*command.connection};
 	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 	auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-							  reactaio::internal::mod_action_name::UNBAN, std::to_string(command.author.user_id), std::to_string(user->id),
+							  reactaio::internal::mod_action_name::UNBAN, std::to_string(command.author->user_id), std::to_string(user->id),
 							  command.reason);
 	transaction.commit();
 }
 
 void unban_wrapper::process_unbans() {
 	for(auto const& user: users) {
-		command.bot->set_audit_reason(std::format("Unbanned by {} for reason: {}", command.author.get_user()->format_username(), command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
+		command.bot->set_audit_reason(std::format("Unbanned by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_ban_delete(command.guild->id, user->id, [this, user](auto const& completion){
 			lambda_callback(completion, user);
 		});
 	}
@@ -126,7 +124,7 @@ void unban_wrapper::process_unbans() {
 
 void unban_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	auto const* author_user = command.author.get_user();
+	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
@@ -152,7 +150,7 @@ void unban_wrapper::process_response() {
 			if(are_all_errors())
 				message.set_flags(dpp::m_ephemeral);// If there's no successful kick, no reason to show the errors publicly.
 			if(format_split.size() == 1 && are_all_errors())
-				command.interaction->edit_response(message);
+				(*command.interaction)->edit_response(message);
 			else if(format_split.size() > 1 && are_all_errors()) {
 				message_paginator paginator{message, command};
 				paginator.start();
@@ -171,7 +169,7 @@ void unban_wrapper::process_response() {
 					embed.set_description(error);
 					automod_log.add_embed(embed);
 				}
-				command.bot->direct_message_create(command.author.user_id, automod_log);
+				command.bot->direct_message_create(command.author->user_id, automod_log);
 			}
 			else {
 				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
@@ -190,15 +188,15 @@ void unban_wrapper::process_response() {
 		std::vector<std::string> unbanned_usernames;
 		std::vector<std::string> unbanned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](std::shared_ptr<dpp::user> const& user){
+		std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](user_ptr const& user){
 			return !contains(users_with_errors, user);
 		});
 
-		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_usernames), [](std::shared_ptr<dpp::user> const& user){
+		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_usernames), [](user_ptr const& user){
 			return std::format("**{}**", user->username);
 		});
 
-		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_mentions), [](std::shared_ptr<dpp::user> const& user) {
+		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_mentions), [](user_ptr const& user) {
 			return user->get_mention();
 		});
 
@@ -258,7 +256,7 @@ void unban_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been unbanned.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(kick_log);
@@ -282,7 +280,7 @@ void unban_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been unbanned.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(kick_log);
@@ -300,7 +298,7 @@ void unban_wrapper::process_response() {
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
 									.set_description(std::format("{} have been unbanned.", usernames))
-									.add_field("Moderator: ", command.author.get_mention())
+									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
 			log.add_embed(kick_log);
@@ -313,10 +311,10 @@ void unban_wrapper::process_response() {
 			paginator.start();
 		}
 		else
-			command.interaction->edit_response(message);
+			(*command.interaction)->edit_response(message);
 		// Log command call
 		pqxx::work transaction{*command.connection};
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author.user_id),
+		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
 								  reactaio::internal::mod_action_name::UNBAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}

@@ -9,7 +9,7 @@
 /**
  * @brief warn_wrapper - Functor that processes the warn operation for a list of dpp::guild_member objects.
  */
-class warn_wrapper: public member_wrapper {
+class warn_wrapper final: public member_wrapper {
 	/**
 	 * @brief wrapper_function - Function called when the () operator is called. Warns all the given members in the guild and returns any errors/success message.
 	 */
@@ -35,9 +35,9 @@ class warn_wrapper: public member_wrapper {
 	/**
 	 * @brief lambda_callback - This is a function that's called when an API call is made.
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
-	 * @param user User object that the callback is made on.
+	 * @param member Member object that the callback is made on.
 	 */
-	void lambda_callback(dpp::confirmation_callback_t const& completion, [[maybe_unused]] dpp::guild_member const& member) override;
+	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] member_ptr const &member) override;
 public:
 	using member_wrapper::member_wrapper;
 };

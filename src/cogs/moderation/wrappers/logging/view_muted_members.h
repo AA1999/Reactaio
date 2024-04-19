@@ -9,7 +9,7 @@
 /**
  * @brief view_muted_members - A wrapper to handle viewing muted/timed out members of a server.
  */
-class view_muted_members: public simple_wrapper {
+class view_muted_members final: public simple_wrapper {
 	dpp::message response;
 
 	/**

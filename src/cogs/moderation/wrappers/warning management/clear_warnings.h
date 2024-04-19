@@ -4,14 +4,16 @@
 
 #pragma once
 
+#include <utility>
+
 #include "../simple_wrapper.h"
 
 
 /**
  * @brief clear_warnings - Wrapper that handles clearing warnings for a member.
  */
-class clear_warnings: public simple_wrapper {
-	dpp::guild_member member;
+class clear_warnings final: public simple_wrapper {
+	member_ptr member;
 	dpp::message response;
 
 	/**
@@ -35,7 +37,7 @@ public:
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 * @param member The member to clear the warnings for.
 	 */
-	clear_warnings(dpp::guild_member member, moderation_command command) : simple_wrapper(std::move(command)), member(std::move(member)){}
+	clear_warnings(member_ptr member, moderation_command command) : simple_wrapper(std::move(command)), member(std::move(member)){}
 	~clear_warnings() override = default;
 
 };

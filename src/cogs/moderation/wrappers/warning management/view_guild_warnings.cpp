@@ -18,7 +18,7 @@ void view_guild_warnings::check_permissions() {
 	auto const bot_user = command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto* bot_top_role = *bot_roles.begin();
+	auto const& bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_manage_guild()) {
 		cancel_operation = true;
@@ -33,7 +33,7 @@ void view_guild_warnings::process_response() {
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
-				command.interaction->edit_response(response);
+				(*command.interaction)->edit_response(response);
 				return;
 			}
 		}
@@ -76,9 +76,9 @@ void view_guild_warnings::process_response() {
 			return;
 		}
 		if(command.interaction)
-			command.interaction->edit_response(response);
+			(*command.interaction)->edit_response(response);
 		return;;
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response("This server has no warnings.");
+		(*command.interaction)->edit_response("This server has no warnings.");
 }

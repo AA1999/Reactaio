@@ -20,9 +20,9 @@ void clear_warnings::check_permissions() {
 	auto const bot_user = command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
 	auto const bot_roles_sorted = get_roles_sorted(bot_member);
-	auto const member_roles_sorted = get_roles_sorted(member);
-	auto const* bot_top_role = *bot_roles_sorted.begin();
-	auto const* member_top_role = *member_roles_sorted.begin();
+	auto const member_roles_sorted = get_roles_sorted(*member);
+	auto const& bot_top_role = bot_roles_sorted.front();
+	auto const& member_top_role = member_roles_sorted.front();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -32,7 +32,7 @@ void clear_warnings::check_permissions() {
 	if(member_top_role->position > bot_top_role->position) {
 		cancel_operation = true;
 		errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to clear warnings for this member. Please "
-									 "move the bot role above the members and below your staff roles.", member.get_mention()));
+									 "move the bot role above the members and below your staff roles.", member->get_mention()));
 
 	}
 
@@ -45,7 +45,7 @@ void clear_warnings::process_response() {
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
-				command.interaction->edit_response(response);
+				(*command.interaction)->edit_response(response);
 				return;
 			}
 		}
@@ -57,22 +57,22 @@ void clear_warnings::process_response() {
 		return;
 	}
 	pqxx::work transaction{*command.connection};
-	auto const result = transaction.exec_prepared1("clear_warnings", std::to_string(member.user_id), std::to_string(command.guild->id));
+	auto const result = transaction.exec_prepared1("clear_warnings", std::to_string(member->user_id), std::to_string(command.guild->id));
 	transaction.commit();
 	response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
 	if(!result["user_id"].is_null()) {
 		auto const time_now = std::time(nullptr);
 		auto const embed = dpp::embed()
 							 .set_color(color::INFO_COLOR)
-							 .set_title(std::format("Warnings for member **{}** cleared.", member.get_user()->format_username()))
+							 .set_title(std::format("Warnings for member **{}** cleared.", member->get_user()->format_username()))
 							 .set_timestamp(time_now)
-							 .set_footer(dpp::embed_footer().set_text(std::format("User id {}", std::to_string(member.user_id))));
+							 .set_footer(dpp::embed_footer().set_text(std::format("User id {}", std::to_string(member->user_id))));
 		response.add_embed(embed);
 		if(command.interaction) { // Will always be true but failsafe
-			command.interaction->edit_response(response);
+			(*command.interaction)->edit_response(response);
 			return;
 		}
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response("This member has no warnings.");
+		(*command.interaction)->edit_response("This member has no warnings.");
 }

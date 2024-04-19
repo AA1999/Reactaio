@@ -20,7 +20,7 @@ void view_modcase::check_permissions() {
 	auto const bot_user = command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const* bot_top_role = *bot_roles.begin();
+	auto const bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -36,7 +36,7 @@ void view_modcase::process_response() {
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
-				command.interaction->edit_response(response);
+				(*command.interaction)->edit_response(response);
 				return;
 			}
 		}
@@ -77,10 +77,10 @@ void view_modcase::process_response() {
 			response.add_embed(embed);
 		});
 		if(command.interaction) { // Will always be true but failsafe
-			command.interaction->edit_response(response);
+			(*command.interaction)->edit_response(response);
 			return;
 		}
 	}
 	if(command.interaction) // Will always be true but failsafe.
-		command.interaction->edit_response(std::format("Modcase {} does not exist in the guild", case_id)); // This is a rather unlikely scenario but there might be a mod wanting to test this
+		(*command.interaction)->edit_response(std::format("Modcase {} does not exist in the guild", case_id)); // This is a rather unlikely scenario but there might be a mod wanting to test this
 }

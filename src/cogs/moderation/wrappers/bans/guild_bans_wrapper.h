@@ -9,8 +9,8 @@
 /**
  * @brief guild_bans_wrapper - A wrapper used for getting all the bans from a guild.
  */
-class guild_bans_wrapper: public recursive_wrapper {
-	std::vector<dpp::ban> bans;
+class guild_bans_wrapper final: public recursive_wrapper {
+	shared_vector<dpp::ban> bans;
 	std::vector<std::string> banned_usernames;
 
 	/**

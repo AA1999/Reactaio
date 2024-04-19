@@ -195,7 +195,7 @@ shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild>& gui
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of member roles.
  */
-std::vector<dpp::role*> get_roles_sorted(const dpp::guild_member& member, bool descending = true);
+shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool descending = true);
 
 /**
  * @brief Parses a timestamp string into a std::chrono::time_point
