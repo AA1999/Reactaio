@@ -87,6 +87,13 @@ namespace reactaio {
 			output.insert(proj(*it));
 	}
 
+	/**
+	 * @brief Copies the common elements of the two given ranges into the
+	 * @tparam T Type of the input and output range.
+	 * @param range1 First range to find common elements in.
+	 * @param range2 Second range to find common elements in.
+	 * @param output The range to copy the common elements to.
+	 */
 	template <typename T>
 	constexpr void set_intersection(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
 		for(auto const& it = range1.begin(); it <= range1.end(); ++it)
