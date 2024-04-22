@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <concepts>
 
 namespace reactaio::internal {
 
@@ -30,27 +29,81 @@ namespace reactaio::internal {
 		using value_type = T;
 
 		~unique_vector() = default;
+		unique_vector(): m_container(){}
 
-		unique_vector(): m_container(){};
+		/**
+		 * @brief Copy constructor.
+		 * @param other Other unique vector to copy.
+		 */
+		unique_vector(const unique_vector &other): m_container(other.m_container) {}
+
+		/**
+		 * @brief Move constructor.
+		 * @param other Other unique vector to move.
+		 */
+		unique_vector(unique_vector&& other) noexcept: m_container(std::move(other.m_container)) {}
+
+		/**
+		 * @brief Copy constructor.
+		 * @tparam R Type of the range.
+		 * @param range The range to copy from.
+		 */
+		template <typename R>
+		requires std::ranges::range<R>
+		unique_vector(const R& range) {
+			insert_range(range);
+		}
+
+		/**
+		 * @brief Move constructor.
+		 * @tparam R Type of the range.
+		 * @param range The range to move.
+		 */
+		template <typename R>
+		requires std::ranges::range<R>
+		unique_vector(R&& range) {
+			insert_range(range);
+		}
 
 		/**
 		 * @brief Creates the container from an initializer list.
 		 * @param initializer_list The initializer list to construct the container from.
 		 */
 		unique_vector(std::initializer_list<T> const& initializer_list): m_container() {
-			for(auto const& element: initializer_list)
-				push_back(element);
+			insert_range(initializer_list);
 		}
 
 		/**
-		 * @brief Creates the container from a range with the same value_type.
-		 * @tparam R Type of the range.
-		 * @param range The range to create the container from.
+		 *
+		 * @param other Other constructor to assign this to.
+		 * @return
+		 */
+		unique_vector & operator =(const unique_vector &other) {
+			if (this == &other)
+				return *this;
+			m_container = other.m_container;
+			return *this;
+		}
+
+		unique_vector& operator =(unique_vector &&other) noexcept {
+			if (this == &other)
+				return *this;
+			m_container = std::move(other.m_container);
+			return *this;
+		}
+
+		/**
+		 *
+		 * @tparam R Type of the given range.
+		 * @param range Range to assign to this container.
+		 * @return A reference to this instance.
 		 */
 		template <typename R>
 		requires std::ranges::range<R>
-		explicit unique_vector(R&& range): m_container() {
-			insert_range(range);
+		constexpr unique_vector& operator = (R&& range) {
+			clear();
+			std::ranges::copy(range, m_container);
+			return *this;
 		}
 
 		/**
