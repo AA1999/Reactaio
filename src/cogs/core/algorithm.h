@@ -15,7 +15,7 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void copy(internal::unique_vector<T> const& input, internal::unique_vector<T>& output) {
-		output.insert_range(input);
+		output = input;
 	}
 
 	/**
@@ -41,8 +41,7 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void move(internal::unique_vector<T> const& input, internal::unique_vector<T>& output) {
-		for(auto const& it  = input.begin(); it <= input.end(); ++it)
-			output.insert(std::move(*it));
+		output = std::move(input);
 	}
 
 	/**

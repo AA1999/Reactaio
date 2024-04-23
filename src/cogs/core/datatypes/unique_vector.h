@@ -31,17 +31,20 @@ namespace reactaio::internal {
 		~unique_vector() = default;
 		unique_vector(): m_container(){}
 
+
 		/**
 		 * @brief Copy constructor.
 		 * @param other Other unique vector to copy.
 		 */
 		unique_vector(const unique_vector &other): m_container(other.m_container) {}
 
+
 		/**
 		 * @brief Move constructor.
 		 * @param other Other unique vector to move.
 		 */
 		unique_vector(unique_vector&& other) noexcept: m_container(std::move(other.m_container)) {}
+
 
 		/**
 		 * @brief Copy constructor.
@@ -54,6 +57,7 @@ namespace reactaio::internal {
 			insert_range(range);
 		}
 
+
 		/**
 		 * @brief Move constructor.
 		 * @tparam R Type of the range.
@@ -65,6 +69,7 @@ namespace reactaio::internal {
 			insert_range(range);
 		}
 
+
 		/**
 		 * @brief Creates the container from an initializer list.
 		 * @param initializer_list The initializer list to construct the container from.
@@ -73,10 +78,11 @@ namespace reactaio::internal {
 			insert_range(initializer_list);
 		}
 
+
 		/**
-		 *
-		 * @param other Other constructor to assign this to.
-		 * @return
+		 * @brief Copy assignment operator.
+		 * @param other Other container to assign this to.
+		 * @return A reference to the updated instance.
 		 */
 		unique_vector & operator =(const unique_vector &other) {
 			if (this == &other)
@@ -85,12 +91,19 @@ namespace reactaio::internal {
 			return *this;
 		}
 
-		unique_vector& operator =(unique_vector &&other) noexcept {
+
+		/**
+		 *
+		 * @param other Other container to assign to this.
+		 * @return A reference to the updated instance.
+		 */
+		unique_vector & operator =(unique_vector &&other) noexcept {
 			if (this == &other)
 				return *this;
 			m_container = std::move(other.m_container);
 			return *this;
 		}
+
 
 		/**
 		 *
@@ -106,6 +119,7 @@ namespace reactaio::internal {
 			return *this;
 		}
 
+
 		/**
 		 * @brief Equalily comparison operator.
 		 * @param other Object to compare this to.
@@ -116,6 +130,7 @@ namespace reactaio::internal {
 			return m_container == other.m_container;
 		}
 
+
 		/**
 		 * @brief Inequality comparison operator.
 		 * @param other Object to compare this to.
@@ -125,7 +140,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr bool operator !=(const unique_vector& other) const {
 			return !(this == other);
 		}
-
 
 
 		/**
@@ -154,6 +168,7 @@ namespace reactaio::internal {
 			return m_container.end();
 		}
 
+
 		/**
 		 * @brief End of the vector.
 		 * @return A const iterator to the last element.
@@ -161,6 +176,7 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr const_iterator end() const noexcept {
 			return m_container.end();
 		}
+
 
 		/**
 		 * @brief First element of the vector.
@@ -170,6 +186,7 @@ namespace reactaio::internal {
 			return m_container.front();
 		}
 
+
 		/**
 		 * @brief First element of the vector.
 		 * @return A const reference to the first element.
@@ -177,6 +194,7 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr const_reference front() const {
 			return m_container.front();
 		}
+
 
 		/**
 		 * @brief Last element of the vector.
