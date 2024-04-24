@@ -230,6 +230,7 @@ namespace reactaio::internal {
 			return m_container.max_size();
 		}
 
+
 		/**
 		 * @brief Allocated capacity.
 		 * @return The maximum elements this container can have before needing to reallocate memory.
@@ -237,6 +238,7 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr size_type capacity() const noexcept {
 			return m_container.capacity();
 		}
+
 
 		/**
 		 * @brief Returns true if the container has no elements.
@@ -246,6 +248,7 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr bool empty() const noexcept {
 			return m_container.empty();
 		}
+
 
 		/**
 		 * @brief Swap elements with other container.
@@ -266,6 +269,7 @@ namespace reactaio::internal {
 				m_container.emplace(iter, value);
 		}
 
+
 		/**
 		 * @brief Moves the given element to the end of the container.
 		 * @param value The value to be moved inside the vector.
@@ -276,6 +280,7 @@ namespace reactaio::internal {
 			if(*iter != value)
 				m_container.emplace(iter, std::move(value));
 		}
+
 
 		/**
 		 * @brief Appends a new element to the the container which is constructed with the given arguments so that it's sorted.
@@ -290,6 +295,7 @@ namespace reactaio::internal {
 				m_container.emplace(iter, std::move(value));
 		}
 
+
 		/**
 		 * @brief Places the given range inside the container except the common elements.
 		 * @tparam R Type of the range.
@@ -302,6 +308,7 @@ namespace reactaio::internal {
 				insert(element);
 		}
 
+
 		/**
 		 * @brief Removes the last element of the container.
 		 * @return A reference to the last element that was removed.
@@ -312,12 +319,14 @@ namespace reactaio::internal {
 			return pop;
 		}
 
+
 		/**
 		 * @brief Removes all elements of the container.
 		 */
 		constexpr void clear() noexcept {
 			m_container.clear();
 		}
+
 
 		/**
 		 * @brief Removes element at the given position.
@@ -327,6 +336,7 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr iterator erase(const_iterator position) {
 			return m_container.erase(position);
 		}
+
 
 		/**
 		 * 
@@ -339,6 +349,7 @@ namespace reactaio::internal {
 			return m_container.erase(fisrt, last);
 		}
 
+
 		/**
 		 * @brief Removes the given value from the container.
 		 * @param value Value to be removed from the container.
@@ -346,6 +357,7 @@ namespace reactaio::internal {
 		constexpr void erase(const value_type& value) {
 			std::erase(m_container, value);
 		}
+
 
 		/**
 		 * @brief Random access lookup function.
@@ -357,6 +369,7 @@ namespace reactaio::internal {
 			return m_container.at(index);
 		}
 
+
 		/**
 		 * @brief Random access lookup function.
 		 * @param index The element index
@@ -367,6 +380,7 @@ namespace reactaio::internal {
 			return m_container.at(index);
 		}
 
+
 		/**
 		 * @brief Random access lookup operator. No bounds checking.
 		 * @param index The index for the lookup.
@@ -375,6 +389,7 @@ namespace reactaio::internal {
 		[[nodiscard]] reference operator[](size_type index) {
 			return m_container[index];
 		}
+
 
 		/**
 		 * @brief Random access lookup operator. No bounds checking.
@@ -385,6 +400,7 @@ namespace reactaio::internal {
 			return m_container[index];
 		}
 
+
 		/**
 		 * @brief Increases the capacity (How many elements it can hold without memory reallocation) of the vector to the given number.
 		 * @param new_size The size to reserve for the vector.
@@ -393,6 +409,7 @@ namespace reactaio::internal {
 			m_container.reserve(new_size);
 		}
 
+
 		/**
 		 * @brief Resizes the container to the given size. Does nothing if new_size == size().
 		 * @param new_size New size of the container.
@@ -400,6 +417,7 @@ namespace reactaio::internal {
 		constexpr void resize(size_type new_size) {
 			m_container.resize(new_size);
 		}
+
 
 		/**
 		 * @brief Resizes the container with the given values until the size is increased to the given size. Does nothing if new_size == size().
