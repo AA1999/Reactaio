@@ -66,7 +66,7 @@ namespace reactaio {
 	 * @param output Range to copy the output in.
 	 */
 	template <typename T>
-	constexpr void set_symmertric_difference(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
+	constexpr void set_symmetric_difference(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
 		set_difference(range1, range2, output);
 		set_difference(range2, range1, output);
 	}
