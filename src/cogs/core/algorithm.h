@@ -28,7 +28,7 @@ namespace reactaio {
 	 */
 	template <typename T, typename UnaryPred>
 	constexpr void copy_if(internal::unique_vector<T> const& input, internal::unique_vector<T>& output, UnaryPred pred) {
-		for(auto const& it = input.begin(); it <= input.end(); ++it)
+		for(auto& it = input.begin(); it <= input.end(); ++it)
 			if(pred(*it))
 				output.insert(*it);
 	}
@@ -53,7 +53,7 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void set_difference(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
-		for(auto const& it = range1.begin(); it <= range1.end(); ++it)
+		for(auto& it = range1.begin(); it <= range1.end(); ++it)
 			if(std::ranges::find(range2, *it) == std::ranges::end(range2))
 				output.insert(*it);
 	}
@@ -82,7 +82,7 @@ namespace reactaio {
 	 */
 	template <typename T, typename O, typename Proj>
 	constexpr void transform(internal::unique_vector<T> const& input, internal::unique_vector<O>& output, Proj proj = [](T const& element){return static_cast<O>(element);}) {
-		for(auto const& it = input.begin(); it <= input.end(); ++it)
+		for(auto& it = input.begin(); it <= input.end(); ++it)
 			output.insert(proj(*it));
 	}
 
@@ -95,7 +95,7 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void set_intersection(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
-		for(auto const& it = range1.begin(); it <= range1.end(); ++it)
+		for(auto& it = range1.begin(); it <= range1.end(); ++it)
 			if(std::ranges::find(range2, *it) != std::ranges::end(range2))
 				output.insert(*it);
 	}
