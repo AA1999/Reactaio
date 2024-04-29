@@ -113,7 +113,7 @@ namespace reactaio::internal {
 		 */
 		template <typename R>
 		requires std::ranges::range<R>
-		constexpr unique_vector& operator = (R&& range) {
+		constexpr unique_vector& operator =(R&& range) {
 			clear();
 			std::ranges::copy(range, m_container);
 			return *this;
@@ -161,10 +161,19 @@ namespace reactaio::internal {
 
 
 		/**
+		 * @brief Beginning of the vector.
+		 * @return A const iterator to the first element.
+		 */
+		[[nodiscard]] constexpr const_iterator cbegin() const noexcept {
+			return m_container.cbegin();
+		}
+
+
+		/**
 		 * @brief End of the vector.
 		 * @return An iterator to the last element.
 		 */
-		[[nodiscard]] constexpr iterator end() noexcept {
+		[[nodiscard]] constexpr iterator end() {
 			return m_container.end();
 		}
 
@@ -173,9 +182,19 @@ namespace reactaio::internal {
 		 * @brief End of the vector.
 		 * @return A const iterator to the last element.
 		 */
-		[[nodiscard]] constexpr const_iterator end() const noexcept {
+		[[nodiscard]] constexpr const_iterator end() const {
 			return m_container.end();
 		}
+
+
+		/**
+		 * @brief End of the vector.
+		 * @return A const iterator to the last element.
+		 */
+		[[nodiscard]] constexpr const_iterator cend() noexcept {
+			return m_container.cend();
+		}
+
 
 
 		/**
