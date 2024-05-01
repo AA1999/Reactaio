@@ -48,14 +48,13 @@ namespace reactaio::internal {
 					return element.key == key;
 				});
 				if(find != m_array.end()) {
-
+					return find;
 				}
 				if(check)
 					throw std::out_of_range{std::format("Key {} doesn't exist in the map.", key)};
 				assert(false);
 			}
 			else {
-//				auto& map = get_map();
 				if (check)
 					return get_map().at(key);
 				return get_map()[key];
@@ -63,7 +62,8 @@ namespace reactaio::internal {
 		}
 
 	public:
-		constexpr fixed_map() noexcept = default;
+		fixed_map() noexcept = default;
+		~fixed_map() = default;
 
 		/**
 		 * @brief Creates a fixed map from an initializer list.
