@@ -42,7 +42,7 @@ namespace reactaio::internal {
 		using const_iterator = typename std::array<value_type, size>::const_iterator;
 		using key_type = Key;
 
-		[[nodiscard]] constexpr Value& lookup(const Key& key, bool check = true) const {
+		[[nodiscard]] constexpr Value lookup(const Key& key, bool check = true) const {
 			if (std::is_constant_evaluated()) {
 				auto find = std::ranges::find(m_array, key, [key](value_type const& element) {
 					return element.key == key;
