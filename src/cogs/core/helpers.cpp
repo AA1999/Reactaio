@@ -78,7 +78,7 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	reactaio::internal::duration res{};
 	auto const tokens = get_tokens(remove_non_alphanumeric(string));
 
-	if (tokens.size() % 2 == 0)// size must be even
+	if (tokens.size() % 2 == 0) // size must be even
 		return std::nullopt;
 
 	for (uint i{0}; i < tokens.size(); ++i) {
