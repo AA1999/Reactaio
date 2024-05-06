@@ -348,6 +348,26 @@ namespace reactaio::internal {
 
 
 		/**
+		 * @brief Finds the position of the given value in the container.
+		 * @param value The value to look up.
+		 * @return The iterator to the found element.
+		 */
+		[[nodiscard]] constexpr iterator find(const value_type& value) {
+			return std::ranges::find(m_container, value);
+		}
+
+
+		/**
+		 * @brief Finds the position of the given value in the container.
+		 * @param value The value to look up.
+		 * @return A const iterator to the found element.
+		 */
+		[[nodiscard]] constexpr const_iterator find(const value_type& value) const {
+			return std::ranges::find(m_container, value);
+		}
+
+
+		/**
 		 * @brief Removes element at the given position.
 		 * @param position Iterator to the element being removed.
 		 * @return Iterator after the removed element.
