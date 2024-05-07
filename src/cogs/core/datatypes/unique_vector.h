@@ -368,6 +368,17 @@ namespace reactaio::internal {
 
 
 		/**
+		 * @brief Does the container contain this value?
+		 * @param value The value to lookup in the container.
+		 * @return true if the container contains the given value.
+		 * @return false if the container doesn't contain the given value.
+		 */
+		[[nodiscard]] constexpr bool contains(const value_type& value) const {
+			return find(value) != end();
+		}
+
+
+		/**
 		 * @brief Removes element at the given position.
 		 * @param position Iterator to the element being removed.
 		 * @return Iterator after the removed element.
