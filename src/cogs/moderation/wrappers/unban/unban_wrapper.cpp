@@ -3,12 +3,12 @@
 //
 
 #include "unban_wrapper.h"
-#include "../../../core/consts.h"
-#include "../../../core/helpers.h"
+#include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
+#include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/helpers.h"
 #include "../../mod_action.h"
-
 
 
 void unban_wrapper::wrapper_function() {
@@ -48,9 +48,7 @@ void unban_wrapper::check_permissions() {
 	hard_bans.erase(nullptr); // Removing any chance of a null pointer.
 
 	shared_vector<dpp::user> illegal_bans;
-	std::ranges::copy_if(users, std::back_inserter(illegal_bans), [hard_bans](user_ptr const& user){
-		return contains(hard_bans, user);
-	});
+	reactaio::set_intersection(users, hard_bans, illegal_bans);
 
 	if(!illegal_bans.empty() && command.author->user_id != command.guild->owner_id) {
 		cancel_operation = true;
@@ -188,9 +186,11 @@ void unban_wrapper::process_response() {
 		std::vector<std::string> unbanned_usernames;
 		std::vector<std::string> unbanned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](user_ptr const& user){
-			return !contains(users_with_errors, user);
-		});
+		// std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](user_ptr const& user){
+		// 	return !contains(users_with_errors, user);
+		// });
+
+		reactaio::set_difference(users, users_with_errors, unbanned_users);
 
 		std::ranges::transform(unbanned_users, std::back_inserter(unbanned_usernames), [](user_ptr const& user){
 			return std::format("**{}**", user->username);

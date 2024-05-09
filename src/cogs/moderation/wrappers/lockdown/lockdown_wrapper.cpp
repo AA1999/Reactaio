@@ -4,12 +4,12 @@
 
 #include "lockdown_wrapper.h"
 
+#include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
-#include <pstl/glue_execution_defs.h>
 
 void lockdown_wrapper::wrapper_function() {
 	check_permissions();
@@ -61,36 +61,29 @@ void lockdown_wrapper::process_lockdown() {
 	pqxx::work transaction{*command.connection};
 	auto const query = transaction.exec_prepared1("lockdowns_get", std::to_string(command.guild->id));
 	transaction.commit();
-	std::set<dpp::snowflake> not_found_ids;
-	auto channel_ids = parse_psql_array<dpp::snowflake>(query["lockdown_channels"]);
-	std::ranges::transform(channel_ids, std::back_inserter(channel_ptrs), [&not_found_ids](dpp::snowflake const& channel_id){
+	internal::unique_vector<dpp::snowflake> not_found_ids;
+	internal::unique_vector<dpp::snowflake> const channel_ids = parse_psql_array<dpp::snowflake>(query["lockdown_channels"]);
+	reactaio::transform(channel_ids, channels, [&not_found_ids](dpp::snowflake const& channel_id) -> channel_ptr {
 		auto const channel_ptr = dpp::find_channel(channel_id);
-		if(channel_ptr == nullptr)
+		if(channel_ptr == nullptr) {
 			not_found_ids.insert(channel_id);
-		return channel_ptr == nullptr ? nullptr : std::make_shared<dpp::channel>(*channel_ptr);
+			return nullptr;
+		}
+		return std::make_shared<dpp::channel>(*channel_ptr);
 	});
-	if(std::ranges::all_of(channel_ptrs, [](auto const& channel_ptr) {return channel_ptr == nullptr;})) {
-		std::ranges::copy(channel_ptrs, std::back_inserter(channels_with_errors)); // This is done so that are_all_errors can return true, it has no practical use since it will all be nullptr anyways
+	if(channels.size() == 1 && channels.front() == nullptr) {
+		reactaio::copy(channels, channels_with_errors); // This is done so that are all_errors checks return true.
 		std::ranges::transform(channel_ids, std::back_inserter(errors), [](dpp::snowflake const& channel_id) {
 			return std::format("Cannot find channel with id {}. Possibly a deleted channnel?", std::to_string(channel_id));
 		});
 		return;
 	}
 	if(!not_found_ids.empty()) {
-		std::ranges::copy_if(channel_ptrs, std::back_inserter(channels_with_errors), [](channel_ptr const& channel) {
-			return channel == nullptr;
-		});
+		channels_with_errors.reserve(not_found_ids.size());
 		std::ranges::transform(not_found_ids, std::back_inserter(errors), [](dpp::snowflake const& channel_id) {
 			return std::format("Cannot find channel with id {}. Possibly a deleted channel?", std::to_string(channel_id));
 		});
 	}
-	shared_vector<dpp::channel> channel_ptrs_copy; // Cannot alter the current pointer vector since are_all_errors will return false always.
-	std::ranges::copy(channel_ptrs, std::back_inserter(channel_ptrs_copy));
-	channel_ptrs_copy.erase(nullptr);
-	std::ranges::transform(channel_ptrs_copy, std::back_inserter(channels), [](channel_ptr const& channel_ptr) {
-		return channel_ptr;
-	});
-
 	for(auto const& channel: channels) {
 		command.bot->set_audit_reason(std::format("Locked by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).channel_edit_permissions(*channel, command.guild->id, 0, dpp::permissions::p_send_messages,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
 			lambda_callback(completion, channel);
@@ -163,7 +156,7 @@ auto message = dpp::message(command.channel_id, "");
 		std::vector<std::string> locked_ids;
 		shared_vector<dpp::channel> locked_channels;
 
-		filter(locked_channels);
+		reactaio::set_difference(channels, channels, locked_channels);
 
 		std::ranges::transform(locked_channels, std::back_inserter(locked_mentions), [](auto const& channel) {
 			return std::format("{}", channel->get_mention());

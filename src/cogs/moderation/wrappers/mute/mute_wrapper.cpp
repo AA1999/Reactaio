@@ -3,6 +3,7 @@
 //
 
 #include "mute_wrapper.h"
+#include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
@@ -44,15 +45,22 @@ void mute_wrapper::check_permissions() {
 
 	shared_vector<dpp::role> protected_roles;
 
-	if(!protected_roles_query.empty()) {
-		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
-		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
-		               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-			               return std::make_shared<dpp::role>(*dpp::find_role(role_id));
-		               });
-	}
+	// if(!protected_roles_query.empty()) {
+	// 	auto protected_roles_field = protected_roles_query[0]["protected_roles"];
+	// 	auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
+	// 	std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
+	// 	               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
+	// 		               return std::make_shared<dpp::role>(*dpp::find_role(role_id));
+	// 	               });
+	// }
 
+	if(!protected_roles_query.empty()) {
+		auto const protected_roles_filed = protected_roles_query[0]["protected_roles"];
+		internal::unique_vector<dpp::snowflake> protected_role_ids = parse_psql_array<dpp::snowflake>(protected_roles_filed);
+		reactaio::transform(protected_role_ids, protected_roles, [](dpp::snowflake const& role_id) -> role_ptr {
+			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
+		});
+	}
 
 	for(auto const& member: members) {
 		auto member_roles = get_roles_sorted(*member);
@@ -83,8 +91,8 @@ void mute_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			shared_vector<dpp::role> member_protected_roles;
-			std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
-
+			// std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
+			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
@@ -347,7 +355,7 @@ void mute_wrapper::process_response() {
 		std::vector<std::string> muted_usernames;
 		std::vector<std::string> muted_mentions;
 
-		filter(muted_members);
+		reactaio::set_difference(members, members_with_errors, muted_members);
 
 		std::ranges::transform(muted_members, std::back_inserter(muted_usernames), [](member_ptr const& member) {
 			return std::format("**{}**", member->get_user()->format_username());

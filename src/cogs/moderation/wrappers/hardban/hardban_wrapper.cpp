@@ -4,10 +4,11 @@
 
 #include "hardban_wrapper.h"
 
+#include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
-#include "../../../core/helpers.h"
 #include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/helpers.h"
 #include "../../mod_action.h"
 
 
@@ -111,9 +112,9 @@ void hardban_wrapper::check_permissions() {
 	shared_vector<dpp::role> protected_roles;
 
 	if(!protected_roles_query.empty()) {
-		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
-		auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
+		auto const protected_roles_field = protected_roles_query[0]["protected_roles"];
+		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
+		reactaio::transform(protected_role_snowflakes, protected_roles, [](const dpp::snowflake role_id) {
 			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		});
 	}
@@ -139,14 +140,13 @@ void hardban_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			shared_vector<dpp::role> member_protected_roles;
-			std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
-
+			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
 				std::ranges::transform(member_protected_roles, std::back_inserter(role_mentions), [](role_ptr const& role){
-										   return role->get_mention();
-									   });
+					return role->get_mention();
+				});
 				std::string role_mentions_str = join(role_mentions, " , ");
 				errors.push_back(std::format("❌ Member has the protected roles: {}. Cannot hard ban.", role_mentions_str));
 			}
@@ -313,10 +313,7 @@ void hardban_wrapper::process_response() {
 		std::vector<std::string> hard_banned_usernames;
 		std::vector<std::string> hard_banned_mentions;
 
-		std::ranges::copy_if(users, std::back_inserter(hard_banned_users), [this](user_ptr const& user){
-			return !contains(users_with_errors, user);
-		});
-
+		reactaio::set_difference(users, users_with_errors, hard_banned_users);
 
 		std::ranges::transform(hard_banned_users, std::back_inserter(hard_banned_usernames), [](user_ptr const& user) {
 			return std::format("**{}**", user->format_username());

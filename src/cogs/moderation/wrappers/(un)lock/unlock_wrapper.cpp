@@ -4,6 +4,7 @@
 
 #include "unlock_wrapper.h"
 
+#include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
@@ -129,7 +130,7 @@ void unlock_wrapper::process_response() {
 		std::vector<std::string> unlocked_mentions;
 		shared_vector<dpp::channel> unlocked_channels;
 
-		filter(unlocked_channels);
+		reactaio::set_difference(channels, channels_with_errors, unlocked_channels);
 
 		std::ranges::transform(unlocked_channels, std::back_inserter(unlocked_mentions), [](auto const& channel) {
 			return std::format("{}", channel->get_mention());

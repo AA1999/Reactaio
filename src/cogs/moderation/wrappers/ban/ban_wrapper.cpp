@@ -231,12 +231,7 @@ void ban_wrapper::process_response() {
 		std::vector<std::string> banned_usernames;
 		std::vector<std::string> banned_mentions;
 
-		// std::ranges::copy_if(users, std::back_inserter(banned_users), [this](user_ptr const& user){
-		// 	return !contains(users_with_errors, user);
-		// });
-		reactaio::copy_if(users, banned_users, [this](auto const& user) {
-			return !contains(users_with_errors, user);
-		});
+		reactaio::set_difference(users, users_with_errors, banned_users);
 
 		std::ranges::transform(banned_users, std::back_inserter(banned_usernames), [](user_ptr const& user) {
 			return std::format("**{}**", user->format_username());
@@ -448,9 +443,6 @@ void ban_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		// std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-		// 	return std::make_shared<dpp::role>(*dpp::find_role(role_id));
-		// });
 		reactaio::transform(protected_role_snowflakes, protected_roles, [](dpp::snowflake const role_id) {
 			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		});
@@ -468,7 +460,7 @@ void ban_wrapper::check_permissions() {
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to ban yourself lol
-			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
+			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
@@ -478,7 +470,7 @@ void ban_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member->user_id == command.guild->owner_id) { // Banning the server owner lmfao
+		if(!ignore_owner_repeat && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't ban the server owner lmfao.");
 			cancel_operation = true;
 		}
@@ -492,10 +484,7 @@ void ban_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			shared_vector<dpp::role> member_protected_roles;
-			// std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
-
 			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
-
 			if(!member_protected_roles.empty()) { // IfR member has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;

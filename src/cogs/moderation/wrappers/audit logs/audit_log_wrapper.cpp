@@ -104,7 +104,7 @@ void audit_log_wrapper::process_response() {
 		});
 		const std::string changes = join(changes_vector, ", ");
 		auto const member = dpp::find_guild_member(command.guild->id, user_id);
-		audit_logs.push_back(std::vformat("Action: {} done by {} to {} {}", std::make_format_args(audit_type, member.get_mention(), std::to_string(target_id), changes)));
+		audit_logs.push_back(std::format("Action: {} done by {} to {} {}", audit_type, member.get_mention(), std::to_string(target_id), changes));
 	}
 	auto const time_now = std::time(nullptr);
 

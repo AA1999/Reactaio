@@ -6,6 +6,7 @@
 
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
+#include "../../../core/algorithm.h"
 #include "../../../core/datatypes/message_paginator.h"
 #include "../../mod_action.h"
 
@@ -130,11 +131,12 @@ void lock_wrapper::process_response() {
 		std::vector<std::string> locked_mentions;
 		shared_vector<dpp::channel> locked_channels;
 
-		filter(locked_channels);
+		reactaio::set_difference(channels, channels_with_errors, locked_channels);
 
 		std::ranges::transform(locked_channels, std::back_inserter(locked_mentions), [](auto const& channel) {
 			return std::format("{}", channel->get_mention());
 		});
+
 
 		auto mentions = join(locked_mentions, ", ");
 

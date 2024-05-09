@@ -34,14 +34,6 @@ protected:
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) = 0;
 
-	/**
-	 * @brief Inserts all the channel objects with no error into the given vector.
-	 * @param output The vector to put the result in. This way we can have a constexpr function.
-	 */
-	constexpr void filter(shared_vector<dpp::channel>& output) {
-		output.insert_range(channels | std::views::filter([this](channel_ptr const& channel){return !contains(channels_with_errors, channel);}));
-	}
-
 public:
 	channel_wrapper() = delete;
 	~channel_wrapper() override = default;

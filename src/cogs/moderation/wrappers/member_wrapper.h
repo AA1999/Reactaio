@@ -35,15 +35,6 @@ protected:
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] member_ptr const &member) = 0;
 
-	/**
-	 * @brief Inserts all the member objects with no error into the given vector.
-	 * @param output The vector to put the result in. This way we can have a constexpr function.
-	 */
-	constexpr void filter(shared_vector<dpp::guild_member>& output) {
-		output.insert_range(members | std::views::filter([this](member_ptr const& member){return !contains(members_with_errors, member);})
-								  | std::views::transform([](member_ptr const& member){return member;}));
-	}
-
 public:
 	~member_wrapper() override = default;
 
