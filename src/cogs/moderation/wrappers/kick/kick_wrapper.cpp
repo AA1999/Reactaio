@@ -53,9 +53,7 @@ void kick_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		// std::ranges::transform(protected_role_snowflakes, std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-		// 	return std::make_shared<dpp::role>(*dpp::find_role(role_id));
-		// });
+
 		reactaio::transform(protected_role_snowflakes, protected_roles, [](auto const& role_id) {
 			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		});
@@ -91,7 +89,6 @@ void kick_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			shared_vector<dpp::role> member_protected_roles;
-			// std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
 			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
