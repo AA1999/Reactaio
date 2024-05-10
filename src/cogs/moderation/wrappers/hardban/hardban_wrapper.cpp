@@ -88,9 +88,7 @@ void hardban_wrapper::check_permissions() {
 		return;
 	}
 
-	auto* author_user = command.author->get_user();
-
-	if(command.guild->owner_id != author_user->id) {
+	if(!command.author->is_guild_owner()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Can't hard ban anyone unless you're the server owner. This is a hardcoded condition and cannot be changed.");
 		return; // If you're not the server owner, the other errors don't matter.
@@ -101,8 +99,6 @@ void hardban_wrapper::check_permissions() {
 
 	auto bot_roles = get_roles_sorted(bot_member);
 	auto bot_top_role = bot_roles.front();
-
-
 
 	pqxx::work transaction{*command.connection};
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
@@ -128,7 +124,7 @@ void hardban_wrapper::check_permissions() {
 		auto member_roles = get_roles_sorted(*member);
 		auto member_top_role = *member_roles.begin();
 
-		if(member->user_id == author_user->id) { // If for some reason you felt like hardbanning yourself, being the server owner.
+		if(member->is_guild_owner()) { // If for some reason you felt like hardbanning yourself, being the server owner.
 			cancel_operation = true;
 			errors.emplace_back("❌ Why are you trying to hard ban yourself, server owner? lmfao");
 		}
@@ -138,7 +134,6 @@ void hardban_wrapper::check_permissions() {
 		}
 
 		if(!protected_roles.empty()) {
-
 			shared_vector<dpp::role> member_protected_roles;
 			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 			if(!member_protected_roles.empty()) { // If member has any of the protected roles.

@@ -67,7 +67,7 @@ void mute_wrapper::check_permissions() {
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to mute yourself lol
-			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
+			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you muting yourself, server owner? lmfao");
 				is_owner = true;
 			}
@@ -77,7 +77,7 @@ void mute_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!is_owner && member->user_id == command.guild->owner_id) { // Muting the server owner lmfao
+		if(!is_owner && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't mute the server owner lmfao.");
 			cancel_operation = true;
 		}

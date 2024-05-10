@@ -38,7 +38,7 @@ void unban_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot top role is below your role. Please move the bot role above the top role");
 	}
 
-	auto transaction = pqxx::transaction{*command.connection};
+	pqxx::work transaction{*command.connection};
 	auto hard_bans_query = transaction.exec_prepared("hardban_get", std::to_string(command.guild->id));
 
 	shared_vector<dpp::user> hard_bans;
@@ -50,7 +50,7 @@ void unban_wrapper::check_permissions() {
 	shared_vector<dpp::user> illegal_bans;
 	reactaio::set_intersection(users, hard_bans, illegal_bans);
 
-	if(!illegal_bans.empty() && command.author->user_id != command.guild->owner_id) {
+	if(!illegal_bans.empty() && !command.author->is_guild_owner()) {
 		cancel_operation = true;
 		users_with_errors.insert_range(illegal_bans);
 		std::ranges::transform(illegal_bans, std::back_inserter(errors), [](user_ptr const& user){
@@ -103,7 +103,7 @@ void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completi
 		users_with_errors.insert(user);
 		return;
 	}
-	auto transaction = pqxx::transaction{*command.connection};
+	pqxx::work transaction{*command.connection};
 	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 	auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
@@ -185,10 +185,6 @@ void unban_wrapper::process_response() {
 		shared_vector<dpp::user> unbanned_users;
 		std::vector<std::string> unbanned_usernames;
 		std::vector<std::string> unbanned_mentions;
-
-		// std::ranges::copy_if(users, std::back_inserter(unbanned_users), [this](user_ptr const& user){
-		// 	return !contains(users_with_errors, user);
-		// });
 
 		reactaio::set_difference(users, users_with_errors, unbanned_users);
 

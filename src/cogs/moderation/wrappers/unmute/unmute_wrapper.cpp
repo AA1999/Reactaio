@@ -64,7 +64,7 @@ void unmute_wrapper::check_permissions() {
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to unmute yourself lol
-			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
+			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you unmuting yourself, server owner? lmfao");
 				is_owner = true;
 			}
@@ -74,7 +74,7 @@ void unmute_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!is_owner && member->user_id == command.guild->owner_id) { // Unmuting the server owner lmfao
+		if(!is_owner && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't unmute the server owner lmfao.");
 			cancel_operation = true;
 		}
@@ -255,7 +255,6 @@ void unmute_wrapper::process_response() {
 		std::vector<std::string> unmuted_usernames;
 		std::vector<std::string> unmuted_mentions;
 
-		// filter(unmuted_members);
 
 		reactaio::set_difference(members, members_with_errors, unmuted_members);
 

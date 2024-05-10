@@ -68,7 +68,7 @@ void warn_wrapper::check_permissions() {
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to warn yourself lol
-			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
+			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you warning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
@@ -78,11 +78,15 @@ void warn_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member->user_id == command.guild->owner_id) { // warning the server owner lmfao
+		if(!ignore_owner_repeat && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't warn the server owner lmfao.");
 			cancel_operation = true;
 		}
 
+		if(member->get_user()->is_bot()) {
+			errors.emplace_back("❌ Cannot warn a bot. What would that even do lol?");
+			cancel_operation = true;
+		}
 
 		if(command.bot->me.id == member->user_id) { // If you decided to warn the bot (ReactAIO)
 			errors.emplace_back("❌ Can't warn myself lmfao.");

@@ -129,7 +129,7 @@ void softban_wrapper::check_permissions() {
 		auto member_top_role = *member_roles.begin();
 
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to soft ban yourself lol
-			if(member->user_id == command.guild->owner_id) { // If you're also the server owner
+			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you soft banning yourself, server owner? lmfao");
 				ignore_owner_repeat = true;
 			}
@@ -139,7 +139,7 @@ void softban_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member->user_id == command.guild->owner_id) { // Banning the server owner lmfao
+		if(!ignore_owner_repeat && member->is_guild_owner()) { // Banning the server owner lmfao
 			errors.emplace_back("❌ You can't soft ban the server owner lmfao.");
 			cancel_operation = true;
 		}
