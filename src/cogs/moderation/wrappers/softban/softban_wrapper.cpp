@@ -325,10 +325,6 @@ void softban_wrapper::process_response() {
 		std::vector<std::string> softbanned_usernames;
 		std::vector<std::string> softbanned_mentions;
 
-		// std::ranges::copy_if(users, std::back_inserter(softbanned_users), [this](std::shared_ptr<dpp::user> const& user){
-		// 	return !contains(users_with_errors, user);
-		// });
-
 		reactaio::set_difference(users, users_with_errors, softbanned_users);
 
 		std::ranges::transform(softbanned_users, std::back_inserter(softbanned_usernames), [](user_ptr const& user) {
