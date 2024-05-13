@@ -39,8 +39,8 @@ namespace reactaio::moderation {
 		softban_users();
 	}
 
-	void hardban(const internal::unique_vector<member_user_variant> &users_or_members, const moderation_command &command) {
-		hardban_wrapper hardban_users(users_or_members, const_cast<moderation_command&>(command));
+	void hardban(const internal::unique_vector<member_user_variant> &users_or_members, moderation_command command) {
+		hardban_wrapper hardban_users(users_or_members, command);
 		hardban_users();
 	}
 
