@@ -88,7 +88,6 @@ void unmute_wrapper::check_permissions() {
 		if(!protected_roles.empty()) {
 
 			shared_vector<dpp::role> member_protected_roles;
-			// std::ranges::set_intersection(protected_roles, member_roles, std::back_inserter(member_protected_roles));
 
 			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 

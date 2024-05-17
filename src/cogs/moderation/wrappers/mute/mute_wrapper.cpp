@@ -45,15 +45,6 @@ void mute_wrapper::check_permissions() {
 
 	shared_vector<dpp::role> protected_roles;
 
-	// if(!protected_roles_query.empty()) {
-	// 	auto protected_roles_field = protected_roles_query[0]["protected_roles"];
-	// 	auto protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-	// 	std::ranges::transform(protected_role_snowflakes.begin(), protected_role_snowflakes.end(),
-	// 	               std::back_inserter(protected_roles), [](const dpp::snowflake role_id){
-	// 		               return std::make_shared<dpp::role>(*dpp::find_role(role_id));
-	// 	               });
-	// }
-
 	if(!protected_roles_query.empty()) {
 		auto const protected_roles_filed = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_ids = parse_psql_array<dpp::snowflake>(protected_roles_filed);
