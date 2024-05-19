@@ -53,7 +53,6 @@ void kick_wrapper::check_permissions() {
 	if(!protected_roles_query.empty()) {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-
 		reactaio::transform(protected_role_snowflakes, protected_roles, [](auto const& role_id) {
 			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
 		});
