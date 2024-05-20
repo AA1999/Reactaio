@@ -1,8 +1,8 @@
 //
-// Created by arshia on 3/18/24.
+// Created by arshia on 5/20/24.
 //
 
-#include "lockdown_wrapper.h"
+#include "remove_lockdown.h"
 
 #include "../../../core/algorithm.h"
 #include "../../../core/colors.h"
@@ -11,15 +11,15 @@
 #include "../../mod_action.h"
 
 
-void lockdown_wrapper::wrapper_function() {
+void remove_lockdown::wrapper_function() {
 	check_permissions();
 	if(cancel_operation)
 		return;
-	process_lockdown();
+	process_lockdown_removal();
 	process_response();
 }
 
-void lockdown_wrapper::check_permissions() {
+void remove_lockdown::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
 
 	auto bot_roles = get_roles_sorted(bot_member);
@@ -49,7 +49,8 @@ void lockdown_wrapper::check_permissions() {
 	}
 }
 
-void lockdown_wrapper::lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) {
+
+void remove_lockdown::lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) {
 	if(completion.is_error()) {
 		auto error = completion.get_error();
 		errors.push_back(std::format("Error code {}: {}.", error.code, error.human_readable));
@@ -57,7 +58,8 @@ void lockdown_wrapper::lambda_callback(dpp::confirmation_callback_t const &compl
 	}
 }
 
-void lockdown_wrapper::process_lockdown() {
+
+void remove_lockdown::process_lockdown_removal() {
 	pqxx::work transaction{*command.connection};
 	auto const query = transaction.exec_prepared1("lockdowns_get", std::to_string(command.guild->id));
 	transaction.commit();
@@ -85,13 +87,13 @@ void lockdown_wrapper::process_lockdown() {
 		});
 	}
 	for(auto const& channel: channels) {
-		command.bot->set_audit_reason(std::format("Locked by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).channel_edit_permissions(*channel, command.guild->id, 0, dpp::permissions::p_send_messages,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
+		command.bot->set_audit_reason(std::format("Unlocked by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).channel_edit_permissions(*channel, command.guild->id, dpp::permissions::p_send_messages, 0,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
 			lambda_callback(completion, channel);
 		});
 	}
 }
 
-void lockdown_wrapper::process_response() {
+void remove_lockdown::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author->get_user();
 
@@ -99,7 +101,7 @@ void lockdown_wrapper::process_response() {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
-								  .set_title("Error while locking down the server: ")
+								  .set_title("Error while removing the server lockdown: ")
 								  .set_color(color::ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
@@ -170,14 +172,14 @@ void lockdown_wrapper::process_response() {
 		auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		auto const channel_ids = join(locked_ids, ", ");
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCKDOWN,
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCKDOWN_END,
 								  std::to_string(command.author->user_id), channel_ids, command.reason);
 		transaction.commit();
 
 		auto mentions = join(locked_mentions, ", ");
 
 		std::string const title{"Locked"};
-		std::string description{std::format("Server has been locked down. Channels: {}", mentions)};
+		std::string description{std::format("Server's lockdown has been removed. Channels: {}", mentions)};
 		std::string gif_url; //TODO find a proper gif
 
 		auto time_now	= std::time(nullptr);
@@ -198,12 +200,12 @@ void lockdown_wrapper::process_response() {
 
 		auto query = transaction.exec_prepared("channel_modlog", std::to_string(command.guild->id));
 		transaction.commit();
-		std::string const embed_title = std::format("Server locked down. Channel{} affected: ", locked_channels.size() == 1 ? "" : "s");
+		std::string const embed_title = std::format("Server lockdown removed. Channel{} affected: ", locked_channels.size() == 1 ? "" : "s");
 		auto const channel_overwrite_update_webhook_url = query[0]["channel_overwrite_update"];
 		if(!channel_overwrite_update_webhook_url.is_null()) {
 			auto channel_overwrite_update_webhook = dpp::webhook{channel_overwrite_update_webhook_url.as<std::string>()};
 
-			description = std::format("{} have been locked.", mentions);
+			description = std::format("{} have been unlocked.", mentions);
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
 								   .set_color(color::LOG_COLOR)
@@ -220,7 +222,7 @@ void lockdown_wrapper::process_response() {
 		auto modlog_webhook_url = query[0]["modlog"];
 		if(!modlog_webhook_url.is_null()) {
 			auto modlog_webhook = dpp::webhook{modlog_webhook_url.as<std::string>()};
-			description = std::format("Server locked down. Affected channels: {}.", mentions);
+			description = std::format("Server lockdown removed. Affected channels: {}.", mentions);
 
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
@@ -237,7 +239,7 @@ void lockdown_wrapper::process_response() {
 		auto public_modlog_webhook_url = query[0]["public_modlog"];
 		if(!public_modlog_webhook_url.is_null()) {
 			auto public_modlog_webhook = dpp::webhook{public_modlog_webhook_url.as<std::string>()};
-			description = std::format("Server locked down. Affected channels: {}.", mentions);
+			description = std::format("Server lockdown removed. Affected channels: {}.", mentions);
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
 								   .set_color(color::LOG_COLOR)
@@ -261,11 +263,9 @@ void lockdown_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::LOCKDOWN, dpp::utility::current_date_time());
+								  reactaio::internal::mod_action_name::LOCKDOWN_END, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
 		command.bot->message_create(message);
 }
-
-

@@ -1,15 +1,12 @@
 //
-// Created by arshia on 3/18/24.
+// Created by arshia on 5/20/24.
 //
 
 #pragma once
-#include <utility>
 
 #include "../channel_wrapper.h"
 
-
-class lockdown_wrapper final: public channel_wrapper {
-
+class remove_lockdown final: channel_wrapper {
 	/**
 	 * @brief Checks if both the command invoker and the bot have sufficient permissions.
 	 */
@@ -28,22 +25,21 @@ class lockdown_wrapper final: public channel_wrapper {
 	void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) override;
 
 	/**
-	 * @brief Locks all the set server channels. On error the errors will be sent to the errors vector.
+	 * @brief Unlocks all the set server channels. On error the errors will be sent to the errors vector.
 	 */
-	void process_lockdown();
+	void process_lockdown_removal();
 
 	/**
 	 * @brief Sends the resulting response to the wrapper message object as embed(s).
 	 */
 	void process_response() override;
-
 public:
-	lockdown_wrapper() = delete;
-	~lockdown_wrapper() override = default;
+	remove_lockdown() = delete;
+	~remove_lockdown() override = default;
 
 	/**
 	 * @brief Constructor from a command object.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	explicit lockdown_wrapper(moderation_command command): channel_wrapper(std::move(command), {}) {}
+	explicit remove_lockdown(moderation_command command): channel_wrapper(std::move(command), {}){}
 };
