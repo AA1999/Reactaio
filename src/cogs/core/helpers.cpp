@@ -136,9 +136,8 @@ for(auto const& role_id: member_roles)
 }
 
 std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view const timestamp, std::string_view const format) {
+	std::chrono::sys_seconds time_point;
 	std::istringstream parser{std::string{timestamp}};
-	std::tm time{};
-	parser >> std::get_time(&time, std::string{format}.c_str());
-	auto const as_time_t{std::mktime(&time)};
-	return std::chrono::system_clock::from_time_t(as_time_t);
+	parser >> std::chrono::parse(std::string{format}, time_point);
+	return std::chrono::system_clock::from_time_t(time_point.time_since_epoch().count());
 }
