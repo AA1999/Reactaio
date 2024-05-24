@@ -187,7 +187,7 @@ std::vector<T> parse_psql_array(const pqxx::field& field) {
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of guild roles.
  */
-shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild>& guild, bool descending = true);
+shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &guild, bool descending = true);
 
 /**
  * @brief Returns a sorted vector of a dpp::guild_member's roles.

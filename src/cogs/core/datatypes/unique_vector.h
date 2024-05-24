@@ -348,6 +348,14 @@ namespace reactaio::internal {
 
 
 		/**
+		 * @brief Reverses the order that the elements of the vector are sorted.
+		 */
+		constexpr void reverse() noexcept {
+			std::ranges::reverse(m_container);
+		}
+
+
+		/**
 		 * @brief Finds the position of the given value in the container.
 		 * @param value The value to look up.
 		 * @return The iterator to the found element.
