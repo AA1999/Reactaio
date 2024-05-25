@@ -3,10 +3,12 @@
 //
 
 #include "change_reason.h"
-#include "../../../core/helpers.h"
+
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/helpers.h"
+#include "../../mod_action.h"
 
 void change_reason::wrapper_function() {
 	check_permissions();
@@ -47,7 +49,7 @@ void change_reason::process_response() {
 		return;
 	}
 	pqxx::work transaction{*command.connection};
-	auto result = transaction.exec_prepared1("modcase_update_reason", std::string{command.reason}, case_id, std::to_string(command.guild->id));
+	auto const result = transaction.exec_prepared1("modcase_update_reason", std::string{command.reason}, case_id, std::to_string(command.guild->id));
 	transaction.commit();
 	if(!result["case_id"].is_null()) {
 		response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
@@ -64,6 +66,9 @@ void change_reason::process_response() {
 			return;
 		}
 	}
+	transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
+								  reactaio::internal::mod_action_name::REASON, dpp::utility::current_date_time());
+	transaction.commit();
 	if(command.interaction) // Will always be true but failsafe.
 		(*command.interaction)->edit_response(std::format("Modcase {} does not exist in the guild", case_id)); // This is a rather unlikely scenario but there might be a mod wanting to test this
 }
