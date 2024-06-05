@@ -34,6 +34,7 @@ namespace reactaio::internal {
 		{"get_mute_role", "SELECT mute_role FROM config WHERE guild_id = $1"},
 		{"tempmute", "INSERT INTO tempmutes(mute_id, user_id, guild_id, mod_id, start_date, end_date, reason) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT ON CONSTRAINT tempmutes_user_id_guild_id_key DO UPDATE SET start_date = $5, end_date = $6, reason= $7"},
 		{"view_tempmute", "SELECT mute_id, user_id, mod_id, start_date, end_date, reason FROM tempmutes WHERE user_id = $1 AND guild_id = $2"},
+		{"update_tempmute", "UPDATE tempmutes SET end_date = $1 WHERE ban_id = $2 AND guild_id = $3 RETURNING end_date"},
 		{"protected_roles", "SELECT protected_roles FROM config WHERE guild_id = $1"},
 		{"check_timeout", "SELECT use_timeout FROM config WHERE guild_id = $1"},
 		{"get_timeout_id", "SELECT timeout_id FROM permanent_timeouts WHERE guild_id = $1 ORDER BY timeout_id DESC LIMIT 1"},
