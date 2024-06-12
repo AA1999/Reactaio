@@ -49,6 +49,7 @@ namespace reactaio::internal {
 		{"view_guild_muted_members", "SELECT case_id, action, mod_id, punished_id, action, duration, reason FROM modcase WHERE guild_id = $1 AND (action = 'Mute' OR action = 'Timeout')"},
 		{"warning_lookup", "SELECT user_id FROM warnings WHERE warn_id = $1 AND guild_id = $2"},
 		{"remove_warning", "DELETE FROM warnings WHERE warn_id = $1 AND guild_id = $2 RETURNING warn_id"},
+		{"update_warning", "UPDATE warnings SET reason = $1 WHERE user = $2 AND guild = $3"},
 		{"clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id"},
 		{"clear_guild_warnings", "DELETE FROM warnings WHERE guild_id = $1 RETURNING guild_id"}
 	};
