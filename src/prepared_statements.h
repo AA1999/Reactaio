@@ -45,6 +45,7 @@ namespace reactaio::internal {
 		{"hardban_get", "SELECT user_id FROM hardbans WHERE guild_id = $1"},
 		{"hardban_remove", "DELETE * FROM hardbans WHERE user_id = $1 AND guild_id = $2"},
 		{"lockdowns_get", "SELECT lockdown_channels FROM config WHERE guild = $1"},
+		{"clear_lockdown_channels", "DELETE lockdown_channels FROM config WHERE guild_id = $1"},
 		{"view_warnings", "SELECT warn_id, reason FROM warnings WHERE guild_id = $1 AND user_id = $2"},
 		{"view_guild_warnings", "SELECT warn_id, user_id, mod_id, reason FROM warnings WHERE guild_id = $1"},
 		{"view_guild_muted_members", "SELECT case_id, action, mod_id, punished_id, action, duration, reason FROM modcase WHERE guild_id = $1 AND (action = 'Mute' OR action = 'Timeout')"},
