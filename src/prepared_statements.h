@@ -13,6 +13,7 @@ constexpr std::uint8_t MAP_SIZE{30};
 namespace reactaio::internal {
 	extern inline const fixed_map<std::string, std::string, MAP_SIZE> prepated_statements {
 		{"kick_modlog", "SELECT member_kick, modlog, public_modlog FROM config WHERE guild_id = $1"},
+		{"update_modlog", "UPDATE config SET modlog = $1 WHERE guild_id = $1"},
 		{"casecount", "SELECT case_id FROM modcase WHERE guild_id = $1 ORDER BY case_id DESC LIMIT 1"},
 		{"ban_modlog", "SELECT member_ban_add, modlog, public_modlog FROM config WHERE guild_id = $1"},
 		{"channel_modlog", "SELECT channel_overwrite_create, channel_overwrite_update, channel_overwrite_delete, modlog, public_modlog FROM config WHERE guild_id = $1"},
