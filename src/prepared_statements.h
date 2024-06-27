@@ -27,6 +27,7 @@ namespace reactaio::internal {
 		{"modcase_update_reason", "UPDATE modcase SET reason = $1 WHERE case_id = $1 AND guild_id = $2 RETURNING case_id"},
 		{"command_insert", "INSERT INTO command_logs(guild_id, author_id, name, issues_at) VALUES($1, $2, $3, $4)"},
 		{"get_ban_remove_days", "SELECT ban_remove_days FROM config WHERE guild_id = $1"},
+		{"update_ban_remove_days", "UPDATE config SET ban_remove_days = $1 WHERE guild_id = $2"},
 		{"get_ban_id", "SELECT ban_id FROM tempbans WHERE guild_id = $1 ORDER BY ban_id DESC LIMIT 1"},
 		{"get_ban", "SELECT ban_id, user_id, guild_id, mod_id, start_date, end_date, reason FROM tempbans WHERE user_id = $1 AND guild_id = $2"},
 		{"tempban", "INSERT INTO tempbans(ban_id, user_id, guild_id, mod_id, start_date, end_date, reason) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT ON CONSTRAINT tempbans_user_id_guild_id_key DO UPDATE SET start_date = $5, end_date = $6, reason = $7"},
