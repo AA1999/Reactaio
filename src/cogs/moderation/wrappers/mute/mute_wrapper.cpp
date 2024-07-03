@@ -200,6 +200,10 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 void mute_wrapper::process_mutes() {
 	pqxx::work transaction{*command.connection};
 	auto query = transaction.exec_prepared("use_timeout", std::to_string(command.guild->id));
+	id_t mute_id = 1;
+	auto mute_id_query = transaction.exec_prepared1("get_mute_id", std::to_string(command.guild->id));
+	if(!mute_id_query["mute_id"].is_null())
+		mute_id = mute_id_query["mute_id"].as<id_t>() + 1;
 	transaction.commit();
 	auto use_timeout_field = query[0]["use_timeout"];
 	if(use_timeout_field.is_null())
@@ -246,19 +250,13 @@ void mute_wrapper::process_mutes() {
 			return;
 		}
 		for(auto const& member: members) {
-			command.bot->set_audit_reason(std::format("Muted by {} for {} for reason: {}", command.author->get_user()->format_username(), duration->to_string(true), command.reason)).guild_member_add_role(command.guild->id, member->user_id, mute_role_id, [this, member](auto& completion){
+			command.bot->set_audit_reason(std::format("Muted by {} for {} for reason: {}", command.author->get_user()->format_username(), duration->to_string(true), command.reason)).guild_member_add_role(command.guild->id, member->user_id, mute_role_id, [this, member, mute_id](auto& completion){
 				if(completion.is_error()) {
 					auto error = completion.get_error();
 					errors.push_back(std::format("❌ Error code {}: {}", error.code, error.message));
 					members_with_errors.insert(member);
 				}
 				else {
-					ullong mute_id = 0;
-					auto transaction = pqxx::work {*command.connection};
-					auto mute_id_row = transaction.exec_prepared1("get_mute_id", std::to_string(command.guild->id));
-					if(!mute_id_row["mute_id"].is_null()) {
-						mute_id = mute_id_row["mute_id"].as<case_t>() + 1;
-					}
 					if(duration) {
 						auto now = std::chrono::system_clock::now();
 						auto now_ms = now.time_since_epoch().count();
@@ -270,6 +268,7 @@ void mute_wrapper::process_mutes() {
 						std::string dm_message = std::format("You have been muted in {} by {} until {}. Reason: {}",
 															 command.guild->name, command.author->get_user()->format_username(),
 															 time_future_relative, command.reason);
+						pqxx::work transaction{*command.connection};
 						transaction.exec_prepared("tempmute", mute_id, std::to_string(member->user_id), std::to_string(command.guild->id), now_ms, future_ms);
 						transaction.commit();
 						command.bot->direct_message_create(member->user_id, dpp::message{dm_message});
