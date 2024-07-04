@@ -200,8 +200,10 @@ void mute_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 void mute_wrapper::process_mutes() {
 	pqxx::work transaction{*command.connection};
 	auto query = transaction.exec_prepared("use_timeout", std::to_string(command.guild->id));
+	transaction.commit();
 	id_t mute_id = 1;
 	auto mute_id_query = transaction.exec_prepared1("get_mute_id", std::to_string(command.guild->id));
+	transaction.commit();
 	if(!mute_id_query["mute_id"].is_null())
 		mute_id = mute_id_query["mute_id"].as<id_t>() + 1;
 	transaction.commit();

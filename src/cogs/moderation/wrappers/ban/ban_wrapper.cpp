@@ -137,6 +137,15 @@ void ban_wrapper::process_bans() {
 	else
 		ban_remove_days = command.delete_message_days;
 
+	pqxx::work transaction{*command.connection};
+
+	id_t ban_id = 1;
+	auto ban_id_row = transaction.exec_prepared1("get_ban_id", std::to_string(command.guild->id));
+	transaction.commit();
+	if(!ban_id_row["ban_id"].is_null()) {
+		ban_id = ban_id_row["ban_id"].as<id_t>() + 1;
+	}
+
 	auto* author_user = command.author->get_user();
 
 	for (auto const& user : users) {
@@ -152,6 +161,11 @@ void ban_wrapper::process_bans() {
 																		   dpp::utility::time_format::tf_relative_time);
 				dm_message = std::format("You have been banned by from {} by {} until {}. Reason: {}", command.guild->name,
 				                         author_user->format_username(), time_future_relative, command.reason);
+				std::string const now_str = std::format(iso_format, time_now);
+				std::string const end_str = std::format(iso_format, future);
+
+				transaction.exec_prepared0("tempban", std::to_string(ban_id), std::to_string(user->id), std::to_string(command.guild->id), std::to_string(command.author->user_id), now_str, end_str, command.reason);
+				transaction.commit();
 			}
 			else
 				dm_message = std::format("You have been banned from {} by {}. Reason: {}.", command.guild->name,
