@@ -104,7 +104,8 @@ shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &gui
 	roles.reserve(guild_roles.size());
 	for (auto const &role_id: guild_roles)
 		roles.insert(dpp::find_role(role_id));
-	descending ? roles.reverse() : roles;
+	if(descending)
+		roles.reverse();
 	return roles;
 }
 
@@ -114,7 +115,8 @@ shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool 
 	roles.reserve(member_roles.size());
 	for(auto const& role_id: member_roles)
 		roles.insert(dpp::find_role(role_id));
-	descending ? roles.reverse(): roles;
+	if(descending)
+		roles.reverse();
 	return roles;
 }
 

@@ -6,11 +6,9 @@
 
 #include "cogs/core/datatypes/fixed_map.h"
 
-#include <cstdint>
-
-constexpr std::uint8_t MAP_SIZE{30};
-
 namespace reactaio::internal {
+	constexpr std::uint8_t MAP_SIZE{50};
+
 	extern inline const fixed_map<std::string, std::string, MAP_SIZE> prepated_statements {
 		{"kick_modlog", "SELECT member_kick, modlog, public_modlog FROM config WHERE guild_id = $1"},
 		{"casecount", "SELECT case_id FROM modcase WHERE guild_id = $1 ORDER BY case_id DESC LIMIT 1"},

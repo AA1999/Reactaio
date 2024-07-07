@@ -33,18 +33,6 @@ constexpr bool contains(const R& range, const typename R::value_type& key) {
 }
 
 /**
- * @brief Whether if a string can be found inside another string
- * @param string String to look up the substring inside.
- * @param find The substring to find.
- * @return true if the string is found
- * @return false otherwise
- */
-constexpr bool contains(std::string_view string, std::string_view find) {
-	return string.find(find) != std::string_view::npos;
-}
-
-
-/**
  * @brief Find all instances of a string inside another string.
  * @param string The string to find the substring inside.
  * @param find The substring to find.
