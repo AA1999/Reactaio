@@ -206,7 +206,6 @@ void mute_wrapper::process_mutes() {
 	transaction.commit();
 	if(!mute_id_query["mute_id"].is_null())
 		mute_id = mute_id_query["mute_id"].as<id_t>() + 1;
-	transaction.commit();
 	auto use_timeout_field = query[0]["use_timeout"];
 	if(use_timeout_field.is_null())
 		use_timeout = true;
