@@ -11,6 +11,9 @@ namespace reactaio::internal {
 	 * @brief String enum for all moderation actions.
 	 */
 	struct mod_action_name {
+
+		virtual ~mod_action_name() = 0; // Can't create instances of the class.
+
 		static constexpr std::string_view KICK {"Kick"};
 		static constexpr std::string_view BAN{"Ban"};
 		static constexpr std::string_view SOFT_BAN{"Soft Ban"};
