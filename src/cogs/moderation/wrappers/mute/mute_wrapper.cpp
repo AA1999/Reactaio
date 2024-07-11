@@ -215,14 +215,14 @@ void mute_wrapper::process_mutes() {
 	duration = parse_human_time(command.duration);
 	if(use_timeout) {
 		if(duration) {
-			if(static_cast<ullong>(duration->to_seconds().count()) > max_timeout_seconds) {
+			if(duration->seconds() > max_timeout_seconds) {
 				errors.emplace_back("❌ Invalid timeout duration. Timeouts can only be max of 28 days.");
 			}
 			else {
-				auto now = std::chrono::system_clock::now();
-				auto time_delta = duration->to_seconds();
-				auto future = now + time_delta;
-				auto future_ms = future.time_since_epoch().count();
+				auto const now = std::chrono::system_clock::now();
+				auto const time_delta = duration->to_seconds();
+				auto const future = now + time_delta;
+				auto const future_ms = future.time_since_epoch().count();
 				for(auto const& member: members) {
 					command.bot->set_audit_reason(std::format("Timed out by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_timeout(command.guild->id, member->user_id, future_ms, [this, member](auto& completion){
 						lambda_callback(completion, member);
