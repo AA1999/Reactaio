@@ -94,7 +94,7 @@ public:
 	 * @param messages The series of messages to put inside the paginator.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	message_paginator(dpp::message message, const std::vector<std::string>& messages , discord_command & command): m_command(command), m_message(std::move(message)),
+	message_paginator(dpp::message message, const std::vector<std::string>& messages , discord_command & command): m_command(std::move(command)), m_message(std::move(message)),
 					use_embeds{false},
 					messages(messages),
 	                forward_id(std::format(FORWARD_FORMAT, m_command.author->user_id.str(), m_command.channel_id.str(), id)),
