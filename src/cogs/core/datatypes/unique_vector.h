@@ -71,15 +71,6 @@ namespace reactaio::internal {
 
 
 		/**
-		 * @brief Creates the container from an initializer list.
-		 * @param initializer_list The initializer list to construct the container from.
-		 */
-		unique_vector(std::initializer_list<T> const& initializer_list): m_container() {
-			insert_range(initializer_list);
-		}
-
-
-		/**
 		 * @brief Copy assignment operator.
 		 * @param other Other container to assign this to.
 		 * @return A reference to the updated instance.
@@ -115,7 +106,7 @@ namespace reactaio::internal {
 		requires std::ranges::range<R>
 		constexpr unique_vector& operator =(R&& range) {
 			clear();
-			std::ranges::copy(range, m_container);
+			insert_range(range);
 			return *this;
 		}
 
