@@ -3,22 +3,25 @@
 //
 
 #include "moderation.h"
+#include "../wrappers/ban/ban_wrapper.h"
+#include "../wrappers/bans/guild_bans_wrapper.h"
+#include "../wrappers/hardban/hardban_wrapper.h"
 #include "../wrappers/kick/kick_wrapper.h"
-#include "../wrappers/mute/mute_wrapper.h"
-#include "../wrappers/warn/warn_wrapper.h"
-#include "../wrappers/warning management/delete_warning.h"
-#include "../wrappers/warning management/clear_warnings.h"
-#include "../wrappers/warning management/clear_guild_warnings.h"
-#include "../wrappers/warning management/view_warnings.h"
-#include "../wrappers/warning management/view_guild_warnings.h"
+#include "../wrappers/logging/change_duration.h"
+#include "../wrappers/logging/change_reason.h"
 #include "../wrappers/logging/view_modcase.h"
 #include "../wrappers/logging/view_muted_members.h"
-#include "../wrappers/ban/ban_wrapper.h"
+#include "../wrappers/mute/mute_wrapper.h"
 #include "../wrappers/softban/softban_wrapper.h"
-#include "../wrappers/hardban/hardban_wrapper.h"
-#include "../wrappers/unmute/unmute_wrapper.h"
 #include "../wrappers/unban/unban_wrapper.h"
-#include "../wrappers/bans/guild_bans_wrapper.h"
+#include "../wrappers/unmute/unmute_wrapper.h"
+#include "../wrappers/warn/warn_wrapper.h"
+#include "../wrappers/warning management/clear_guild_warnings.h"
+#include "../wrappers/warning management/clear_warnings.h"
+#include "../wrappers/warning management/delete_warning.h"
+#include "../wrappers/warning management/view_guild_warnings.h"
+#include "../wrappers/warning management/view_warnings.h"
+
 
 #include <utility>
 
@@ -100,7 +103,19 @@ namespace reactaio::moderation {
 	}
 
 	void view_guild_warnings(moderation_command command) {
-		class view_guild_warnings view_guild_warns{std::move(command)};
+		class view_guild_warnings view_guild_warns {
+			std::move(command)
+		};
 		view_guild_warns();
 	}
-}
+
+	void update_reason(case_t case_id, moderation_command command) {
+		change_reason change_reason{std::move(command), std::to_string(case_id)};
+		change_reason();
+	}
+
+	void update_duration(case_t case_id, moderation_command command) {
+		change_duration change_duration{std::move(command), std::to_string(case_id)};
+		change_duration();
+	}
+}// namespace reactaio::moderation

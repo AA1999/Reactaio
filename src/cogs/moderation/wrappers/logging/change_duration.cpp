@@ -44,8 +44,8 @@ void change_duration::update_duration() {
 		errors.emplace_back("❌ This action cannot have a duration. Only bans, timeouts and mutes have this.");
 		return;
 	}
-	auto duration_str = modcase_lookup_query["duration"].as<std::string>();
-	internal::duration const duration{duration_str};
+	internal::duration const new_duration{command.duration};
+	old_duration = modcase_lookup_query["duration"].as<std::string>();
 	if(action_type == internal::mod_action_name::BAN) {
 		auto get_ban_query = transaction.exec_prepared1("get_ban", std::to_string(punished_id), std::to_string(command.guild->id));
 		transaction.commit();
@@ -79,12 +79,12 @@ void change_duration::update_duration() {
 			errors.emplace_back("❌ Member isn't timed out anymore.");
 			return;
 		}
-		if(duration.seconds() > max_timeout_seconds) {
+		if(new_duration.seconds() > max_timeout_seconds) {
 			errors.emplace_back("❌ Max duration for a timeout is 28 days.");
 			return;
 		}
 		auto const now = std::chrono::system_clock::now();
-		auto const future = now + duration.to_seconds();
+		auto const future = now + new_duration.to_seconds();
 		command.bot->guild_member_timeout(command.guild->id, punished_id, future.time_since_epoch().count(), [this](dpp::confirmation_callback_t const& completion) {
 			if(completion.is_error()) {
 				auto const error = completion.get_error();
@@ -123,8 +123,8 @@ void change_duration::process_response() {
 							 .set_title(std::format("Case {} Duration updated", case_id))
 							 .set_timestamp(time_now)
 							 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
-		embed.add_field("Old Duration: ",  std::string{command.duration});
-		embed.add_field("New Duration: ",  new_duration.to_string(), true);
+		embed.add_field("Old Duration: ",  old_duration);
+		embed.add_field("New Duration: ",  command.duration, true);
 		response.add_embed(embed);
 		if(command.interaction) {
 			(*command.interaction)->edit_response(response);
