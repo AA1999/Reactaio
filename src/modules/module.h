@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "unique_vector.h"
+#include "../cogs/core/datatypes/unique_vector.h"
 
 #include <memory>
 #include <unordered_map>

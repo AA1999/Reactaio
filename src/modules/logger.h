@@ -3,12 +3,12 @@
 //
 
 #pragma once
-#include "../cogs/core/datatypes/module.h"
+#include "module.h"
 
-#include <spdlog/spdlog.h>
 #include <spdlog/async.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 namespace reactaio {
 	class logger final: public module {
