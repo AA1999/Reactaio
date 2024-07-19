@@ -10,7 +10,7 @@ namespace reactaio {
 		uint constexpr FIVE_GIGABYTES = 1024 * 1024 * 5;
 		spdlog::init_thread_pool(EIGHT_MEGABYTES, 2);
 		std::vector<spdlog::sink_ptr> sinks;
-		std::string const log_file_name = std::format("reactaio-{%Y-%m-%d %H:%M:%S}.log", std::chrono::system_clock::now());
+		std::string const log_file_name = std::format("logs/reactaio-{:%Y-%m-%d %H:%M:%S}.log", std::chrono::system_clock::now());
 		auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 		auto rotating = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(log_file_name, FIVE_GIGABYTES, 10);
 		sinks.push_back(stdout_sink);

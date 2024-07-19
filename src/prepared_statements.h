@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "cogs/core/datatypes/fixed_map.h"
+#include "cogs/core/containers/fixed_map.h"
 
 namespace reactaio::internal {
 	constexpr std::uint8_t MAP_SIZE{50};
