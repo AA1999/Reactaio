@@ -6,7 +6,7 @@
 
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
-#include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/discord/message_paginator.h"
 #include "../../mod_action.h"
 
 

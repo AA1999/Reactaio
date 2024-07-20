@@ -5,15 +5,15 @@
 #pragma once
 
 #include "aliases.h"
-#include "datatypes/duration.h"
-#include "datatypes/parser_item.h"
+#include "discord/duration.h"
+#include "discord/parser_item.h"
 
 #include <dpp/dpp.h>
 #include <format>
 #include <optional>
 #include <pqxx/pqxx>
-#include <set>
 #include <ranges>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>

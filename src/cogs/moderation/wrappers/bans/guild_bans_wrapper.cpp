@@ -4,11 +4,11 @@
 
 #include <format>
 
-#include "guild_bans_wrapper.h"
-#include "../../../core/consts.h"
-#include "../../../core/helpers.h"
 #include "../../../core/colors.h"
-#include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/consts.h"
+#include "../../../core/discord/message_paginator.h"
+#include "../../../core/helpers.h"
+#include "guild_bans_wrapper.h"
 
 void guild_bans_wrapper::wrapper_function() {
 	check_permissions();

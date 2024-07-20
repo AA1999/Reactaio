@@ -3,10 +3,10 @@
 //
 
 #include "view_muted_members.h"
-#include "../../../core/consts.h"
 #include "../../../core/colors.h"
+#include "../../../core/consts.h"
+#include "../../../core/discord/message_paginator.h"
 #include "../../../core/helpers.h"
-#include "../../../core/datatypes/message_paginator.h"
 
 #include <algorithm>
 #include <execution>

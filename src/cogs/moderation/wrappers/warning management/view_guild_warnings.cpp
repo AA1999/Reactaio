@@ -3,9 +3,9 @@
 //
 
 #include "view_guild_warnings.h"
-#include "../../../core/datatypes/message_paginator.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
+#include "../../../core/discord/message_paginator.h"
 
 void view_guild_warnings::wrapper_function() {
 	check_permissions();

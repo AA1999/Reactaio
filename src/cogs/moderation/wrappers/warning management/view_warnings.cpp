@@ -4,10 +4,10 @@
 
 #include "view_warnings.h"
 
-#include "../../../core/helpers.h"
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
-#include "../../../core/datatypes/message_paginator.h"
+#include "../../../core/discord/message_paginator.h"
+#include "../../../core/helpers.h"
 
 void view_warnings::wrapper_function() {
 	check_permissions();
