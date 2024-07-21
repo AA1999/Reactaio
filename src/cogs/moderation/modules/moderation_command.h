@@ -25,4 +25,5 @@ struct moderation_command : public discord_command {
 	}
 
 	moderation_command(moderation_command&& command) noexcept = default;
+	moderation_command(const moderation_command& command) = delete;
 };

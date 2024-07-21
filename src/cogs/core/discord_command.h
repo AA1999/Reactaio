@@ -6,7 +6,6 @@
 
 #include <dpp/dpp.h>
 #include <optional>
-#include <pqxx/pqxx>
 #include <utility>
 
 #include "aliases.h"
@@ -42,5 +41,5 @@ struct discord_command {
 																											interaction(interaction) {}
 
 	discord_command(discord_command && command) noexcept = default;
-	discord_command(discord_command & command) = default;
+	discord_command(discord_command & command) = delete;
  };
