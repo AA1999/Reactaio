@@ -84,7 +84,10 @@ public:
 	/**
 	 * @brief error - Gives the error message of the wrapper result.
 	 * @note This is an abstract function.
-	 * @return The full error message if has_error() is true
+	 * @return The full error message if has_error() is true.
 	 */
 	[[nodiscard]] virtual std::optional<dpp::message> error() const final;
+
+	command_wrapper(const command_wrapper& other) = delete;
+	command_wrapper(command_wrapper&& other) = delete;
 };

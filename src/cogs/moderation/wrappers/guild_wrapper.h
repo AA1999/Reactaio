@@ -34,6 +34,9 @@ public:
 	guild_wrapper() = delete;
 	~guild_wrapper() override = default;
 
+	guild_wrapper(const guild_wrapper& other) = delete;
+	guild_wrapper(guild_wrapper&& other) = delete;
+
 	/**
 	 * @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)

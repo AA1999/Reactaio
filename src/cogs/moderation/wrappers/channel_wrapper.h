@@ -38,6 +38,9 @@ public:
 	channel_wrapper() = delete;
 	~channel_wrapper() override = default;
 
+	channel_wrapper(const channel_wrapper& other) = delete;
+	channel_wrapper(channel_wrapper&&) = delete;
+
 	/**
 	 * @brief The main constructor of the class used to get data from the command.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)

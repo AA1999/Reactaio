@@ -53,4 +53,8 @@ public:
 
 
 	~user_wrapper() override = default;
+	user_wrapper() = delete;
+
+	user_wrapper(user_wrapper const& other) = delete;
+	user_wrapper(user_wrapper&& other) = delete;
 };

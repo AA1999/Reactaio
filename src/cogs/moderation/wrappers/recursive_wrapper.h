@@ -33,6 +33,9 @@ public:
 	~recursive_wrapper() override = default;
 	recursive_wrapper() = delete;
 
+	recursive_wrapper(const recursive_wrapper& other) = delete;
+	recursive_wrapper(recursive_wrapper&& other) = delete;
+
 	[[nodiscard]] constexpr bool are_all_errors() const override {
 		return has_error();
 	}

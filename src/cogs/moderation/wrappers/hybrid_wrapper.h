@@ -43,7 +43,12 @@ protected:
 
 public:
 
+	hybrid_wrapper() = delete;
 	~hybrid_wrapper() override = default;
+
+
+	hybrid_wrapper(const hybrid_wrapper& other) = delete;
+	hybrid_wrapper(hybrid_wrapper&& other) = delete;
 
 	/**
 	 * @brief are_all_errors - Checks if every item has encountered an error.

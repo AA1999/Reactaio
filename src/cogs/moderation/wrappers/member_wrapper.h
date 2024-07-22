@@ -37,7 +37,10 @@ protected:
 
 public:
 	~member_wrapper() override = default;
+	member_wrapper() = delete;
 
+	member_wrapper(const member_wrapper &other) = delete;
+	member_wrapper(member_wrapper &&other) = delete;
 
 	/**
 	 * @brief The main constructor of the class used to fetch data from the

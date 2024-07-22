@@ -32,6 +32,9 @@ public:
 	~simple_wrapper() override = default;
 	simple_wrapper() = delete;
 
+	simple_wrapper(const simple_wrapper& other) = delete;
+	simple_wrapper(simple_wrapper&& other) = delete;
+
 	[[nodiscard]] constexpr bool are_all_errors() const override {
 		return has_error();
 	}
