@@ -3,7 +3,7 @@ project(Reactaio VERSION 1.0 DESCRIPTION "A multi-purpose AIO discord bot writte
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp src/*.h )
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp src/*.h src/*.hpp)
 
 find_package(nlohmann_json 3.11.2 REQUIRED)
 find_package(DPP 10.0.30 REQUIRED)
