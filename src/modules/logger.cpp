@@ -4,6 +4,8 @@
 
 #include "logger.h"
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 namespace reactaio {
 	void logger::innit(const module_map &modules) {
 		ushort constexpr EIGHT_MEGABYTES = 8192;
