@@ -4,16 +4,17 @@
 
 #pragma once
 
-#include "module.h"
 #include "FileWatch.hpp"
+#include "logger.h"
+#include "module.h"
 
 
+#include <filesystem>
 #include <shared_mutex>
 #include <string_view>
 #include <utility>
-#include <filesystem>
 
-namespace reactaio {
+ namespace reactaio {
  	using modules_manager_ptr = std::shared_ptr<class module_manager>;
 
 	class module_manager final: public module, public std::enable_shared_from_this<reactaio::module> {
@@ -40,17 +41,24 @@ namespace reactaio {
 			 * @param file_path Path to the filename of module.
 			 * @param deps List of dependencies.
 			 */
-			internal_module(void *library_handler, module_ptr module, const std::string_view file_path, dependency_t deps) : m_library_handler(library_handler), m_module(std::move(module)), m_deps(std::move(deps)), m_file_path(file_path){};
+			internal_module(void *library_handler, module_ptr module, const std::string_view file_path, dependency_t deps): m_library_handler(library_handler), m_module(std::move(module)), m_deps(std::move(deps)), m_file_path(file_path){};
 			internal_module() = delete;
 
 			/**
 			 * @brief Get the underlying library handler using dlopen.
 			 * @return A pointer to the underlying library handler.
 			 */
-			[[nodiscard]] constexpr void *library_handler() const {
+			[[nodiscard]] constexpr void* library_handler() const {
 				return m_library_handler;
 			}
 
+			/**
+			 * @brief Get the underlying module.
+			 * @return A pointer to the underlying module.
+			 */
+			[[nodiscard]] constexpr module_ptr module() const {
+				return m_module;
+			}
 
 			/**
 			 * @brief Get the module file path.
@@ -138,6 +146,8 @@ namespace reactaio {
 		internal_modules m_internal_modules;
 
 		std::filesystem::path m_path;
+
+		logger m_logger{};
 
 		bool m_allow_modules_load{true};
 
