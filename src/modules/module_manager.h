@@ -14,12 +14,13 @@
 #include <string_view>
 #include <utility>
 
- namespace reactaio {
- 	using modules_manager_ptr = std::shared_ptr<class module_manager>;
+namespace reactaio {
+	using modules_manager_ptr = std::shared_ptr<class module_manager>;
 
-	class module_manager final: public module, public std::enable_shared_from_this<reactaio::module> {
+	class module_manager final: public module, public std::enable_shared_from_this<module> {
 
-		using internal_modules = std::unordered_map<std::string, class internal_module>;
+		class internal_module;
+		using internal_modules = std::unordered_map<std::string, internal_module>;
 
 		class internal_module {
 			void* m_library_handler;
@@ -31,7 +32,6 @@
 
 			bool m_is_initialized{false};
 			bool m_is_running{false};
-
 		public:
 			~internal_module();
 
@@ -41,7 +41,7 @@
 			 * @param file_path Path to the filename of module.
 			 * @param deps List of dependencies.
 			 */
-			internal_module(void *library_handler, module_ptr module, const std::string_view file_path, dependency_t deps): m_library_handler(library_handler), m_module(std::move(module)), m_deps(std::move(deps)), m_file_path(file_path){};
+			internal_module(void* library_handler, module_ptr module, const std::string_view file_path, dependency_t deps): m_library_handler(library_handler), m_module(std::move(module)), m_deps(std::move(deps)), m_file_path(file_path){};
 			internal_module() = delete;
 
 			/**
@@ -56,7 +56,7 @@
 			 * @brief Get the underlying module.
 			 * @return A pointer to the underlying module.
 			 */
-			[[nodiscard]] constexpr module_ptr module() const {
+			[[nodiscard]] module_ptr module() const {
 				return m_module;
 			}
 
@@ -90,7 +90,7 @@
 			 * @brief Get module dependencies.
 			 * @return The module dependencies.
 			 */
-			[[nodiscard]] constexpr dependency_t dependencies() const {
+			[[nodiscard]] dependency_t dependencies() const {
 				return m_deps;
 			}
 
@@ -108,13 +108,13 @@
 			 * @return true if the modules match the dependencies of the internal module.
 			 * @return false if the modules don't match the dependencies of the internal module.
 			 */
-			bool has_sufficient_dependencies(const internal_modules &modules);
+			bool has_sufficient_dependencies(const internal_modules& modules);
 
 			/**
 			 * @brief Initialzes the internal module.
 			 * @param modules Modules passed to the internal module.
 			 */
-			void innit(const internal_modules &modules);
+			void innit(const internal_modules& modules);
 
 			/**
 			 * @brief Adds a dependency to the internal module.
