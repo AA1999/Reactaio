@@ -108,7 +108,7 @@ namespace reactaio {
 			 * @return true if the modules match the dependencies of the internal module.
 			 * @return false if the modules don't match the dependencies of the internal module.
 			 */
-			bool has_sufficient_dependencies(const internal_modules& modules);
+			[[nodiscard]] bool has_sufficient_dependencies(const internal_modules& modules) const;
 
 			/**
 			 * @brief Initialzes the internal module.
@@ -120,13 +120,13 @@ namespace reactaio {
 			 * @brief Adds a dependency to the internal module.
 			 * @param name Name of the dependency.
 			 */
-			void add_dependency(std::string_view name);
+			void add_dependency(std::string_view &name);
 
 			/**
 			 * @brief Removed a dependency from the internal module.
 			 * @param name Name of the dependency.
 			 */
-			void remove_dependency(std::string_view name);
+			void remove_dependency(std::string_view &name);
 
 			/**
 			 * @brief Starts the internal module.
@@ -154,6 +154,31 @@ namespace reactaio {
 		internal::unique_vector<internal_module> m_load_order;
 
 		explicit module_manager(const std::filesystem::path& modules_path);
+
+		/**
+		 * @brief Internal module stop util.
+		 * @param name Name of the internal module to sotp.
+		 */
+		void stop_internal_module(std::string_view& name);
+
+		/**
+		 * @brief Internal module start util.
+		 * @param name Name of the internal module to start.
+		 */
+		void start_internal_module(std::string_view& name);
+
+		/**
+		 * @brief Internal module innit util.
+		 * @param name Name of the internal module to initialize.
+		 */
+		void innit_internal_module(std::string_view& name);
+
+		/**
+		 * @brief Internal module load util.
+		 * @param name Name of the internal module to load.
+		 * @return Name of the loaded module.
+		 */
+		std::string_view load_internal_module(std::string_view &name);
 
 	public:
 		/**

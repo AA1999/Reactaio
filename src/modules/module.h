@@ -16,14 +16,14 @@ namespace reactaio {
 
 	class module {
 	protected:
-		std::string m_name;
+		std::string_view m_name;
 		dependency_t m_dependencies;
 	public:
 		module() = delete;
 		module(std::string name, dependency_t dependencies): m_name(std::move(name)), m_dependencies(std::move(dependencies)) {};
 		virtual ~module() = default;
 
-		[[nodiscard]] constexpr std::string name() const {
+		[[nodiscard]] constexpr std::string_view name() const {
 			return m_name;
 		}
 
