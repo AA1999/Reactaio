@@ -7,48 +7,42 @@
 #include "../cogs/core/containers/unique_vector.h"
 
 #include <memory>
+#include <span>
 #include <unordered_map>
 
 namespace reactaio {
-	using module_ptr = std::shared_ptr<class module>;
-	using module_map = std::unordered_map<std::string, module_ptr>;
-	using dependency_t = internal::unique_vector<std::string>;
+	struct module {
 
-	class module {
-	protected:
-		std::string_view m_name;
-		dependency_t m_dependencies;
-	public:
-		module() = delete;
-		module(std::string name, dependency_t dependencies): m_name(std::move(name)), m_dependencies(std::move(dependencies)) {};
+		using dependency_t = std::span<std::string_view>;
+		using module_ptr = std::unique_ptr<module>;
+
+		[[nodiscard]] virtual constexpr std::string_view name() const = 0;
+
+		[[nodiscard]] virtual dependency_t dependencies() const {
+			return {};
+		};
+	
 		virtual ~module() = default;
-
-		[[nodiscard]] constexpr std::string_view name() const {
-			return m_name;
-		}
-
-		[[nodiscard]] dependency_t dependencies() const {
-			return m_dependencies;
-		}
+		module(const module&) = delete;
+		module& operator=(const module&) = delete;
 
 		/**
-		 * @brief Starts all the provided modules.
-		 * @param modules Map of all modules managed by application.
-		 * @note This is an abstract method.
+		 * @brief Initializes the module.
+		 * @note This is an abstract function.
 		 */
-		virtual void innit(const module_map& modules) = 0;
-
-		/**
-		 * @brief Stops the module.
-		 * @note This is an abstract method.
-		 */
-		virtual void stop() = 0;
+		virtual void innit() = 0;
 
 		/**
 		 * @brief Starts the module.
-		 * @note This is an abstract method.
+		 * @note This is an abstract function.
 		 */
 		virtual void start() = 0;
+
+		/**
+		 * @brief Stops the module.
+		 * @note This is an abstract function.
+		 */
+		virtual void stop() = 0;
 
 	};
 
