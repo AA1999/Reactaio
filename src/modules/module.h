@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "../cogs/core/containers/unique_vector.h"
 
 #include <memory>
 #include <span>
@@ -15,9 +14,18 @@ namespace reactaio {
 
 		using dependency_t = std::span<std::string_view>;
 		using module_ptr = std::unique_ptr<module>;
+		using submodules_t = std::unordered_map<std::string_view, module_ptr>;
 
+		/**
+		 * @brief Module name.
+		 * @return Name of the module.
+		 */
 		[[nodiscard]] virtual constexpr std::string_view name() const = 0;
 
+		/**
+		 * @brief Module dependencies.
+		 * @return The dependencies of the module.
+		 */
 		[[nodiscard]] virtual dependency_t dependencies() const {
 			return {};
 		};
