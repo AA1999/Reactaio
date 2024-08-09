@@ -10,29 +10,18 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 
 namespace reactaio {
-	/**
-	 * @brief Logging module
-	 */
-	class logger final: public module {
+	class logger final : public module {
 		std::shared_ptr<spdlog::async_logger> m_logger;
 	public:
-		logger(): module("logger", dependency_t{}){};
+		logger() = default;
 		~logger() override = default;
 
-		/**
-		 * @brief Initializes the moderation module with the provided modules.
-		 * @param modules A reference of a map of modules.
-		 */
-		void innit(const module_map& modules) override;
+		[[nodiscard]] constexpr std::string_view name() const noexcept override {
+			return "logger";
+		}
 
-		/**
-		 * @brief Starts the module.
-		 */
+		void innit() override;
 		void start() override;
-
-		/**
-		 * @brief Stops the module.
-		 */
 		void stop() override;
 
 		/**
