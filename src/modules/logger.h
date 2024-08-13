@@ -11,8 +11,16 @@
 namespace reactaio {
 	class logger final : public module {
 		std::shared_ptr<spdlog::async_logger> m_logger;
+		bool silent{false};
 	public:
 		logger() = default;
+
+		/**
+		 * @brief Constructor for cases where the logger needs to be silent.
+		 * @param silent Should the logger be silent on innit? (Used for internal loggers)
+		 */
+		explicit logger(const bool silent): silent(silent) {}
+
 		~logger() override = default;
 
 		[[nodiscard]] constexpr std::string_view name() const noexcept override {
