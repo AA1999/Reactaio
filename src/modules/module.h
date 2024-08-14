@@ -4,7 +4,6 @@
 
 #pragma once
 
-
 #include <memory>
 #include <span>
 #include <unordered_map>
@@ -33,14 +32,13 @@ namespace reactaio {
 		 * @brief Get all submodules of this module.
 		 * @return A map of all submodules by name.
 		 */
-		[[nodiscard]] virtual submodules_t submodules() const {
-			return {};
-		}
+		[[nodiscard]] virtual submodules_t submodules() const;
 	
 		virtual ~module() = default;
 		module() = default;
-		module(const module&) = delete;
+		module(const module&) = default;
 		module& operator=(const module&) = delete;
+		module(module&&) = default;
 
 		/**
 		 * @brief Initializes the module.
@@ -59,6 +57,12 @@ namespace reactaio {
 		 * @note This is an abstract function.
 		 */
 		virtual void stop() = 0;
+
+
+		/**
+		 * @brief Reloads the module.
+		 */
+		void reload();
 
 	};
 
