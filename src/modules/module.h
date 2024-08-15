@@ -6,27 +6,26 @@
 
 #include <memory>
 #include <span>
+#include <string>
 #include <unordered_map>
 
 namespace reactaio {
 	struct module {
-		using dependency_t = std::span<std::string_view>;
+		using dependency_t = std::span<std::string>;
 		using module_ptr = std::unique_ptr<module>;
-		using submodules_t = std::unordered_map<std::string_view, module_ptr>;
+		using submodules_t = std::unordered_map<std::string, module_ptr>;
 
 		/**
 		 * @brief Module name.
 		 * @return Name of the module.
 		 */
-		[[nodiscard]] virtual constexpr std::string_view name() const = 0;
+		[[nodiscard]] virtual constexpr std::string name() const = 0;
 
 		/**
 		 * @brief Module dependencies.
 		 * @return The dependencies of the module.
 		 */
-		[[nodiscard]] virtual dependency_t dependencies() const {
-			return {};
-		};
+		[[nodiscard]] virtual dependency_t dependencies() const;
 
 		/**
 		 * @brief Get all submodules of this module.
@@ -36,7 +35,7 @@ namespace reactaio {
 	
 		virtual ~module() = default;
 		module() = default;
-		module(const module&) = default;
+		module(const module&) = delete;
 		module& operator=(const module&) = delete;
 		module(module&&) = default;
 
