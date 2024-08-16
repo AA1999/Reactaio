@@ -23,7 +23,11 @@ namespace reactaio {
 
 		~logger() override = default;
 
-		[[nodiscard]] constexpr std::string_view name() const noexcept override {
+		/**
+		 * @brief What's the module name?
+		 * @return The name of the module.
+		 */
+		[[nodiscard]] constexpr std::string name() const noexcept override {
 			return "logger";
 		}
 
