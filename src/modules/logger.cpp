@@ -22,17 +22,17 @@ namespace reactaio {
 		spdlog::register_logger(logger);
 		logger->set_pattern("%^%Y-%m-%d %H:%M:%S.%e [%L] [th#%t]%$ : %v");
 		logger->set_level(spdlog::level::level_enum::debug);
-		if(!silent)
+		if(!m_silent)
 			this->info("Logger module initialized.");
 	}
 
 	void logger::start() {
-		if(!silent)
+		if(!m_silent)
 			this->info("Logger module started.");
 	}
 
 	void logger::stop() {
-		if(!silent)
+		if(!m_silent)
 			this->info("Logger module stopped.");
 	}
 
