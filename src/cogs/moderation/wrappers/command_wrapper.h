@@ -86,7 +86,7 @@ public:
 	 * @note This is an abstract function.
 	 * @return The full error message if has_error() is true.
 	 */
-	[[nodiscard]] virtual std::optional<dpp::message> error() const final;
+	[[nodiscard]]std::optional<dpp::message> error() const;
 
 	command_wrapper(const command_wrapper& other) = delete;
 	command_wrapper(command_wrapper&& other) = delete;
