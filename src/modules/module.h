@@ -11,9 +11,8 @@
 
 namespace reactaio {
 	struct module {
-		using dependency_t = std::span<std::string>;
 		using module_ptr = std::unique_ptr<module>;
-		using submodules_t = std::unordered_map<std::string, module_ptr>;
+		using module_map = std::unordered_map<std::string, module_ptr>;
 
 		/**
 		 * @brief Module name.
@@ -25,13 +24,30 @@ namespace reactaio {
 		 * @brief Module dependencies.
 		 * @return The dependencies of the module.
 		 */
-		[[nodiscard]] virtual dependency_t dependencies() const;
+		[[nodiscard]] virtual module_map dependencies() const;
 
 		/**
 		 * @brief Get all submodules of this module.
 		 * @return A map of all submodules by name.
 		 */
-		[[nodiscard]] virtual submodules_t submodules() const;
+		[[nodiscard]] virtual module_map submodules() const;
+
+
+		/**
+		 * @brief Is the bot running?
+		 * @return true if the bot is running.
+		 * @return false if the bot isn't running/stopped.
+		 * @note This is an abstract function.
+		 */
+		[[nodiscard]] virtual constexpr bool is_running() const = 0;
+
+		/**
+		 * @brief Is the bot initialized?
+		 * @return true if the bot is initialized.
+		 * @return false if the bot isn't initialized.
+		 * @note This is an abstract function.
+		 */
+		[[nodiscard]] virtual constexpr bool is_initialized() const = 0;
 	
 		virtual ~module() = default;
 		module() = default;
@@ -62,7 +78,6 @@ namespace reactaio {
 		 * @brief Reloads the module.
 		 */
 		void reload();
-
 	};
 
 }
