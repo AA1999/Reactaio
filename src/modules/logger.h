@@ -12,6 +12,8 @@ namespace reactaio {
 	class logger final : public module {
 		std::shared_ptr<spdlog::async_logger> m_logger;
 		bool m_silent{false};
+		bool m_is_running{false};
+		bool m_is_initialized{false};
 	public:
 		logger() = default;
 
@@ -45,6 +47,26 @@ namespace reactaio {
 		 * @brief Stops the module.
 		 */
 		void stop() override;
+
+		/**
+		 * @brief Is the bot running?
+		 * @return true if the bot is running.
+		 * @return false if the bot isn't running/stopped.
+		 * @note This is an abstract function.
+		 */
+		[[nodiscard]] constexpr bool is_running() const noexcept override {
+			return m_is_running;
+		}
+
+		/**
+		 * @brief Is the bot initialized?
+		 * @return true if the bot is initialized.
+		 * @return false if the bot isn't initialized.
+		 * @note This is an abstract function.
+		 */
+		[[nodiscard]] constexpr bool is_initialized() const noexcept override {
+			return m_is_initialized;
+		}
 
 		/**
 		 * @brief Provides an information log.
