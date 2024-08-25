@@ -6,11 +6,11 @@
 
 
 namespace reactaio {
-	module::submodules_t module::submodules() const {
+	module::module_map module::submodules() const {
 		return {};
 	}
 
-	module::dependency_t module::dependencies() const {
+	module::dependency_list module::dependencies() const {
 		return {};
 	}
 

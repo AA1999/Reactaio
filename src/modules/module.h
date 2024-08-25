@@ -5,13 +5,14 @@
 #pragma once
 
 #include <memory>
-#include <span>
+#include <vector>
 #include <string>
 #include <unordered_map>
 
 namespace reactaio {
 	struct module {
 		using module_ptr = std::unique_ptr<module>;
+		using dependency_list = std::vector<std::string_view>;
 		using module_map = std::unordered_map<std::string, module_ptr>;
 
 		/**
@@ -24,7 +25,7 @@ namespace reactaio {
 		 * @brief Module dependencies.
 		 * @return The dependencies of the module.
 		 */
-		[[nodiscard]] virtual module_map dependencies() const;
+		[[nodiscard]] virtual dependency_list dependencies() const;
 
 		/**
 		 * @brief Get all submodules of this module.
