@@ -2,7 +2,7 @@
 // Created by arshia on 8/26/24.
 //
 
-#include "moderation_commands.h"
+#include "commands.h"
 
 namespace reactaio::moderation {
 	inline dpp::slashcommand define_command(const slash_command_properties &properties, const std::vector<dpp::command_option> &options) {
