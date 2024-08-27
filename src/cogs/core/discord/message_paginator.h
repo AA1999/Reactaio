@@ -5,14 +5,14 @@
 #pragma once
 
 #include "../aliases.h"
-#include "../discord_command.h"
+#include "discord_command.h"
 
+#include <array>
 #include <dpp/dpp.h>
+#include <format>
 #include <string>
 #include <utility>
 #include <vector>
-#include <array>
-#include <format>
 
 /**
  * @brief message_paginator - A utility class to show a serires of texts/embes in one message. Buttons are used for navigation.

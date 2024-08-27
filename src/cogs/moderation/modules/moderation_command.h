@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../core/discord_command.h"
+#include "../../core/discord/discord_command.h"
 #include "../../core/strings.h"
 
 #include <string_view>

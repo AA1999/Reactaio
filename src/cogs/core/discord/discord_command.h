@@ -8,7 +8,7 @@
 #include <optional>
 #include <utility>
 
-#include "aliases.h"
+#include "../aliases.h"
 
 /**
  * @brief discord_command - The base wrapper for a called bot command that contains all the required information to pass into the wrapper.
