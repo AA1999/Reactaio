@@ -6,7 +6,7 @@
 
 #include "slash_command_properties.h"
 
-namespace reactaio::moderation {
+namespace reactaio::internal {
 
 	/**
 	 * @brief Creates a global discord command for the bot.

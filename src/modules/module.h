@@ -60,7 +60,7 @@ namespace reactaio {
 		 * @brief Initializes the module.
 		 * @note This is an abstract function.
 		 */
-		virtual void innit() = 0;
+		virtual void init() = 0;
 
 		/**
 		 * @brief Starts the module.

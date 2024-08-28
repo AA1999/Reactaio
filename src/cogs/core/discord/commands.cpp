@@ -4,7 +4,7 @@
 
 #include "commands.h"
 
-namespace reactaio::moderation {
+namespace reactaio::internal {
 	inline dpp::slashcommand define_command(const slash_command_properties &properties, const std::vector<dpp::command_option> &options) {
 		dpp::slashcommand command{properties.name, properties.description, properties.bot->me.id};
 		for(auto const& option : options)

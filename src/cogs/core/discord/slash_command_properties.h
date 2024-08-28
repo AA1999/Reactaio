@@ -8,6 +8,9 @@
 
 #include <string>
 
+/**
+* @brief Wrapper struct for the constructor of a slash command.
+*/
 struct slash_command_properties {
 	std::string name;
 	std::string description;
