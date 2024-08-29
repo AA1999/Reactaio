@@ -3,10 +3,11 @@
 //
 
 #pragma once
+
 #include "module.h"
 
+#include <dpp/dpp.h>
 #include <spdlog/async.h>
-#include <spdlog/sinks/rotating_file_sink.h>
 
 namespace reactaio {
 	class logger final : public module {
@@ -36,7 +37,7 @@ namespace reactaio {
 		/**
 		 * @brief Initializes the module.
 		 */
-		void innit() override;
+		void init() override;
 
 		/**
 		 * @brief Starts the module.
@@ -103,5 +104,11 @@ namespace reactaio {
 		 * @param message The message to log.
 		 */
 		void critical(std::string_view message) const;
+
+		/**
+		 * @brief Automatically logs an event that was logged by dpp itself.
+		 * @param event The DPP event log.
+		 */
+		void log_event(const dpp::log_t& event) const;
 	};
 }
