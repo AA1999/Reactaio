@@ -4,29 +4,73 @@
 
 #pragma once
 
+#include "../../../modules/logger.h"
 #include "../../../modules/module.h"
 #include "../../core/aliases.h"
+#include "../../core/discord/slash_command_properties.h"
+#include "../../core/helpers.h"
 #include "moderation_command.h"
 
 #include <dpp/dpp.h>
+#include <utility>
 #include <variant>
 
 namespace reactaio {
 	class moderation_module final: public module {
 		bool m_is_running{false};
-	public:
-		moderation_module();
-		~moderation_module() override;
+		bool m_is_initialized{false};
+		cluster_ptr m_bot;
+		std::shared_ptr<logger> m_logger;
+		std::unordered_map<std::string, dpp::slashcommand> const global_commands;
 
+		/**
+		 * @brief Is the command already defined?
+		 * @param command_properties Slash command wrapper with the name, description and the bot pointer.
+		 * @return true if the command already exists in the discord API.
+		 * @return false if the command doesn't exist in the discord API.
+		 */
+		constexpr bool command_exists(const slash_command_properties& command_properties) const {
+			return global_commands.contains(command_properties.name);
+		}
+
+	public:
+		moderation_module() = delete;
+
+		~moderation_module() override = default;
+
+		/**
+		 *
+		 * @param bot Pointer to the bot loading the module.
+		 * @param logger Logger module that will log all the moderation module events.
+		 * @param global_commands The global bot commands that were fetched from the API to avoid redefining the commands.
+		 */
+		moderation_module(cluster_ptr bot, const std::shared_ptr<logger>& logger, std::unordered_map<std::string, dpp::slashcommand> global_commands): m_bot(std::move(bot)), m_logger(logger), global_commands(std::move(global_commands)) {};
+
+		/**
+		 * @brief Get module name.
+		 * @return Name of the module.
+		 */
 		[[nodiscard]] constexpr std::string name() const override {
 			return "moderation";
 		}
 
-		[[nodiscard]] constexpr bool is_running() const {
+		/**
+		 * @brief Is the bot running?
+		 * @return true if the bot is running.
+		 * @return false if the bot isn't running/stopped.
+		 */
+		[[nodiscard]] constexpr bool is_running() const override {
 			return m_is_running;
 		}
 
-		[[nodiscard]] dependency_t dependencies() const override;
+		/**
+		 * @brief Is the bot initialized?
+		 * @return true if the bot is initialized.
+		 * @return false if the bot isn't initialized.
+		 */
+		[[nodiscard]] constexpr bool is_initialized() const override {
+			return m_is_initialized;
+		}
 
 		/**
 		 * @brief Starts the module.
@@ -41,7 +85,7 @@ namespace reactaio {
 		/**
 		 * @brief Initializes the module.
 		 */
-		void innit() override;
+		void init() override;
 
 		/**
 		 * @brief Removes a member/list of members from the guild.
