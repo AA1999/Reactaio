@@ -26,9 +26,9 @@
  * @return true if the element exists
  * @return false otherwise
  */
-template <typename R>
-requires std::ranges::range<R>
-constexpr bool contains(const R& range, const typename R::value_type& key) {
+template <typename R, typename T>
+requires std::ranges::range<R> && (std::convertible_to<T, typename R::value_type> || std::constructible_from<typename R::value_type, T>)
+constexpr bool contains(const R& range, const T& key) {
 	return std::ranges::find(range, key) != std::ranges::end(range);
 }
 
