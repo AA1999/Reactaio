@@ -21,6 +21,7 @@
 /**
  * @brief Whether if the specific element exists in the range.
  * @tparam R Type of the range.
+ * @tparam T type of the value.
  * @param range The range to look the element up.
  * @param key The element to look up.
  * @return true if the element exists
