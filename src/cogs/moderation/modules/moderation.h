@@ -29,7 +29,7 @@ namespace reactaio {
 		 * @return true if the command already exists in the discord API.
 		 * @return false if the command doesn't exist in the discord API.
 		 */
-		constexpr bool command_exists(const slash_command_properties& command_properties) const {
+		bool command_exists(const slash_command_properties& command_properties) const {
 			return global_commands.contains(command_properties.name);
 		}
 
