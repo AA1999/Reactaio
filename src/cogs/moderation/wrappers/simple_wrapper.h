@@ -7,18 +7,18 @@
 #include "command_wrapper.h"
 
 /**
- * @brief simple_wrapper - A wrapper used to perform commands which do not need an API call and are only structured similarly.
+ * @brief A wrapper used to perform commands which do not need an API call and are only structured similarly.
  */
 class simple_wrapper: public command_wrapper {
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
 	 */
 	void check_permissions() override = 0;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
 	 * 	@note This is an abstract function.
 	 */
 	void wrapper_function() override = 0;

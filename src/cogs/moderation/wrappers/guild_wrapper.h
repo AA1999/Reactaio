@@ -7,24 +7,24 @@
 #include "command_wrapper.h"
 
 /**
- * @brief guild_wrapper - Wrapper used to handle operations on a specific guild.
+ * @brief Wrapper used to handle operations on a specific guild.
  */
 class guild_wrapper: public command_wrapper {
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
 	 */
 	void check_permissions() override = 0;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
 	 * 	@note This is an abstract function.
 	 */
 	void wrapper_function() override = 0;
 
 	/**
-	 * @brief lambda_callback - This is a function that's called when an API call is made.
+	 * @brief This is a function that's called when an API call is made.
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
@@ -44,7 +44,7 @@ public:
 	explicit guild_wrapper(moderation_command command): command_wrapper(std::move(command)){};
 
 	/**
-	 * @brief are_all_errors - Checks if the operation had any errors.
+	 * @brief Checks if the operation had any errors.
 	 * @return true if there were errors in the operation.
 	 * @return false if there were no errors in the operation.
 	 */

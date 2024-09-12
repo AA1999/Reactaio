@@ -8,10 +8,9 @@
 
 
 #include <variant>
-#include <vector>
 
 /**
- * @brief hybrid_wrapper - A wrapper used to process commands with a mix of dpp::user* and dpp::guild_member elements.
+ * @brief A wrapper used to process commands with a mix of dpp::user* and dpp::guild_member elements.
  */
 
 class hybrid_wrapper: public command_wrapper {
@@ -23,19 +22,19 @@ protected:
 	shared_vector<dpp::guild_member> members;
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
 	 * 	@note This is an abstract function.
 	 */
 	void check_permissions() override = 0;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
 	 * 	@note This is an abstract function.
 	 */
 	void wrapper_function() override = 0;
 
 	/**
-	 * @brief lambda_callback - This is a function that's called when an API call is made.
+	 * @brief This is a function that's called when an API call is made.
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
@@ -51,7 +50,7 @@ public:
 	hybrid_wrapper(hybrid_wrapper&& other) = delete;
 
 	/**
-	 * @brief are_all_errors - Checks if every item has encountered an error.
+	 * @brief Checks if every item has encountered an error.
 	 * @return Whether if every single item given to the wrapper has encountered an error.
 	 */
 	[[nodiscard]] constexpr bool are_all_errors() const override {
