@@ -7,7 +7,7 @@
 #include "../member_wrapper.h"
 
 /**
- * @brief  Functor that processes the warn operation for a list of dpp::guild_member objects.
+ * @brief Functor that processes the warn operation for a list of dpp::guild_member objects.
  */
 class warn_wrapper final: public member_wrapper {
 	/**
