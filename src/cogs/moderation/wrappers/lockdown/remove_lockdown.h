@@ -6,6 +6,9 @@
 
 #include "../channel_wrapper.h"
 
+/**
+ * @brief A wrapper for removing server lockdown.
+ */
 class remove_lockdown final: channel_wrapper {
 	/**
 	 * @brief Checks if both the command invoker and the bot have sufficient permissions.

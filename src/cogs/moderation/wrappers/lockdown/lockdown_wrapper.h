@@ -7,7 +7,9 @@
 
 #include "../channel_wrapper.h"
 
-
+/**
+ * @brief A wrapper for server lockdown.
+ */
 class lockdown_wrapper final: public channel_wrapper {
 
 	/**
