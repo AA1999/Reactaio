@@ -9,26 +9,29 @@
 #include <vector>
 #include <dpp/dpp.h>
 
+/**
+ * @brief Functor wrapper for audit logs management.
+ */
 class audit_log_wrapper final: public recursive_wrapper {
 	shared_vector<dpp::audit_entry> audit_entries_;
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
 	 */
 	void check_permissions() override;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
 	 */
 	void wrapper_function() override;
 
 	/**
-	 * @brief process_audit_logs - Captures the audit logs for the guild.
+	 * @brief Captures the audit logs for the guild.
 	 */
 	void recursive_call(dpp::snowflake after = 1) override;
 
 	/**
-	 * @brief process_response - Sends the resulting response to the wrapper message object as embed(s).
+	 * @brief Sends the resulting response to the wrapper message object as embed(s).
 	 */
 	void process_response();
 
