@@ -6,25 +6,24 @@
 
 #include "../simple_wrapper.h"
 
-
 /**
- * @brief clear_guild_warnings - Wrapper to handle clearing guild warnings.
+ * @brief Wrapper to handle clearing guild warnings.
  */
 class clear_guild_warnings final: public simple_wrapper {
 	dpp::message response;
 
 	/**
-	 * 	@brief check_permissions - Checks if the user issuing the wrapper has the sufficient permission.
+	 * 	@briefChecks if the user issuing the wrapper has the sufficient permission.
 	 */
 	void check_permissions() override;
 
 	/**
-	 * 	@brief wrapper_function - The main function that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
 	 */
 	void wrapper_function() override;
 
 	/**
-	 * @brief process_response - Sends the resulting response to the wrapper message object as embed(s).
+	 * @brief Sends the resulting response to the wrapper message object as embed(s).
 	 */
 	void process_response();
 
