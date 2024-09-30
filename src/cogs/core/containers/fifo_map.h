@@ -7,7 +7,6 @@
 #include <initializer_list>
 #include <optional>
 #include <vector>
-#include <algorithm>
 #include <stdexcept>
 #include <format>
 
@@ -84,11 +83,12 @@ namespace reactaio::internal {
 		 * @param key - Key for the lookup.
 		 * @return The element associated with the key.
 		 */
-		constexpr V & operator[](const K& key) const {
-			if(auto key_index = find(key)) {
+		[[nodiscard]] constexpr V & operator[](const K& key) const {
+			if (auto key_index = find(key)) {
 				auto index = key_index.value();
 				return m_values[index];
 			}
+			assert(false);
 		}
 
 		/**
@@ -123,7 +123,7 @@ namespace reactaio::internal {
 		 * @brief keys - Returns all the keys of this map.
 		 * @return A std::vector consisting of all the keys in this map.
 		 */
-		std::vector<K> keys() const {
+		[[nodiscard]] std::vector<K> keys() const {
 			return m_keys;
 		}
 
@@ -131,7 +131,7 @@ namespace reactaio::internal {
 		 * @brief values - Returns all the values of the map.
 		 * @return A std::vector consisting of all the keys in this map.
 		 */
-		std::vector<V> values() const {
+		[[nodiscard]] std::vector<V> values() const {
 			return m_values;
 		}
 
