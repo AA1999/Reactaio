@@ -7,7 +7,7 @@
 #include "cogs/core/containers/fixed_map.h"
 
 namespace reactaio::internal {
-	constexpr std::uint8_t MAP_SIZE{50};
+	constexpr std::uint8_t MAP_SIZE{60};
 
 	extern inline const fixed_map<std::string, std::string, MAP_SIZE> prepated_statements {
 		{"kick_modlog", "SELECT member_kick, modlog, public_modlog FROM config WHERE guild_id = $1"},
@@ -21,6 +21,9 @@ namespace reactaio::internal {
 		{"modcase_insert", "INSERT INTO modcase(guild_id, case_id, action, mod_id, punished_id, reason) VALUES($1, $2, $3, $4, $5, $6)"},
 		{"modcase_insert_duration", "INSERT INTO modcase(guild_id, case_id, action, duration, mod_id, punished_id, reason) VALUES($1, $2, $3, $4, $5, $6, $7)"},
 		{"modcase_view", "SELECT action, mod_id, punished_id, reason, duration FROM modcase WHERE case_id = $1 AND guild_id = $2"},
+		{"modcase_view_user", "SELECT action, mod_id, reason, duration FROM modcase WHERE punished_id = $1 AND guild_id = $2"},
+		{"modcase_view_guild", "SELECT action, mod_id, reason, duration, punished_id FROM modcase WHERE guild_id = $1"},
+		{"modcase_view_mod", "SELECT action, punished_id, reason, duration FROM modcase WHERE mod_id = $1 AND guild_id = $2"},
 		{"modcase_update_reason", "UPDATE modcase SET reason = $1 WHERE case_id = $1 AND guild_id = $2 RETURNING case_id"},
 		{"command_insert", "INSERT INTO command_logs(guild_id, author_id, name, issues_at) VALUES($1, $2, $3, $4)"},
 		{"get_ban_remove_days", "SELECT ban_remove_days FROM config WHERE guild_id = $1"},
