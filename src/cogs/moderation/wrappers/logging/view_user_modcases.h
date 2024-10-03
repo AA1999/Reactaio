@@ -10,6 +10,7 @@
  */
 class view_user_modcases: public simple_wrapper {
 	member_ptr m_member;
+	dpp::message response;
 public:
 	view_user_modcases() = delete;
 	~view_user_modcases() override = default;
