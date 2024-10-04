@@ -64,13 +64,14 @@ namespace reactaio {
 	 * @brief Copies all elements from the first range that aren't in the second range and all the elements from the second range that aren't in the first range inside the given output.
 	 * @tparam T Types of the input and output ranges.
 	 * @param range1 Range to find the different elements from and avoid similar elements.
-	 * @param range2 Range to find the different elements from and avoid similar elements..
+	 * @param range2 Range to find the different elements from and avoid similar elements.
 	 * @param output Range to copy the output in.
 	 */
 	template <typename T>
 	constexpr void set_symmetric_difference(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
-		set_difference(range1, range2, output);
-		set_difference(range2, range1, output);
+		constexpr auto intersection = set_intersection(range1, range2);
+		set_difference(range1, intersection, output);
+		set_difference(range2, intersection, output);
 	}
 
 	/**
