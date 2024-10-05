@@ -8,7 +8,6 @@
 #include "../../../core/discord/message_paginator.h"
 #include "../../../core/helpers.h"
 
-
 void view_modcase::wrapper_function() {
 	check_permissions();
 	if(cancel_operation)
@@ -20,7 +19,7 @@ void view_modcase::check_permissions() {
 	auto const bot_user = command.bot->me;
 	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const bot_top_role = bot_roles.front();
+	auto const& bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -53,21 +52,25 @@ void view_modcase::process_response() {
 	response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
 	if(!result["punished_id"].is_null()) {
 		dpp::snowflake user_id{result["punished_id"].as<snowflake_t>()};
-		command.bot->user_get_cached(user_id, [this, user_id, result](dpp::confirmation_callback_t const& completion){
-			auto time_now = std::time(nullptr);
+		command.bot->user_get_cached(user_id, [this, user_id, result](dpp::confirmation_callback_t const& completion) {
+			auto const time_now = std::time(nullptr);
 			auto embed = dpp::embed()
 								 .set_color(color::INFO_COLOR)
 								 .set_title(std::format("Case {}", case_id))
 								 .set_timestamp(time_now)
 								 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
 			if(!completion.is_error()) {
-				auto username = std::get<dpp::user_identified>(completion.value).format_username();
-				auto punishment_type = result["action"].as<std::string>();
-				embed.add_field(std::vformat("User: {}", std::make_format_args(username)), std::vformat("Punishment type: {}", std::make_format_args(punishment_type)), true);
-				auto reason = result["reason"].as<std::string>();
+				auto const username = std::get<dpp::user_identified>(completion.value).format_username();
+				auto const punishment_type = result["action"].as<std::string>();
+				auto const reason = result["reason"].as<std::string>();
+				auto const mod_id = result["mod_id"].as<dpp::snowflake>();
+				auto const mod = dpp::find_guild_member(mod_id, command.guild->id);
+				embed.add_field("User: ", username);
+				embed.add_field("Punishment Type: ", punishment_type, true);
+				embed.add_field("Punished By: ", mod.get_mention(), true);
 				embed.add_field("Reason: ", reason, true);
 				if(!result["duration"].is_null()) {
-					auto duration_str = result["duration"].as<std::string>();
+					auto const duration_str = result["duration"].as<std::string>();
 					embed.add_field("Duration: ", duration_str);
 				}
 			}
