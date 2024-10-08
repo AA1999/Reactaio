@@ -63,14 +63,13 @@ void view_user_modcases::process_response() {
 			auto const mod = dpp::find_guild_member(mod_id, command.guild->id);
 			auto const reason = row["reason"].as<std::string>();
 			auto const action = row["action"].as<std::string>();
-			std::string_view duration_str;
-			if(!row["duration"].is_null())
-				duration_str = row["duration"].as<std::string_view>();
 			embed.add_field("User: ", m_member->get_mention());
 			embed.add_field("Punishment: ", action, true);
 			embed.add_field("Punished By: ", mod.get_mention(), true);
-			if(!duration_str.empty())
-				embed.add_field("Duration: ", duration_str);
+			if(!row["duration"].is_null()) {
+				auto const duration = row["duration"].as<std::string>();
+				embed.add_field("Duration: ", duration, true);
+			}
 			embed.add_field("Reason: ", reason, true);
 		}
 		if(command.interaction) {
