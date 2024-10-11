@@ -22,14 +22,12 @@ void audit_log_wrapper::wrapper_function() {
 
 void audit_log_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const bot_top_role = *bot_roles.front();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const author_top_role = *author_roles.begin();
 
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
-
-	auto author_roles = get_roles_sorted(*command.author);
-	auto author_top_role = *author_roles.begin();
-
-	if (!bot_top_role->has_view_audit_log()) {
+	if (!bot_top_role.has_view_audit_log()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the View Audit Log permission is enabled.");
 	}
