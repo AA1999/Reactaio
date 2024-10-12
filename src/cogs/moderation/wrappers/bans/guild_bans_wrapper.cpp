@@ -20,12 +20,10 @@ void guild_bans_wrapper::wrapper_function() {
 
 void guild_bans_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
-
-	auto bot_roles = get_roles_sorted(bot_member);
+	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const bot_top_role = *bot_roles.begin();
-
-	auto author_roles = get_roles_sorted(*command.author);
-	auto author_top_role = *author_roles.begin();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const author_top_role = *author_roles.begin();
 
 	if(!bot_top_role->has_ban_members()) {
 		cancel_operation = true;
