@@ -30,12 +30,10 @@ void kick_wrapper::wrapper_function() {
 
 void kick_wrapper::check_permissions() {
 	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
-
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
-
-	auto author_roles = get_roles_sorted(*command.author);
-	auto author_top_role = author_roles.front();
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const bot_top_role = *bot_roles.front();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const author_top_role = *author_roles.front();
 
 	bool ignore_owner_repeat{false};
 
@@ -43,7 +41,7 @@ void kick_wrapper::check_permissions() {
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
 
-	if(!bot_top_role->has_kick_members()) {
+	if(!bot_top_role.has_kick_members()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Kick Members permission.");
 	}
@@ -101,14 +99,14 @@ void kick_wrapper::check_permissions() {
 			}
 		}
 
-		if(member_top_role->position > bot_top_role->position) {
+		if(member_top_role->position > bot_top_role.position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to kick. Please "
 										 "move the bot role above the members and below your staff roles.",
 										 member->get_mention()));
 			cancel_operation = true;
 		}
 
-		if(member_top_role->position > author_top_role->position) {
+		if(member_top_role->position > author_top_role.position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't kick them.",
 										 member->get_mention()));
 			cancel_operation = true;
@@ -120,7 +118,7 @@ void kick_wrapper::check_permissions() {
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 								  .set_title("Error while kicking member(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		for (auto const &error: organized_errors) {
 			auto embed{base_embed};
@@ -165,7 +163,7 @@ void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-								  reactaio::internal::mod_action_name::KICK, std::to_string(command.author->user_id),
+								  internal::mod_action_name::KICK, std::to_string(command.author->user_id),
 								  std::to_string(member->user_id), command.reason);
 		transaction.commit();
 	}
@@ -194,7 +192,7 @@ void kick_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed	= dpp::embed()
 							  .set_title("Error while kicking member(s): ")
-							  .set_color(color::ERROR_COLOR)
+							  .set_color(ERROR_COLOR)
 
 							  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
@@ -287,7 +285,7 @@ void kick_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-							.set_color(color::RESPONSE_COLOR)
+							.set_color(RESPONSE_COLOR)
 							.set_title(title)
 							.set_description(description)
 							.set_image(gif_url)
@@ -316,7 +314,7 @@ void kick_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-					.set_color(color::MEMBER_REMOVE_COLOR)
+					.set_color(MEMBER_REMOVE_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -340,7 +338,7 @@ void kick_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -358,7 +356,7 @@ void kick_wrapper::process_response() {
 			std::string embed_image_url = kicked_members.size() > 1 ? kicked_members.at(0)->get_avatar_url() : "";
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -380,7 +378,7 @@ void kick_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-														   reactaio::internal::mod_action_name::KICK, dpp::utility::current_date_time());
+																 internal::mod_action_name::KICK, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
