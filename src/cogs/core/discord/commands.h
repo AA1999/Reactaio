@@ -14,7 +14,7 @@ namespace reactaio::internal {
 	 * @param options A list of command options.
 	 * @return The resulting slash command.
 	 */
-C	inline void define_command(const slash_command_properties &properties, const std::vector<dpp::command_option> &options);
+	inline void define_command(const slash_command_properties &properties, const std::vector<dpp::command_option> &options);
 
 
 	/**

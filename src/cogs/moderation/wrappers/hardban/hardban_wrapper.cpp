@@ -14,7 +14,7 @@
 
 void hardban_wrapper::wrapper_function() {
 	for(auto const& member_or_user: snowflakes) {
-		if(auto member_pointer = std::get_if<member_ptr>(&member_or_user)) {
+		if (const auto member_pointer = std::get_if<member_ptr>(&member_or_user)) {
 			members.insert(*member_pointer);
 			users.insert((*member_pointer)->get_user());
 		}
@@ -35,7 +35,7 @@ void hardban_wrapper::wrapper_function() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 								  .set_title("❌ Error while hard banning member(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(split.size() == 1) {
 			base_embed.set_description(split[0]);
@@ -94,11 +94,10 @@ void hardban_wrapper::check_permissions() {
 		return; // If you're not the server owner, the other errors don't matter.
 	}
 
-	auto* bot_user = &command.bot->me;
-	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
-
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
+	auto const bot_user = &command.bot->me;
+	auto const bot_member = find_guild_member(command.guild->id, bot_user->id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const& bot_top_role = bot_roles.front();
 
 	pqxx::work transaction{*command.connection};
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
@@ -111,7 +110,7 @@ void hardban_wrapper::check_permissions() {
 		auto const protected_roles_field = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
 		reactaio::transform(protected_role_snowflakes, protected_roles, [](const dpp::snowflake role_id) {
-			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
+			return std::make_shared<dpp::role>(*find_role(role_id));
 		});
 	}
 
@@ -158,7 +157,7 @@ void hardban_wrapper::check_permissions() {
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 								  .set_title("Error while hard banning member(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if (organized_errors.size() == 1) {
 			base_embed.set_description(organized_errors[0]);
@@ -206,9 +205,9 @@ void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
-		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		const auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::HARD_BAN,
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, internal::mod_action_name::HARD_BAN,
 								  std::to_string(command.author->user_id), std::to_string(user->id), command.reason);
 		transaction.commit();
 	}
@@ -219,7 +218,7 @@ void hardban_wrapper::process_hardbans() {
 	constexpr uint TO_SECONDS = 24 * 3600;
 
 	pqxx::work transaction{*command.connection};
-	auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
+	const auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
 	transaction.commit();
 	if(!ban_remove_days_query.empty()) {
 		ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
@@ -250,10 +249,10 @@ void hardban_wrapper::process_response() {
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
-								  .set_title("Error while hard banning member(s): ")
-								  .set_color(color::ERROR_COLOR)
-								  .set_timestamp(time_now);
+		auto base_embed	= dpp::embed()
+							.set_title("Error while hard banning member(s): ")
+							.set_color(ERROR_COLOR)
+							.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
 			message.add_embed(base_embed);
@@ -340,7 +339,7 @@ void hardban_wrapper::process_response() {
 			auto time_now = std::chrono::system_clock::now();
 			auto time_delta = duration->to_seconds();
 			auto future = time_now + time_delta;
-			std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+			std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 																	   dpp::utility::time_format::tf_relative_time);
 			description.append(std::format(" until {}.", time_future_relative));
 		}
@@ -351,7 +350,7 @@ void hardban_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-								.set_color(color::RESPONSE_COLOR)
+								.set_color(RESPONSE_COLOR)
 								.set_title(title)
 								.set_description(description)
 								.set_image(gif_url)
@@ -367,7 +366,7 @@ void hardban_wrapper::process_response() {
 		auto query = transaction.exec_prepared("ban_modlog", std::to_string(command.guild->id));
 		transaction.commit();
 
-		auto member_ban_webhook_url = query[0]["member_ban_add"];
+		auto const member_ban_webhook_url = query[0]["member_ban_add"];
 		if(!member_ban_webhook_url.is_null()) {
 			auto member_ban_webhook = dpp::webhook{member_ban_webhook_url.as<std::string>()};
 			std::string embed_title, embed_image_url;
@@ -382,7 +381,7 @@ void hardban_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
@@ -409,7 +408,7 @@ void hardban_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
@@ -433,7 +432,7 @@ void hardban_wrapper::process_response() {
 			description = std::format("{} have been hard banned.", usernames);
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_thumbnail(embed_image_url)
 								   .set_timestamp(time_now)
@@ -455,7 +454,7 @@ void hardban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::HARD_BAN, dpp::utility::current_date_time());
+								  internal::mod_action_name::HARD_BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
