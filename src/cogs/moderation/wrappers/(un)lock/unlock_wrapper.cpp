@@ -20,13 +20,13 @@ void unlock_wrapper::wrapper_function() {
 }
 
 void unlock_wrapper::check_permissions() {
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const bot_top_role = *bot_roles.front();
+	auto const bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const author_top_role = *author_roles.begin();
+	auto const author_top_role = author_roles.front();
 
-	if(!bot_top_role.has_manage_roles()) {
+	if(!bot_top_role->has_manage_roles()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Manage Roles permission.");
 	}
@@ -34,7 +34,7 @@ void unlock_wrapper::check_permissions() {
 	// TODO Check for roles that are allowed to use this command.
 
 	if(cancel_operation) {
-		auto messages = join_with_limit(errors, bot_max_embed_chars);
+		auto const messages = join_with_limit(errors, bot_max_embed_chars);
 		message_paginator paginator{dpp::message{command.channel_id, ""}, messages, command};
 		paginator.start();
 	}
@@ -42,7 +42,7 @@ void unlock_wrapper::check_permissions() {
 
 void unlock_wrapper::process_unlocks() {
 	if (channels.empty())
-		channels.insert(dpp::find_channel(command.channel_id));
+		channels.insert(find_channel(command.channel_id));
 	for(auto const& channel: channels) {
 		command.bot->set_audit_reason(std::format("Unlocked by {} for reason: {}.", command.author->get_user()->format_username(), command.reason)).channel_edit_permissions(*channel, command.guild->id, dpp::permissions::p_send_messages, 0,  false,[channel, this](const dpp::confirmation_callback_t& completion) {
 			lambda_callback(completion, channel);
@@ -59,7 +59,7 @@ void unlock_wrapper::lambda_callback(dpp::confirmation_callback_t const &complet
 	auto transaction = pqxx::work{*command.connection};
 	auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 	auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
-	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::UNLOCK,
+	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, internal::mod_action_name::UNLOCK,
 							  std::to_string(command.author->user_id), std::to_string(channel->id), command.reason);
 	transaction.commit();
 }
@@ -73,7 +73,7 @@ void unlock_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 								  .set_title("Error while soft unlocking channel(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -153,7 +153,7 @@ void unlock_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-								.set_color(color::RESPONSE_COLOR)
+								.set_color(RESPONSE_COLOR)
 								.set_title(title)
 								.set_description(description)
 								.set_image(gif_url)
@@ -176,7 +176,7 @@ void unlock_wrapper::process_response() {
 			description = std::format("{} have been unlocked.", mentions);
 			time_now = std::time(nullptr);
 			auto unlock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -194,7 +194,7 @@ void unlock_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto unlock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -210,7 +210,7 @@ void unlock_wrapper::process_response() {
 			description = std::format("{} have been unlocked.", mentions);
 			time_now = std::time(nullptr);
 			auto unlock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -231,7 +231,7 @@ void unlock_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::UNLOCK, dpp::utility::current_date_time());
+								  internal::mod_action_name::UNLOCK, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
