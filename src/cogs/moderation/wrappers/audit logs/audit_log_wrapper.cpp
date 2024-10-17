@@ -21,13 +21,13 @@ void audit_log_wrapper::wrapper_function() {
 }
 
 void audit_log_wrapper::check_permissions() {
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const bot_top_role = *bot_roles.front();
+	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const author_top_role = *author_roles.begin();
+	auto const& author_top_role = author_roles.begin();
 
-	if (!bot_top_role.has_view_audit_log()) {
+	if (!bot_top_role->has_view_audit_log()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the View Audit Log permission is enabled.");
 	}
@@ -60,7 +60,7 @@ void audit_log_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 								  .set_title("Error while fetching guild audit log: ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -101,14 +101,14 @@ void audit_log_wrapper::process_response() {
 			return std::format("changed property {} from {} to {}.", change.key, change.old_value, change.new_value);
 		});
 		const std::string changes = join(changes_vector, ", ");
-		auto const member = dpp::find_guild_member(command.guild->id, user_id);
+		auto const member = find_guild_member(command.guild->id, user_id);
 		audit_logs.push_back(std::format("Action: {} done by {} to {} {}", audit_type, member.get_mention(), std::to_string(target_id), changes));
 	}
 	auto const time_now = std::time(nullptr);
 
 	auto base_embed = dpp::embed()
 							  .set_title("Error while fetching guild audit logs: ")
-							  .set_color(color::INFO_COLOR)
+							  .set_color(INFO_COLOR)
 							  .set_timestamp(time_now);
 	auto const format_split = join_with_limit(audit_logs, bot_max_embed_chars);
 	if(format_split.size() == 1) {
