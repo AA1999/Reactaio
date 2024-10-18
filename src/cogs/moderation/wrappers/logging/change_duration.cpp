@@ -19,9 +19,9 @@ void change_duration::wrapper_function() {
 
 void change_duration::check_permissions() {
 	auto const bot_user = command.bot->me;
-	auto const bot_member = dpp::find_guild_member(command.guild->id, bot_user.id);
+	auto const bot_member = find_guild_member(command.guild->id, bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const &bot_top_role = bot_roles.front();
+	auto const& bot_top_role = bot_roles.front();
 
 	if (!bot_top_role->has_moderate_members()) {
 		cancel_operation = true;
@@ -74,7 +74,7 @@ void change_duration::update_duration() {
 		transaction.exec_prepared0("update_tempmute", new_end_str, mute_id);
 	}
 	else {
-		auto const punished_member = dpp::find_guild_member(command.guild->id, punished_id);
+		auto const punished_member = find_guild_member(command.guild->id, punished_id);
 		if(!punished_member.is_communication_disabled()) {
 			errors.emplace_back("❌ Member isn't timed out anymore.");
 			return;
@@ -119,7 +119,7 @@ void change_duration::process_response() {
 		response = dpp::message{command.channel_id, ""}.set_flags(dpp::m_ephemeral);
 		auto const time_now = std::time(nullptr);
 		auto embed = dpp::embed()
-							 .set_color(color::INFO_COLOR)
+							 .set_color(INFO_COLOR)
 							 .set_title(std::format("Case {} Duration updated", case_id))
 							 .set_timestamp(time_now)
 							 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
@@ -132,7 +132,7 @@ void change_duration::process_response() {
 		}
 	}
 	transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::DURATION, dpp::utility::current_date_time());
+								  internal::mod_action_name::DURATION, dpp::utility::current_date_time());
 	transaction.commit();
 	if(command.interaction) // Will always be true but failsafe.
 		(*command.interaction)->edit_response(std::format("Modcase {} does not exist in the guild", case_id)); // This is a rather unlikely scenario but there might be a mod wanting to test this
