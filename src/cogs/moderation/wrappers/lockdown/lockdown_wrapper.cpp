@@ -20,13 +20,11 @@ void lockdown_wrapper::wrapper_function() {
 }
 
 void lockdown_wrapper::check_permissions() {
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
-
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
-
-	auto author_roles = get_roles_sorted(*command.author);
-	auto author_top_role = author_roles.front();
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const& bot_top_role = bot_roles.front();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const& author_top_role = author_roles.front();
 
 	if(!bot_top_role->has_manage_roles()) {
 		cancel_operation = true;
@@ -64,7 +62,7 @@ void lockdown_wrapper::process_lockdown() {
 	internal::unique_vector<dpp::snowflake> not_found_ids;
 	internal::unique_vector<dpp::snowflake> const channel_ids = parse_psql_array<dpp::snowflake>(query["lockdown_channels"]);
 	reactaio::transform(channel_ids, channels, [&not_found_ids](dpp::snowflake const& channel_id) -> channel_ptr {
-		auto const channel_ptr = dpp::find_channel(channel_id);
+		auto const channel_ptr = find_channel(channel_id);
 		if(channel_ptr == nullptr) {
 			not_found_ids.insert(channel_id);
 			return nullptr;
@@ -100,7 +98,7 @@ void lockdown_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 								  .set_title("Error while locking down the server: ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -170,7 +168,7 @@ void lockdown_wrapper::process_response() {
 		auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		auto const channel_ids = join(locked_ids, ", ");
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, reactaio::internal::mod_action_name::LOCKDOWN,
+		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, internal::mod_action_name::LOCKDOWN,
 								  std::to_string(command.author->user_id), channel_ids, command.reason);
 		transaction.commit();
 
@@ -184,7 +182,7 @@ void lockdown_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-								.set_color(color::RESPONSE_COLOR)
+								.set_color(RESPONSE_COLOR)
 								.set_title(title)
 								.set_description(description)
 								.set_image(gif_url)
@@ -206,7 +204,7 @@ void lockdown_wrapper::process_response() {
 			description = std::format("{} have been locked.", mentions);
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -224,7 +222,7 @@ void lockdown_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -240,7 +238,7 @@ void lockdown_wrapper::process_response() {
 			description = std::format("Server locked down. Affected channels: {}.", mentions);
 			time_now = std::time(nullptr);
 			auto lock_log = dpp::embed()
-								   .set_color(color::LOG_COLOR)
+								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_timestamp(time_now)
 								   .set_description(description)
@@ -261,7 +259,7 @@ void lockdown_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::LOCKDOWN, dpp::utility::current_date_time());
+								  internal::mod_action_name::LOCKDOWN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
