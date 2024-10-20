@@ -14,12 +14,11 @@
 #include <utility>
 #include <vector>
 
+namespace internal = reactaio::internal;
+
 /**
  * @brief The base abstract functor class for all moderation actions. This class is only supposed to be used as a base class and not have direct instances
  */
-
-namespace internal = reactaio::internal;
-
 class command_wrapper {
 
 protected:
@@ -32,7 +31,6 @@ protected:
 	moderation_command command;
 
 	dpp::message error_message;
-
 
 	bool cancel_operation{false};
 
@@ -63,12 +61,12 @@ public:
 
 
 	/**
-	 * @brief operator() - Called when the functor is invoked.
+	 * @brief Called when the functor is invoked.
 	 */
 	void operator()();
 
 	/**
-	 * @brief has_error - Checks for any errors in the process.
+	 * @brief Checks for any errors in the process.
 	 * @return Whether there is any error when performing the specified instructions.
 	 */
 	[[nodiscard]] constexpr bool has_error() const {
