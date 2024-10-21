@@ -15,7 +15,7 @@
 #include <vector>
 
 /**
- * @brief message_paginator - A utility class to show a serires of texts/embes in one message. Buttons are used for navigation.
+ * @brief message_paginator - A utility class to show a series of texts/embeds in one message. Buttons are used for navigation.
  */
 class message_paginator {
 	discord_command m_command;
@@ -140,6 +140,11 @@ public:
 	 */
 	void start();
 
+	/**
+	 * @brief Is this an embed paginator?
+	 * @return true if the constructor was called with an embed vector.
+	 * @return false if the constructor was called with a message list.
+	 */
 	[[nodiscard]] constexpr bool is_embed_paginator() const {
 		return use_embeds;
 	}
