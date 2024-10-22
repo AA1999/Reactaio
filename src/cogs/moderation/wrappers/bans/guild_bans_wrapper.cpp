@@ -19,11 +19,11 @@ void guild_bans_wrapper::wrapper_function() {
 }
 
 void guild_bans_wrapper::check_permissions() {
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const bot_top_role = *bot_roles.begin();
+	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const author_top_role = *author_roles.begin();
+	auto const& author_top_role = author_roles.front();
 
 	if(!bot_top_role->has_ban_members()) {
 		cancel_operation = true;
@@ -64,7 +64,7 @@ void guild_bans_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 								  .set_title("Error while fetching guild bans: ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -105,7 +105,7 @@ void guild_bans_wrapper::process_response() {
 
 	auto base_embed = dpp::embed()
 							  .set_title("Error while fetching guild bans: ")
-							  .set_color(color::INFO_COLOR)
+							  .set_color(INFO_COLOR)
 							  .set_timestamp(time_now);
 
 	if(format_split.size() == 1) {
