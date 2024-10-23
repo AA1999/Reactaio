@@ -29,11 +29,11 @@ void kick_wrapper::wrapper_function() {
 }
 
 void kick_wrapper::check_permissions() {
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
-	auto const bot_top_role = *bot_roles.front();
+	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const author_top_role = *author_roles.front();
+	auto const& author_top_role = author_roles.front();
 
 	bool ignore_owner_repeat{false};
 
@@ -41,7 +41,7 @@ void kick_wrapper::check_permissions() {
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
 
-	if(!bot_top_role.has_kick_members()) {
+	if(!bot_top_role->has_kick_members()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Kick Members permission.");
 	}
@@ -99,14 +99,14 @@ void kick_wrapper::check_permissions() {
 			}
 		}
 
-		if(member_top_role->position > bot_top_role.position) {
+		if(member_top_role->position > bot_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than the bot. Unable to kick. Please "
 										 "move the bot role above the members and below your staff roles.",
 										 member->get_mention()));
 			cancel_operation = true;
 		}
 
-		if(member_top_role->position > author_top_role.position) {
+		if(member_top_role->position > author_top_role->position) {
 			errors.push_back(std::format("❌ {} has a higher role than you do. You can't kick them.",
 										 member->get_mention()));
 			cancel_operation = true;
