@@ -36,9 +36,9 @@ void ban_wrapper::wrapper_function() {
 		auto const split = join_with_limit(errors, bot_max_embed_chars);
 		error_message = dpp::message(command.channel_id, "");
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
+		auto base_embed	= dpp::embed()
 				.set_title("❌ Error while banning member(s): ")
-				.set_color(color::ERROR_COLOR)
+				.set_color(ERROR_COLOR)
 				.set_timestamp(time_now);
 		if(split.size() == 1) {
 			base_embed.set_description(split[0]);
@@ -61,7 +61,7 @@ void ban_wrapper::wrapper_function() {
 			}
 		}
 		else { // It's an auto mod action
-			auto transaction		 = pqxx::work{*command.connection};
+			auto transaction = pqxx::work{*command.connection};
 			auto error_channel_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
 			if(error_channel_query.empty()) {
 				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
@@ -69,8 +69,8 @@ void ban_wrapper::wrapper_function() {
 				command.bot->direct_message_create(command.author->user_id, error_message);
 			}
 			else {
-				auto webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
-				auto webhook = dpp::webhook{webhook_url};
+				const auto webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
+				const auto webhook = dpp::webhook{webhook_url};
 				command.bot->execute_webhook(webhook, error_message);
 			}
 		}
@@ -93,25 +93,25 @@ void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
-		auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		if(duration) {
-			auto time_now = std::chrono::system_clock::now();
-			auto time_delta = duration->to_seconds();
-			auto future = time_now + time_delta;
-			std::string time_now_str = dpp::utility::current_date_time();
-			auto future_str = std::format("{}", future);
+			auto const time_now = std::chrono::system_clock::now();
+			auto const time_delta = duration->to_seconds();
+			auto const future = time_now + time_delta;
+			auto const time_now_str = dpp::utility::current_date_time();
+			auto const future_str = std::format("{}", future);
 			transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
 									  std::to_string(command.author->user_id), time_now_str, future_str,
 									  command.reason);
 			transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
-									  reactaio::internal::mod_action_name::BAN, duration->to_string(),
+									  internal::mod_action_name::BAN, duration->to_string(),
 									  std::to_string(command.author->user_id), std::to_string(user->id),
 									  command.reason);
 		}
 		else {
 			transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-									  reactaio::internal::mod_action_name::BAN, std::to_string(
+									  internal::mod_action_name::BAN, std::to_string(
 																						  command.author->user_id), std::to_string(user->id), command
 																		.reason);
 		}
@@ -157,7 +157,7 @@ void ban_wrapper::process_bans() {
 				auto time_now = std::chrono::system_clock::now();
 				auto time_delta = duration->to_seconds();
 				auto future = time_now + time_delta;
-				std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+				std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 																		   dpp::utility::time_format::tf_relative_time);
 				dm_message = std::format("You have been banned by from {} by {} until {}. Reason: {}", command.guild->name,
 				                         author_user->format_username(), time_future_relative, command.reason);
@@ -189,7 +189,7 @@ void ban_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed		= dpp::embed()
 				.set_title("Error while banning member(s): ")
-				.set_color(color::ERROR_COLOR)
+				.set_color(ERROR_COLOR)
 				.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
@@ -277,24 +277,23 @@ void ban_wrapper::process_response() {
 			auto time_now = std::chrono::system_clock::now();
 			auto time_delta = duration->to_seconds();
 			auto future = time_now + time_delta;
-			std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+			std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 			                                                           dpp::utility::time_format::tf_relative_time);
 			description.append(std::format(" until {}.", time_future_relative));
 		}
 		else
 			description.append(".");
 
-		auto time_now	= std::time(nullptr);
-		auto reason_str = std::string{command.reason};
+		auto time_now= std::time(nullptr);
 
 		auto response = dpp::embed()
-				.set_color(color::RESPONSE_COLOR)
+				.set_color(RESPONSE_COLOR)
 				.set_title(title)
 				.set_description(description)
 				.set_image(gif_url)
 				.set_timestamp(time_now);
 		response.add_field("Moderator: ", author_user->get_mention());
-		response.add_field("Reason: ", reason_str);
+		response.add_field("Reason: ", command.reason);
 
 		message.add_embed(response);
 
@@ -321,7 +320,7 @@ void ban_wrapper::process_response() {
 				auto now = std::chrono::system_clock::now();
 				auto time_delta = duration->to_seconds();
 				auto future = now + time_delta;
-				std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+				std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 				                                                           dpp::utility::time_format::tf_relative_time);
 				description.append(std::format(" until {}.", time_future_relative));
 			}
@@ -329,7 +328,7 @@ void ban_wrapper::process_response() {
 				description.append(".");
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -357,7 +356,7 @@ void ban_wrapper::process_response() {
 				auto now = std::chrono::system_clock::now();
 				auto time_delta = duration->to_seconds();
 				auto future = now + time_delta;
-				std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+				std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 				                                                           dpp::utility::time_format::tf_relative_time);
 				description.append(std::format(" until {}.", time_future_relative));
 			}
@@ -366,7 +365,7 @@ void ban_wrapper::process_response() {
 
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -392,7 +391,7 @@ void ban_wrapper::process_response() {
 				auto now = std::chrono::system_clock::now();
 				auto time_delta = duration->to_seconds();
 				auto future = now + time_delta;
-				std::string time_future_relative = dpp::utility::timestamp(future.time_since_epoch().count(),
+				std::string time_future_relative = timestamp(future.time_since_epoch().count(),
 				                                                           dpp::utility::time_format::tf_relative_time);
 				description.append(std::format(" until {}.", time_future_relative));
 			}
@@ -400,7 +399,7 @@ void ban_wrapper::process_response() {
 				description.append(".");
 			time_now = std::time(nullptr);
 			auto ban_log = dpp::embed()
-					.set_color(color::LOG_COLOR)
+					.set_color(LOG_COLOR)
 					.set_title(embed_title)
 					.set_thumbnail(embed_image_url)
 					.set_timestamp(time_now)
@@ -422,7 +421,7 @@ void ban_wrapper::process_response() {
 		// Log command call
 		pqxx::work transaction{*command.connection};
 		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-		                          reactaio::internal::mod_action_name::BAN, dpp::utility::current_date_time());
+		                          internal::mod_action_name::BAN, dpp::utility::current_date_time());
 		transaction.commit();
 	}
 	else
@@ -437,20 +436,17 @@ void ban_wrapper::check_permissions() {
 		return;
 	}
 
-	auto const bot_member = dpp::find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const& bot_top_role = bot_roles.front();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const& author_top_role = author_roles.front();
 
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
-
-	auto author_roles = get_roles_sorted(*command.author);
-	auto author_top_role = author_roles.front();
-
-	bool ignore_owner_repeat{false};
+	bool is_owner{false};
 
 	pqxx::work transaction{*command.connection};
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
 	transaction.commit();
-
 
 	shared_vector<dpp::role> protected_roles;
 
@@ -458,7 +454,7 @@ void ban_wrapper::check_permissions() {
 		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
 		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
 		reactaio::transform(protected_role_snowflakes, protected_roles, [](dpp::snowflake const role_id) {
-			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
+			return std::make_shared<dpp::role>(*find_role(role_id));
 		});
 	}
 
@@ -476,7 +472,7 @@ void ban_wrapper::check_permissions() {
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to ban yourself lol
 			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you banning yourself, server owner? lmfao");
-				ignore_owner_repeat = true;
+				is_owner = true;
 			}
 			else {
 				errors.emplace_back("❌ You can't ban yourself lmao.");
@@ -484,7 +480,7 @@ void ban_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member->is_guild_owner()) {
+		if(!is_owner && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't ban the server owner lmfao.");
 			cancel_operation = true;
 		}
@@ -530,7 +526,7 @@ void ban_wrapper::check_permissions() {
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 		                          .set_title("Error while banning member(s): ")
-		                          .set_color(color::ERROR_COLOR)
+		                          .set_color(ERROR_COLOR)
 		                          .set_timestamp(time_now);
 		if (organized_errors.size() == 1) {
 			base_embed.set_description(organized_errors[0]);
