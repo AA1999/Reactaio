@@ -35,7 +35,7 @@ void kick_wrapper::check_permissions() {
 	auto const author_roles = get_roles_sorted(*command.author);
 	auto const& author_top_role = author_roles.front();
 
-	bool ignore_owner_repeat{false};
+	bool is_owner{false};
 
 	pqxx::work transaction{*command.connection};
 	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
@@ -64,7 +64,7 @@ void kick_wrapper::check_permissions() {
 		if(command.author->user_id == member->user_id) { // If for some reason you decided to kick yourself lol
 			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you kicking yourself, server owner? lmfao");
-				ignore_owner_repeat = true;
+				is_owner = true;
 			}
 			else {
 				errors.emplace_back("❌ You can't kick yourself lmao.");
@@ -72,7 +72,7 @@ void kick_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 
-		if(!ignore_owner_repeat && member->is_guild_owner()) {
+		if(!is_owner && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't kick the server owner lmfao.");
 			cancel_operation = true;
 		}
@@ -161,7 +161,7 @@ void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 	else {
 		auto transaction = pqxx::work{*command.connection};
 		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
+		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
 								  internal::mod_action_name::KICK, std::to_string(command.author->user_id),
 								  std::to_string(member->user_id), command.reason);
@@ -263,8 +263,8 @@ void kick_wrapper::process_response() {
 			return member->get_mention();
 		});
 
-		auto usernames = join(kicked_usernames, ", ");
-		auto mentions  = join(kicked_mentions, ", ");
+		auto const usernames = join(kicked_usernames, ", ");
+		auto const mentions = join(kicked_mentions, ", ");
 
 		std::string title;
 		std::string description;
@@ -281,19 +281,17 @@ void kick_wrapper::process_response() {
 			gif_url		= "https://tenor.com/view/the-simpsons-moe-homer-barney-moes-tavern-gif-17102369";
 		}
 
-		auto time_now	= std::time(nullptr);
-		auto reason_str = std::string{command.reason};
-
+		auto time_now= std::time(nullptr);
 		auto response = dpp::embed()
-							.set_color(RESPONSE_COLOR)
-							.set_title(title)
-							.set_description(description)
-							.set_image(gif_url)
-							.set_timestamp(time_now)
-							.set_footer(dpp::embed_footer().set_text(std::format("We're now at {} members.",
+								.set_color(RESPONSE_COLOR)
+								.set_title(title)
+								.set_description(description)
+								.set_image(gif_url)
+								.set_timestamp(time_now)
+								.set_footer(dpp::embed_footer().set_text(std::format("We're now at {} members.",
 							                                                     non_bot_members(command.guild))));
 		response.add_field("Moderator: ", author_user->get_mention());
-		response.add_field("Reason: ", reason_str);
+		response.add_field("Reason: ", command.reason);
 
 		message.add_embed(response);
 	
