@@ -44,7 +44,7 @@ void guild_bans_wrapper::recursive_call(dpp::snowflake after) {
 			auto event_map = completion.get<dpp::ban_map>();
 			dpp::snowflake new_after{after};
 
-			for(auto& [user_id, ban]: event_map) {
+			for(auto const& [user_id, ban]: event_map) {
 				if(new_after < user_id)
 					new_after = user_id;
 				bans.insert(&ban);
@@ -60,12 +60,13 @@ void guild_bans_wrapper::recursive_call(dpp::snowflake after) {
 void guild_bans_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	if (has_error()) {
-		auto format_split = join_with_limit(errors, bot_max_embed_chars);
+		auto const format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
-								  .set_title("Error while fetching guild bans: ")
-								  .set_color(ERROR_COLOR)
-								  .set_timestamp(time_now);
+
+		auto base_embed	= dpp::embed()
+								.set_title("Error while fetching guild bans: ")
+								.set_color(ERROR_COLOR)
+								.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
 			message.add_embed(base_embed);
@@ -100,8 +101,8 @@ void guild_bans_wrapper::process_response() {
 		});
 	}
 
-	auto format_split = join_with_limit(banned_usernames, bot_max_embed_chars);
-	auto time_now = std::time(nullptr);
+	auto const format_split = join_with_limit(banned_usernames, bot_max_embed_chars);
+	auto const time_now = std::time(nullptr);
 
 	auto base_embed = dpp::embed()
 							  .set_title("Error while fetching guild bans: ")
