@@ -14,7 +14,7 @@
 
 void hardban_wrapper::wrapper_function() {
 	for(auto const& member_or_user: snowflakes) {
-		if (const auto member_pointer = std::get_if<member_ptr>(&member_or_user)) {
+		if (auto const member_pointer = std::get_if<member_ptr>(&member_or_user)) {
 			members.insert(*member_pointer);
 			users.insert((*member_pointer)->get_user());
 		}
@@ -33,10 +33,10 @@ void hardban_wrapper::wrapper_function() {
 
 		error_message = dpp::message(command.channel_id, "");
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
-								  .set_title("❌ Error while hard banning member(s): ")
-								  .set_color(ERROR_COLOR)
-								  .set_timestamp(time_now);
+		auto base_embed	= dpp::embed()
+							.set_title("❌ Error while hard banning member(s): ")
+							.set_color(ERROR_COLOR)
+							.set_timestamp(time_now);
 		if(split.size() == 1) {
 			base_embed.set_description(split[0]);
 			error_message.add_embed(base_embed);
@@ -94,7 +94,7 @@ void hardban_wrapper::check_permissions() {
 		return; // If you're not the server owner, the other errors don't matter.
 	}
 
-	auto const bot_user = &command.bot->me;
+	auto const bot_user = std::make_unique<dpp::user>(command.bot->me);
 	auto const bot_member = find_guild_member(command.guild->id, bot_user->id);
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
@@ -120,8 +120,8 @@ void hardban_wrapper::check_permissions() {
 	}
 
 	for(auto const& member: members) {
-		auto member_roles = get_roles_sorted(*member);
-		auto member_top_role = *member_roles.begin();
+		auto const member_roles = get_roles_sorted(*member);
+		auto const& member_top_role = member_roles.front();
 
 		if(member->is_guild_owner()) { // If for some reason you felt like hardbanning yourself, being the server owner.
 			cancel_operation = true;
@@ -153,8 +153,8 @@ void hardban_wrapper::check_permissions() {
 		}
 	}
 	if(cancel_operation) {
-		auto organized_errors = join_with_limit(errors, bot_max_embed_chars);
-		auto time_now = std::time(nullptr);
+		auto const organized_errors = join_with_limit(errors, bot_max_embed_chars);
+		auto const time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 								  .set_title("Error while hard banning member(s): ")
 								  .set_color(ERROR_COLOR)
@@ -182,7 +182,7 @@ void hardban_wrapper::check_permissions() {
 		else {
 			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
 			transaction.commit();
-			auto bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
+			auto const bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
 			if(!bot_error_webhook_url_field.is_null()) {
 				auto bot_error_webhook_url = bot_error_webhook_url_field.as<std::string>();
 				dpp::webhook bot_error_webhook{bot_error_webhook_url};
@@ -205,7 +205,7 @@ void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 	}
 	else {
 		auto transaction = pqxx::work{*command.connection};
-		const auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
+		auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, internal::mod_action_name::HARD_BAN,
 								  std::to_string(command.author->user_id), std::to_string(user->id), command.reason);
@@ -218,7 +218,7 @@ void hardban_wrapper::process_hardbans() {
 	constexpr uint TO_SECONDS = 24 * 3600;
 
 	pqxx::work transaction{*command.connection};
-	const auto ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
+	auto const ban_remove_days_query = transaction.exec_prepared("get_ban_remove_days", std::to_string(command.guild->id));
 	transaction.commit();
 	if(!ban_remove_days_query.empty()) {
 		ban_remove_days = ban_remove_days_query[0]["ban_remove_days"].as<uint>();
@@ -347,7 +347,6 @@ void hardban_wrapper::process_response() {
 			description.append(".");
 
 		auto time_now	= std::time(nullptr);
-		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
 								.set_color(RESPONSE_COLOR)
@@ -356,7 +355,7 @@ void hardban_wrapper::process_response() {
 								.set_image(gif_url)
 								.set_timestamp(time_now);
 		response.add_field("Moderator: ", author_user->get_mention());
-		response.add_field("Reason: ", reason_str);
+		response.add_field("Reason: ", command.reason);
 
 		message.add_embed(response);
 
@@ -431,7 +430,7 @@ void hardban_wrapper::process_response() {
 			}
 			description = std::format("{} have been hard banned.", usernames);
 			time_now = std::time(nullptr);
-			auto ban_log = dpp::embed()
+			auto const ban_log = dpp::embed()
 								   .set_color(LOG_COLOR)
 								   .set_title(embed_title)
 								   .set_thumbnail(embed_image_url)
