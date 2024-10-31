@@ -94,12 +94,12 @@ void lockdown_wrapper::process_response() {
 	auto const* author_user = command.author->get_user();
 
 	if (has_error()) {
-		auto format_split = join_with_limit(errors, bot_max_embed_chars);
+		auto const format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
-								  .set_title("Error while locking down the server: ")
-								  .set_color(ERROR_COLOR)
-								  .set_timestamp(time_now);
+		auto base_embed	= dpp::embed()
+							.set_title("Error while locking down the server: ")
+							.set_color(ERROR_COLOR)
+							.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
 			message.add_embed(base_embed);

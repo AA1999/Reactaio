@@ -346,7 +346,7 @@ void hardban_wrapper::process_response() {
 		else
 			description.append(".");
 
-		auto time_now	= std::time(nullptr);
+		auto time_now = std::time(nullptr);
 
 		auto response = dpp::embed()
 								.set_color(RESPONSE_COLOR)
