@@ -19,7 +19,7 @@ void view_muted_members::wrapper_function() {
 
 void view_muted_members::check_permissions() {
 	auto const bot_user = command.bot->me;
-	auto const bot_member = dpp::find_guild_member(command.guild->id , bot_user.id);
+	auto const bot_member = find_guild_member(command.guild->id , bot_user.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
 
@@ -31,7 +31,7 @@ void view_muted_members::check_permissions() {
 
 void view_muted_members::process_response() {
 	if(are_all_errors()) {
-		auto split_format = join_with_limit(errors, bot_max_embed_chars);
+		auto const split_format = join_with_limit(errors, bot_max_embed_chars);
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
@@ -53,7 +53,7 @@ void view_muted_members::process_response() {
 	std::vector<std::string> members;
 	auto const time_now = std::time(nullptr);
 	auto const embed_template = dpp::embed()
-						 .set_color(color::INFO_COLOR)
+						 .set_color(INFO_COLOR)
 						 .set_timestamp(time_now)
 						 .set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
 	if(!result["mute_role"].is_null()) {
@@ -73,14 +73,14 @@ void view_muted_members::process_response() {
 				auto const start_date = parse_psql_timestamp(start_date_str, iso_format);
 				auto const end_date = parse_psql_timestamp(end_date_str, iso_format);
 				auto const mod_id = query["mod_id"].as<snowflake_t>();
-				auto const mod = dpp::find_guild_member(command.guild->id, mod_id);
+				auto const mod = find_guild_member(command.guild->id, mod_id);
 				auto const reason = query["reason"].as<std::string>();
 				auto embed{embed_template};
 				embed.set_title(std::format("Mute id: {}", tempmute_id));
 				embed.add_field("Member: ", member.get_mention(), true);
 				embed.add_field("Muted by: ", mod.get_mention(), true);
-				embed.add_field("Start: ", dpp::utility::timestamp(start_date.time_since_epoch().count(), dpp::utility::tf_relative_time));
-				embed.add_field("Muted Until: ", dpp::utility::timestamp(end_date.time_since_epoch().count(), dpp::utility::tf_relative_time), true);
+				embed.add_field("Start: ", timestamp(start_date.time_since_epoch().count(), dpp::utility::tf_relative_time));
+				embed.add_field("Muted Until: ", timestamp(end_date.time_since_epoch().count(), dpp::utility::tf_relative_time), true);
 				embed.add_field("Reason: ", reason, true);
 				response.add_embed(embed);
 			}
@@ -92,7 +92,7 @@ void view_muted_members::process_response() {
 		if(member.is_communication_disabled()) {
 			auto const end = member.communication_disabled_until;
 			auto embed{embed_template};
-			auto const future = dpp::utility::timestamp(end, dpp::utility::tf_relative_time);
+			auto const future = timestamp(end, dpp::utility::tf_relative_time);
 			embed.set_title("Timeout: ");
 			embed.add_field("Member: ", member.get_mention(), true);
 			embed.add_field("Timeout until: ", future, true);
@@ -108,7 +108,7 @@ void view_muted_members::process_response() {
 
 	if(command.interaction) {
 		(*command.interaction)->edit_response(response);
-		return;;
+		return;
 	}
 	if(command.interaction) // Will always be true but failsafe.
 		(*command.interaction)->edit_response("This guild has no muted/timed out members."); // This is a rather unlikely scenario but there might be a mod wanting to test this
