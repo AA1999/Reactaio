@@ -8,7 +8,7 @@
 /**
  * @brief Wrapper to manage viewing modcases of a guild.
  */
-class view_guild_modcases final : public simple_wrapper {
+class view_guild_modcases final: public simple_wrapper {
 	dpp::message response;
 public:
 	/**

@@ -8,7 +8,7 @@
 /**
  * @brief Wrapper functor to view all modcases regarding a user.
  */
-class view_user_modcases: public simple_wrapper {
+class view_user_modcases final: public simple_wrapper {
 	member_ptr m_member;
 	dpp::message response;
 public:
