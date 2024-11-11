@@ -54,13 +54,13 @@ void view_user_modcases::process_response() {
 	if(!result.empty()) {
 		auto const time_now = std::time(nullptr);
 		auto embed = dpp::embed()
-							.set_color(color::INFO_COLOR)
+							.set_color(INFO_COLOR)
 							.set_title(std::format("Member {}", m_member->user_id))
 							.set_timestamp(time_now)
 							.set_footer(dpp::embed_footer().set_text(std::format("Guild id {}", std::to_string(command.guild->id))));
 		for(auto const& row: result) {
 			auto const mod_id = row["mod_id"].as<dpp::snowflake>();
-			auto const mod = dpp::find_guild_member(mod_id, command.guild->id);
+			auto const mod = find_guild_member(mod_id, command.guild->id);
 			auto const reason = row["reason"].as<std::string>();
 			auto const action = row["action"].as<std::string>();
 			embed.add_field("User: ", m_member->get_mention());
