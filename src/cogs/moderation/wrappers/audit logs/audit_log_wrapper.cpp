@@ -58,10 +58,10 @@ void audit_log_wrapper::process_response() {
 	if (has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
-		auto base_embed		= dpp::embed()
-								  .set_title("Error while fetching guild audit log: ")
-								  .set_color(ERROR_COLOR)
-								  .set_timestamp(time_now);
+		auto base_embed	= dpp::embed()
+								.set_title("Error while fetching guild audit log: ")
+								.set_color(ERROR_COLOR)
+								.set_timestamp(time_now);
 		if(format_split.size() == 1) {
 			base_embed.set_description(format_split[0]);
 			message.add_embed(base_embed);
