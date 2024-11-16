@@ -26,9 +26,8 @@ class guild_wrapper: public command_wrapper {
 	/**
 	 * @brief This is a function that's called when an API call is made.
 	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
-	 * @param user User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, dpp::user* user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const& completion) = 0;
 
 public:
 	guild_wrapper() = delete;
