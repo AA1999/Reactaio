@@ -17,7 +17,7 @@ namespace reactaio::internal {
 		{"modlog", "SELECT modlog, public_modlog FROM webhooks WHERE guild_id = $1"},
 		{"update_modlog", "UPDATE webhooks SET modlog = $1 WHERE guild_id = $1"},
 		{"delete_modlog", "DELETE modlog FROM webhooks WHERE guild_id = $1"},
-		{"botlog", "SELECT bot_error_logs FROM webhooks WHERE guild_id = $1"},
+		{"get_error_webhook", "SELECT bot_error_logs FROM webhooks WHERE guild_id = $1"},
 		{"modcase_insert", "INSERT INTO modcase(guild_id, case_id, action, mod_id, punished_id, reason) VALUES($1, $2, $3, $4, $5, $6)"},
 		{"modcase_insert_duration", "INSERT INTO modcase(guild_id, case_id, action, duration, mod_id, punished_id, reason) VALUES($1, $2, $3, $4, $5, $6, $7)"},
 		{"modcase_view", "SELECT action, mod_id, punished_id, reason, duration FROM modcase WHERE case_id = $1 AND guild_id = $2"},
@@ -61,9 +61,6 @@ namespace reactaio::internal {
 		{"update_warning", "UPDATE warnings SET reason = $1 WHERE user = $2 AND guild = $3"},
 		{"clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id"},
 		{"clear_guild_warnings", "DELETE FROM warnings WHERE guild_id = $1 RETURNING guild_id"},
-		{"insert_slash_command", "INSERT INTO global_slash_commands (name) VALUES($1)"},
-		{"check_slash_command_exceeded_max", "SELECT count(name) < 100 AS has_exceeded FROM global_slash_commands"},
-		{"get_all_global_commands", "SELECT name FROM global_slash_commands"},
-		{"get_global_commands_count", "SELECT count(name) AS commands_count FROM global_slash_commands"}
+		{"get_mod_perm_roles", "SELECT role_id FROM role_perms_moderation WHERE guild_id = $1 AND "}
 	};
 }
