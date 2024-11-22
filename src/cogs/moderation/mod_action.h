@@ -12,9 +12,10 @@ namespace reactaio::internal {
 	 */
 	struct mod_action_name {
 
-		virtual ~mod_action_name() = 0; // Can't create instances of the class.
+		virtual ~mod_action_name() = 0; // The class is only used as an enum structure, can't create instances of i.
 
 		static constexpr std::string_view KICK {"Kick"};
+		static constexpr std::string_view PRUNE {"Member Prune"};
 		static constexpr std::string_view BAN{"Ban"};
 		static constexpr std::string_view SOFT_BAN{"Soft Ban"};
 		static constexpr std::string_view HARD_BAN{"Hard Ban"};
