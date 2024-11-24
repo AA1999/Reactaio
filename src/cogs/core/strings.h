@@ -107,7 +107,7 @@ constexpr std::string to_titlecase(std::string string) {
  * @return The string with all the found matches replaced.
  */
 constexpr void replace_all(std::string& string, std::string_view const& find, std::string_view const& replace) {
-	if(find.empty())
+	if(find.empty() || string.empty())
 		return;
 	std::size_t pos{};
 	while((pos = string.find(find, pos)) != std::string::npos) {
