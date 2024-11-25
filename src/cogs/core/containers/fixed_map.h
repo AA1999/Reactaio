@@ -25,6 +25,9 @@ namespace reactaio::internal {
 	template <typename Key, typename Value, std::size_t size, typename Hash = std::hash<Key>, typename KeyEqual = std::equal_to<Key>, typename Allocator = std::allocator<std::pair<const Key, Value>>>
 	class fixed_map {
 
+		/**
+		 * @brief A struct used to represent a key/value pair used as the value type for the array.
+		 */
 		struct value_type {
 			Key key;
 			Value value;
@@ -38,12 +41,11 @@ namespace reactaio::internal {
 		static constexpr std::array<value_type, size> to_array(const std::initializer_list<value_type>& list) {
 			if(list.size() > size)
 				throw std::out_of_range{"The given initializer list is bigger than the allocated size for the map."};
-			return ([list]<std::size_t... i>(std::index_sequence<i...>) {
+			return [list]<std::size_t... i>(std::index_sequence<i...>) {
 				auto iterator = list.begin();
-				return std::array<value_type, size> {
-					(void(i), *iterator++)...
-				};
-			})(std::make_index_sequence<size>());
+				return std::array<value_type, size>{
+						(void(i), *iterator++)...};
+			}(std::make_index_sequence<size>());
 		}
 
 		mutable std::array<value_type, size> m_array;
