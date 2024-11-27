@@ -96,7 +96,7 @@ void change_duration::update_duration() {
 
 void change_duration::process_response() {
 	if(are_all_errors()) {
-		auto split_format = join_with_limit(errors, bot_max_embed_chars);
+		auto const split_format = join_with_limit(errors, bot_max_embed_chars);
 		if(split_format.size() == 1) {
 			response = dpp::message{command.channel_id, split_format.front()}.set_flags(dpp::m_ephemeral);
 			if(command.interaction) { // Will always be true but failsafe
