@@ -20,7 +20,7 @@ namespace reactaio {
 
 		/**
 		 * @brief Constructor for cases where the logger needs to be silent.
-		 * @param silent Should the logger be silent on innit? (Used for internal loggers)
+		 * @param silent Should the logger be silent on init? (Used for internal loggers)
 		 */
 		explicit logger(const bool silent): m_silent(silent) {}
 
