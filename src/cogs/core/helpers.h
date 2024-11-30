@@ -98,8 +98,8 @@ constexpr member_t bot_members(dpp::guild* guild) {
  * @return The ordinal format of the number.
  */
 constexpr std::string ordinal(ullong number) {
-	ushort const last_digit = number % 10;
-	ushort const last_two_digits = number % 100;
+	u_char const last_digit = number % 10;
+	u_char const last_two_digits = number % 100;
 	if (last_digit == 1 && last_two_digits != 11)
 		return std::format("{}st", number);
 	if (last_digit == 2 && last_two_digits != 12)
@@ -132,7 +132,7 @@ constexpr std::string join(const std::vector<std::string>& vector, std::string_v
  * @brief Makes sized slices of a vector.
  * @param vector The vector to be sliced.
  * @param length The length limit.
- * @return
+ * @return A vector containing the slices with the specific size. If any of the elements would exceed the size, it wil
  */
 std::vector<std::string> join_with_limit(const std::vector<std::string>& vector, std::size_t length);
 
@@ -153,30 +153,12 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view st
 
 
 /**
- * @brief Parses a SQL query result into a proper array.
- * @tparam T Type of the resulting array.
- * @param field
- * @return
- */
-template <typename T>
-std::vector<T> parse_psql_array(const pqxx::field& field) {
-	std::vector<T> result;
-	auto array_parser = field.as_array();
-	parser_item item = parser_item{array_parser.get_next()};
-	while(item.juncture != pqxx::array_parser::juncture::done) {
-		result.push_back(static_cast<T>(item.value));
-		item = parser_item{array_parser.get_next()};
-	}
-	return result;
-}
-
-/**
  * @brief Returns a sorted vector of a guild's roles.
  * @param guild The guild to fetch the roles from.
  * @param descending Whether to sort them by descending or ascending.
  * @return A sorted vector of guild roles.
  */
-shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &guild, bool descending = true);
+shared_vector<dpp::role> get_roles_sorted(const guild_ptr& guild, bool descending = true);
 
 /**
  * @brief Returns a sorted vector of a dpp::guild_member's roles.
@@ -185,6 +167,14 @@ shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &gui
  * @return A sorted vector of member roles.
  */
 shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool descending = true);
+
+/**
+ * 
+ * @param guild Guild to get the protected roles for.
+ * @param connection Database connection object.
+ * @return A unique vector of dpp::role shared pointers.
+ */
+shared_vector<dpp::role> get_guild_protected_roles(const guild_ptr& guild, const connection_ptr& connection);
 
 /**
  * @brief Parses a timestamp string into a std::chrono::time_point

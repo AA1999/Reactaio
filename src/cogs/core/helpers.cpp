@@ -3,6 +3,8 @@
 //
 
 #include "helpers.h"
+
+#include "algorithm.h"
 #include "strings.h"
 
 #include <algorithm>
@@ -98,7 +100,7 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 	return res;
 }
 
-shared_vector<dpp::role> get_roles_sorted(const std::shared_ptr<dpp::guild> &guild, bool descending) {
+shared_vector<dpp::role> get_roles_sorted(const guild_ptr &guild, bool descending) {
 	shared_vector<dpp::role> roles;
 	auto guild_roles = guild->roles;
 	roles.reserve(guild_roles.size());
@@ -113,10 +115,24 @@ shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool 
 	shared_vector<dpp::role> roles;
 	auto member_roles = member.get_roles();
 	roles.reserve(member_roles.size());
-	for(auto const& role_id: member_roles)
+	for (auto const &role_id: member_roles)
 		roles.insert(dpp::find_role(role_id));
-	if(descending)
+	if (descending)
 		roles.reverse();
+	return roles;
+}
+
+shared_vector<dpp::role> get_guild_protected_roles(const guild_ptr& guild, const connection_ptr& connection) {
+	pqxx::work transaction{*connection};
+	auto const protected_roles_row = transaction.exec_prepared1("protect roles", std::to_string(guild->id));
+	if(protected_roles_row["protected_roles"].is_null())
+		return {};
+	shared_vector<dpp::role> roles;
+	auto const protected_roles_array = protected_roles_row["protected_roles"].as_sql_array<dpp::snowflake>();
+	reactaio::transform(protected_roles_array, roles, [](dpp::snowflake const& role_id) {
+		return std::make_shared<dpp::role>(*find_role(role_id));
+	});
+
 	return roles;
 }
 
