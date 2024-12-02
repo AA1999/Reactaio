@@ -28,10 +28,9 @@ namespace reactaio {
 	 */
 	template <typename T, typename UnaryPred>
 	constexpr void copy_if(internal::unique_vector<T> const& input, internal::unique_vector<T>& output, UnaryPred pred) {
-		std::ranges::for_each(input, [&output, pred](auto const& element) {
+		for(auto const& element: input)
 			if(pred(element))
 				output.insert(element);
-		});
 	}
 
 	/**
@@ -54,10 +53,9 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void set_difference(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
-		std::ranges::for_each(range1, [&output, range2](auto const& element) {
-			if(std::ranges::find(range2, element) == range2.end())
+		for(auto const& element : range1)
+			if(!range2.contains(element))
 				output.insert(element);
-		});
 	}
 
 	/**
@@ -76,19 +74,19 @@ namespace reactaio {
 
 	/**
 	 * @brief Transforms all the elements from the first range into the second one.
-	 * @tparam T Type of the input range.
-	 * @tparam O Type of the output range.
+	 * @tparam T Type of the output range.
+	 * @tparam R Input range
 	 * @tparam Proj Custom converter type.
 	 * @param input Input range to convert.
 	 * @param output Output for the conversion.
 	 * @param proj Conversion method, a static cast by default.
 	 */
-	template <typename T, typename O, typename Proj>
-	constexpr void transform(internal::unique_vector<T> const& input, internal::unique_vector<O>& output, Proj proj = [](T const& element) -> O {return static_cast<O>(element);}) {
-		std::ranges::for_each(input, [&output, proj](auto const& element) {
+	template <typename R, typename T, typename Proj>
+	constexpr void transform(R&& input, internal::unique_vector<T>& output, Proj proj = [](T const& element) -> T {return static_cast<T>(element);}) {
+		for(auto const& element: input)
 			output.insert(proj(element));
-		});
 	}
+	
 
 	/**
 	 * @brief Copies the common elements of the two given ranges into the
@@ -99,9 +97,8 @@ namespace reactaio {
 	 */
 	template <typename T>
 	constexpr void set_intersection(internal::unique_vector<T> const& range1, internal::unique_vector<T> const& range2, internal::unique_vector<T>& output) {
-		std::ranges::for_each(range1, [&output, range2](auto const& element) {
-			if(std::ranges::find(range2, element) != range2.end())
+		for(auto const& element : range1)
+			if(range2.contains(element))
 				output.insert(element);
-		});
 	}
 }
