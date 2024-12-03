@@ -18,7 +18,6 @@ namespace reactaio::internal {
 	template<typename T>
 	class unique_vector {
 		std::vector<T> m_container;
-
 	public:
 		using iterator = typename std::vector<T>::iterator;
 		using const_iterator = typename std::vector<T>::const_iterator;
@@ -31,20 +30,17 @@ namespace reactaio::internal {
 		~unique_vector() = default;
 		unique_vector(): m_container(){}
 
-
 		/**
 		 * @brief Copy constructor.
 		 * @param other Other unique vector to copy.
 		 */
 		unique_vector(const unique_vector &other): m_container(other.m_container) {}
 
-
 		/**
 		 * @brief Move constructor.
 		 * @param other Other unique vector to move.
 		 */
 		unique_vector(unique_vector&& other) noexcept: m_container(std::move(other.m_container)) {}
-
 
 		/**
 		 * @brief Copy constructor.
@@ -57,7 +53,6 @@ namespace reactaio::internal {
 			insert_range(range);
 		}
 
-
 		/**
 		 * @brief Move constructor.
 		 * @tparam R Type of the range.
@@ -68,7 +63,6 @@ namespace reactaio::internal {
 		unique_vector(R&& range) {
 			insert_range(range);
 		}
-
 
 		/**
 		 * @brief Copy assignment operator.
@@ -82,9 +76,8 @@ namespace reactaio::internal {
 			return *this;
 		}
 
-
 		/**
-		 *
+		 * @brief Assignment operator.
 		 * @param other Other container to assign to this.
 		 * @return A reference to the updated instance.
 		 */
@@ -95,9 +88,8 @@ namespace reactaio::internal {
 			return *this;
 		}
 
-
 		/**
-		 *
+		 * @brief Assignment operator.
 		 * @tparam R Type of the given range.
 		 * @param range Range to assign to this container.
 		 * @return A reference to this instance.
@@ -110,9 +102,8 @@ namespace reactaio::internal {
 			return *this;
 		}
 
-
 		/**
-		 * @brief Equalily comparison operator.
+		 * @brief Equality comparison operator.
 		 * @param other Object to compare this to.
 		 * @return true if the underlying containers are equal.
 		 * @return false if the underlying containers are not equal.
@@ -120,7 +111,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr bool operator ==(const unique_vector& other) const {
 			return m_container == other.m_container;
 		}
-
 
 		/**
 		 * @brief Inequality comparison operator.
@@ -132,7 +122,6 @@ namespace reactaio::internal {
 			return !(this == other);
 		}
 
-
 		/**
 		 * @brief Beginning of the vector.
 		 * @return An iterator to the first element.
@@ -140,7 +129,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr iterator begin() {
 			return m_container.begin();
 		}
-
 
 		/**
 		 * @brief Beginning of the vector.
@@ -150,7 +138,6 @@ namespace reactaio::internal {
 			return m_container.begin();
 		}
 
-
 		/**
 		 * @brief Beginning of the vector.
 		 * @return A const iterator to the first element.
@@ -158,7 +145,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr const_iterator cbegin() const noexcept {
 			return m_container.cbegin();
 		}
-
 
 		/**
 		 * @brief End of the vector.
@@ -168,7 +154,6 @@ namespace reactaio::internal {
 			return m_container.end();
 		}
 
-
 		/**
 		 * @brief End of the vector.
 		 * @return A const iterator to the last element.
@@ -176,7 +161,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr const_iterator end() const {
 			return m_container.end();
 		}
-
 
 		/**
 		 * @brief End of the vector.
@@ -186,8 +170,6 @@ namespace reactaio::internal {
 			return m_container.cend();
 		}
 
-
-
 		/**
 		 * @brief First element of the vector.
 		 * @return A reference to the first element.
@@ -195,7 +177,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr reference front() {
 			return m_container.front();
 		}
-
 
 		/**
 		 * @brief First element of the vector.
@@ -222,7 +203,6 @@ namespace reactaio::internal {
 			return m_container.back();
 		}
 
-
 		/**
 		 * @brief How many elements does the vector have?
 		 * @return The size of the vector.
@@ -230,7 +210,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr size_type size() const noexcept {
 			return m_container.size();
 		}
-
 
 		/**
 		 * @brief How many elements can be added until it can no longer hold any?
@@ -240,7 +219,6 @@ namespace reactaio::internal {
 			return m_container.max_size();
 		}
 
-
 		/**
 		 * @brief Allocated capacity.
 		 * @return The maximum elements this container can have before needing to reallocate memory.
@@ -248,7 +226,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr size_type capacity() const noexcept {
 			return m_container.capacity();
 		}
-
 
 		/**
 		 * @brief Returns true if the container has no elements.
@@ -258,7 +235,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr bool empty() const noexcept {
 			return m_container.empty();
 		}
-
 
 		/**
 		 * @brief Swap elements with other container.
@@ -279,7 +255,6 @@ namespace reactaio::internal {
 				m_container.emplace(iter, value);
 		}
 
-
 		/**
 		 * @brief Moves the given element to the end of the container.
 		 * @param value The value to be moved inside the vector.
@@ -291,9 +266,8 @@ namespace reactaio::internal {
 				m_container.emplace(iter, std::move(value));
 		}
 
-
 		/**
-		 * @brief Appends a new element to the the container which is constructed with the given arguments so that it's sorted.
+		 * @brief Appends a new element to the container which is constructed with the given arguments so that it's sorted.
 		 * @tparam Args Template parameters
 		 * @param args Arguments to call the constructor of the value_type from.
 		 */
@@ -304,7 +278,6 @@ namespace reactaio::internal {
 			if(*iter != value)
 				m_container.emplace(iter, std::move(value));
 		}
-
 
 		/**
 		 * @brief Places the given range inside the container except the common elements.
@@ -318,7 +291,6 @@ namespace reactaio::internal {
 				insert(element);
 		}
 
-
 		/**
 		 * @brief Removes the last element of the container.
 		 * @return A reference to the last element that was removed.
@@ -329,7 +301,6 @@ namespace reactaio::internal {
 			return pop;
 		}
 
-
 		/**
 		 * @brief Removes all elements of the container.
 		 */
@@ -337,14 +308,12 @@ namespace reactaio::internal {
 			m_container.clear();
 		}
 
-
 		/**
 		 * @brief Reverses the order that the elements of the vector are sorted.
 		 */
 		constexpr void reverse() noexcept {
 			std::ranges::reverse(m_container);
 		}
-
 
 		/**
 		 * @brief Finds the position of the given value in the container.
@@ -355,7 +324,6 @@ namespace reactaio::internal {
 			return std::ranges::find(m_container, value);
 		}
 
-
 		/**
 		 * @brief Finds the position of the given value in the container.
 		 * @param value The value to look up.
@@ -364,7 +332,6 @@ namespace reactaio::internal {
 		[[nodiscard]] constexpr const_iterator find(const value_type& value) const {
 			return std::ranges::find(m_container, value);
 		}
-
 
 		/**
 		 * @brief Does the container contain this value?
@@ -376,7 +343,6 @@ namespace reactaio::internal {
 			return find(value) != end();
 		}
 
-
 		/**
 		 * @brief Removes element at the given position.
 		 * @param position Iterator to the element being removed.
@@ -386,18 +352,16 @@ namespace reactaio::internal {
 			return m_container.erase(position);
 		}
 
-
 		/**
 		 * 
-		 * @param fisrt Start of the range that is going to be removed.
+		 * @param first Start of the range that is going to be removed.
 		 * @param last End of the range that's going to be removed.
 		 * @return end() if last == end()
 		 * @return last if the given range is empty
 		 */
-		[[nodiscard]] constexpr iterator erase(const_iterator fisrt, const_iterator last) {
-			return m_container.erase(fisrt, last);
+		[[nodiscard]] constexpr iterator erase(const_iterator first, const_iterator last) {
+			return m_container.erase(first, last);
 		}
-
 
 		/**
 		 * @brief Removes the given value from the container.
@@ -406,7 +370,6 @@ namespace reactaio::internal {
 		constexpr void erase(const value_type& value) {
 			std::erase(m_container, value);
 		}
-
 
 		/**
 		 * @brief Random access lookup function.
@@ -418,7 +381,6 @@ namespace reactaio::internal {
 			return m_container.at(index);
 		}
 
-
 		/**
 		 * @brief Random access lookup function.
 		 * @param index The element index
@@ -429,7 +391,6 @@ namespace reactaio::internal {
 			return m_container.at(index);
 		}
 
-
 		/**
 		 * @brief Random access lookup operator. No bounds checking.
 		 * @param index The index for the lookup.
@@ -438,7 +399,6 @@ namespace reactaio::internal {
 		[[nodiscard]] reference operator[](size_type index) {
 			return m_container[index];
 		}
-
 
 		/**
 		 * @brief Random access lookup operator. No bounds checking.
@@ -449,7 +409,6 @@ namespace reactaio::internal {
 			return m_container[index];
 		}
 
-
 		/**
 		 * @brief Increases the capacity (How many elements it can hold without memory reallocation) of the vector to the given number.
 		 * @param new_size The size to reserve for the vector.
@@ -458,7 +417,6 @@ namespace reactaio::internal {
 			m_container.reserve(new_size);
 		}
 
-
 		/**
 		 * @brief Resizes the container to the given size. Does nothing if new_size == size().
 		 * @param new_size New size of the container.
@@ -466,8 +424,7 @@ namespace reactaio::internal {
 		constexpr void resize(size_type new_size) {
 			m_container.resize(new_size);
 		}
-
-
+		
 		/**
 		 * @brief Resizes the container with the given values until the size is increased to the given size. Does nothing if new_size == size().
 		 * @param new_size New size of the container.
