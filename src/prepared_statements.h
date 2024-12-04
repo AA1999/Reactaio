@@ -61,6 +61,6 @@ namespace reactaio::internal {
 		{"update_warning", "UPDATE warnings SET reason = $1 WHERE user = $2 AND guild = $3"},
 		{"clear_warnings", "DELETE FROM warnings WHERE user_id = $1 AND guild_id = $2 RETURNING user_id"},
 		{"clear_guild_warnings", "DELETE FROM warnings WHERE guild_id = $1 RETURNING guild_id"},
-		{"get_mod_perm_roles", "SELECT role_id FROM role_perms_moderation WHERE guild_id = $1 AND "}
+		{"get_mod_perm_roles", "SELECT role_id FROM role_perms_moderation WHERE guild_id = $1 AND permission = $2"}
 	};
 }
