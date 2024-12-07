@@ -23,8 +23,9 @@ class recursive_wrapper: public command_wrapper{
 	void wrapper_function() override = 0;
 
 	/**
-	*@brief Recursive call needed to get all the data.
-	*/
+	 * @brief Recursive call to store all the fetched items.
+	 * @param after Get all items after this value.
+	 */
 	virtual void recursive_call(dpp::snowflake after = 1) = 0;
 public:
 
