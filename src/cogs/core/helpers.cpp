@@ -7,7 +7,6 @@
 #include "algorithm.h"
 #include "strings.h"
 
-#include <algorithm>
 #include <string>
 #include <sstream>
 #include <chrono>
@@ -92,7 +91,8 @@ std::optional<reactaio::internal::duration> parse_human_time(std::string_view co
 				if (contains(names, unit))
 					res.values.at(j) += static_cast<uint64_t>(number);
 			}
-		} else
+		}
+		else
 			// one of the values isn't of the correct format
 			// eg: 2 numbers, or 2 words in a row
 			return std::nullopt;
@@ -122,15 +122,28 @@ shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool 
 	return roles;
 }
 
-shared_vector<dpp::role> get_guild_protected_roles(const guild_ptr& guild, const connection_ptr& connection) {
-	pqxx::work transaction{*connection};
-	auto const protected_roles_row = transaction.exec_prepared1("protect roles", std::to_string(guild->id));
-	if(protected_roles_row["protected_roles"].is_null())
+shared_vector<dpp::role> get_guild_protected_roles(discord_command const& command) {
+	pqxx::work transaction{*command.connection};
+	auto const protected_roles_row = transaction.exec_prepared1("protected_roles", std::to_string(command.guild->id));
+	if (protected_roles_row["protected_roles"].is_null())
 		return {};
 	shared_vector<dpp::role> roles;
 	auto const protected_roles_array = protected_roles_row["protected_roles"].as_sql_array<dpp::snowflake>();
-	reactaio::transform(protected_roles_array, roles, [](dpp::snowflake const& role_id) {
+	reactaio::transform(protected_roles_array, roles, [](dpp::snowflake const &role_id) {
 		return std::make_shared<dpp::role>(*find_role(role_id));
+	});
+
+	return roles;
+}
+
+shared_vector<dpp::role> get_mod_perm_roles(discord_command const& command, const std::string_view& command_name) {
+	pqxx::work transaction{*command.connection};
+	auto const mod_role_query = transaction.exec_prepared("get_mod_perm_roles", std::to_string(command.guild->id), command_name);
+	if(mod_role_query.empty())
+		return {};
+	shared_vector<dpp::role> roles;
+	reactaio::transform(mod_role_query, roles, [](pqxx::row const& row) {
+		return std::make_shared<dpp::role>(*find_role(row["role_id"].as<dpp::snowflake>()));
 	});
 
 	return roles;
@@ -139,6 +152,6 @@ shared_vector<dpp::role> get_guild_protected_roles(const guild_ptr& guild, const
 std::chrono::time_point<std::chrono::system_clock> parse_psql_timestamp(std::string_view const timestamp, std::string_view const format) {
 	std::chrono::sys_seconds time_point;
 	std::istringstream parser{std::string{timestamp}};
-	parser >> std::chrono::parse(std::string{format}, time_point);
+	parser >> parse(std::string{format}, time_point);
 	return std::chrono::system_clock::from_time_t(time_point.time_since_epoch().count());
 }
