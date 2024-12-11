@@ -41,7 +41,7 @@ namespace reactaio::internal {
 	// clang-format on
 
 	struct duration {
-		std::array<std::uint64_t, TIME_PARTS_COUNT> values{0};
+		std::array<std::uint64_t, TIME_PARTS_COUNT> values{};
 
 		/**
 		 * @brief years - Returns the years of a duration.
@@ -161,16 +161,16 @@ namespace reactaio::internal {
 		 * @brief Constructor used to read the database data
 		 * @param duration_string The string duration read from the database query.
 		 */
-		explicit duration(std::string_view duration_string) {
-			auto tokens = split(duration_string, std::string_view{" "});
+		explicit duration(const std::string_view duration_string) {
+			auto const tokens = split(duration_string, std::string_view{" "});
 			for(auto const& token: tokens) {
-				auto number = std::stoull(remove_alpha(token));
+				auto const number = std::stoull(remove_alpha(token));
 				auto ending = remove_numeric(token);
 				auto find = std::ranges::find_if(units, [ending](std::pair<chr::seconds, std::vector<std::string>> const &element) {
 					return element.second.front() == ending || element.second.back() == ending;
 				});
 				if (find != units.end()) {// Should always be true but a failsafe
-					auto index = std::ranges::distance(units.begin(), find);
+					auto const index = std::ranges::distance(units.begin(), find);
 					values.at(index) = number;
 				}
 			}
@@ -189,10 +189,10 @@ namespace reactaio::internal {
 
 		/**
 		 * @brief to_string - Converts this object to a string format.
-		 * @param shortened Should days be converted to d etc in the final string
+		 * @param shortened Should days be converted to d etc. in the final string
 		 * @return The string format of this object. Like 5d 5m or 5 days 5minutes if not a shortened version.
 		 */
-		[[nodiscard]] std::string to_string(bool shortened = false) const {
+		[[nodiscard]] std::string to_string(bool const shortened = false) const {
 			std::string res;
 
 			for (int i = time::years; i <= time::seconds; ++i) {
