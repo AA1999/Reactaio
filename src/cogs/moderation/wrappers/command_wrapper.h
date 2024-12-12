@@ -46,6 +46,16 @@ protected:
 	 */
 	virtual void wrapper_function() = 0;
 
+	/**
+	 * @brief Logs the command being invoked.
+	 * @param name Name of the command. Must be one of mod_action.h strings.
+	 */
+	void log_command_invoke(std::string_view const& name) const;
+
+	/**
+	 * @brief Call the error webhook and send the error there.
+	 */
+	void invoke_error_webhook();
 
 public:
 	virtual ~command_wrapper() = default;
@@ -56,8 +66,10 @@ public:
 	 * @brief The constructor for the wrapper.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	explicit command_wrapper(moderation_command command)
-	    : duration(parse_human_time(command.duration)), command(std::move(command)) {}
+	explicit command_wrapper(moderation_command command) : duration(parse_human_time(command.duration)), command(std::move(command)) {
+		replace_all(command.reason, "@everyone", "");
+		replace_all(command.reason, "@here", "");
+	}
 
 
 	/**
