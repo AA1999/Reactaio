@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include "../moderation/modules/moderation_command.h"
 #include "aliases.h"
-#include "discord/duration.h"
 #include "discord/discord_command.h"
+#include "discord/duration.h"
 
 #include <dpp/dpp.h>
 #include <format>
@@ -166,6 +167,13 @@ shared_vector<dpp::role> get_roles_sorted(const guild_ptr& guild, bool descendin
  * @return A sorted vector of member roles.
  */
 shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool descending = true);
+
+/**
+ *
+ * @param command Command context containing the guild/connection/reason/duration etc.
+ * @param name
+ */
+void insert_modlog(moderation_command const& command, std::string_view const& name);
 
 /**
  * @brief Gets the protected roles for a guild.
