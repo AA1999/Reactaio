@@ -13,7 +13,7 @@
  * @brief Functor wrapper for audit logs management.
  */
 class audit_log_wrapper final: public recursive_wrapper {
-	shared_vector<dpp::audit_entry> audit_entries_;
+	shared_vector<dpp::audit_entry> m_audit_entries;
 
 	/**
 	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
@@ -27,6 +27,7 @@ class audit_log_wrapper final: public recursive_wrapper {
 
 	/**
 	 * @brief Captures the audit logs for the guild.
+	 * @param after Calls the recursive function for after this value.
 	 */
 	void recursive_call(dpp::snowflake after = 1) override;
 
