@@ -36,13 +36,13 @@ protected:
 
 	/**
 	 * 	@brief Checks if the user issuing the wrapper has the sufficient permission.
-	 * 	@note This is an abstract function.
+	 * 	@note This is an abstract method.
 	 */
 	virtual void check_permissions() = 0;
 
 	/**
-	 * 	@brief The main function that manages every internal working of the wrapper and the three processes that are performed.
-	 * 	@note This is an abstract function.
+	 * 	@brief The main method that manages every internal working of the wrapper and the three processes that are performed.
+	 * 	@note This is an abstract method.
 	 */
 	virtual void wrapper_function() = 0;
 
@@ -56,6 +56,24 @@ protected:
 	 * @brief Call the error webhook and send the error there.
 	 */
 	void invoke_error_webhook();
+
+	/**
+	 * @brief Gets the protected role for the guild that the command is called in.
+	 */
+	void get_protected_roles() const;
+
+	/**
+	 * @brief Gets the roles that are permitted to run this command.
+	 * @param command_name The command name that the mod perms are being retrieved for.
+	 */
+	void get_permitted_roles(std::string_view const& command_name) const;
+
+	/**
+	 * @brief Logs the action inside the modcase.
+	 * @param command_name The command name that the modcase is being invoked for.
+	 * @note This is an abstract method.
+	 */
+	virtual void log_modcase(std::string_view const& command_name) const = 0;
 
 public:
 	virtual ~command_wrapper() = default;
