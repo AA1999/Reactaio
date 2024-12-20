@@ -60,13 +60,13 @@ protected:
 	/**
 	 * @brief Gets the protected role for the guild that the command is called in.
 	 */
-	void get_protected_roles() const;
+	[[nodiscard]] shared_vector<dpp::role> get_protected_roles() const;
 
 	/**
 	 * @brief Gets the roles that are permitted to run this command.
 	 * @param command_name The command name that the mod perms are being retrieved for.
 	 */
-	void get_permitted_roles(std::string_view const& command_name) const;
+	[[nodiscard]] shared_vector<dpp::role> get_permitted_roles(std::string_view const &command_name) const;
 
 	/**
 	 * @brief Logs the action inside the modcase.
