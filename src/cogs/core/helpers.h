@@ -169,28 +169,6 @@ shared_vector<dpp::role> get_roles_sorted(const guild_ptr& guild, bool descendin
 shared_vector<dpp::role> get_roles_sorted(const dpp::guild_member &member, bool descending = true);
 
 /**
- *
- * @param command Command context containing the guild/connection/reason/duration etc.
- * @param name
- */
-void insert_modlog(moderation_command const& command, std::string_view const& name);
-
-/**
- * @brief Gets the protected roles for a guild.
- * @param command Command context containing the guild/connection etc.
- * @return A unique vector of dpp::role shared pointers containing the protected roles.
- */
-shared_vector<dpp::role> get_guild_protected_roles(discord_command const& command);
-
-/**
- * @brief Gets the roles allowed to run a command (aside from permissions).
- * @param command Command context containing the guild/connection etc.
- * @param command_name The moderation command name to look up the roles for.
- * @return A unique vector of dpp::role shared pointers containing the allowed roles.
- */
-shared_vector<dpp::role> get_mod_perm_roles(discord_command const& command, const std::string_view &command_name);
-
-/**
  * @brief Parses a timestamp string into a std::chrono::time_point
  * @param timestamp The timestamp to parse.
  * @param format Format to parse this timestamp to.
