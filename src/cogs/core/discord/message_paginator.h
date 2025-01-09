@@ -25,6 +25,7 @@ class message_paginator {
 	dpp::component action_row;
 	ushort current_page{0};
 	bool const use_embeds;
+	bool is_started{false};
 	std::vector<std::string> messages;
 
 	enum action: std::uint8_t {
@@ -139,6 +140,12 @@ public:
 	 * @brief start - Starts the paginator and activates the buttons.
 	 */
 	void start();
+
+	/**
+	 * @brief Sends the message paginator to the given user as a direct message.
+	 * @param user User to send the paginator to.
+	 */
+	void start(const user_ptr& user);
 
 	/**
 	 * @brief Is this an embed paginator?
