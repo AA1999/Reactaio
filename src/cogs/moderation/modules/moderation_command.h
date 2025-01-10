@@ -9,7 +9,7 @@
 
 #include <string_view>
 
-struct moderation_command : public discord_command {
+struct moderation_command: discord_command {
 	std::string reason;
 	std::string_view duration;
 	ushort delete_message_days{0};
