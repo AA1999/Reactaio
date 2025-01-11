@@ -34,6 +34,12 @@ class ban_wrapper final: public hybrid_wrapper {
 	void process_response();
 
 	/**
+	 * @brief Check if all members in the member list are permitted to be banned.
+	 * @param protected_roles Protected roles that are immune to moderation commands. Obtained in check_permissions()
+	 */
+	void check_ban_possible(shared_vector<dpp::role> const& protected_roles);
+
+	/**
 	 * @brief This is a function that's called when an API call is made.
 	 * @param completion
 	 * @param user The user object the comeback is
