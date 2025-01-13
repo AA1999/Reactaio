@@ -15,6 +15,12 @@ class kick_wrapper final: public member_wrapper {
 	void wrapper_function() override;
 
 	/**
+	 * @brief Checks if all the members can be kicked.
+	 * @param protected_roles Roles immune to moderation commands. Obtained in check_permissions.
+	 */
+	void check_kick_possible(shared_vector<dpp::role> const& protected_roles);
+
+	/**
 	 * @brief Checks if the command invoker has the appropriate permissions to perform the operation (including the bot itself).
 	 * @note This is called internally and will return the result via the wrapper_function() function.
 	 */
@@ -38,7 +44,7 @@ class kick_wrapper final: public member_wrapper {
 	 */
 	void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] member_ptr const &member) override;
 
-  public:
+public:
 	using member_wrapper::member_wrapper;
 
 	~kick_wrapper() override = default;
