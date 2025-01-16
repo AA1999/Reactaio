@@ -28,7 +28,7 @@ void kick_wrapper::wrapper_function() {
 	process_response();
 }
 
-void kick_wrapper::check_permissions() {
+void kick_wrapper::check_kick_possible(shared_vector<dpp::role> const& protected_roles) {
 	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
@@ -37,31 +37,11 @@ void kick_wrapper::check_permissions() {
 
 	bool is_owner{false};
 
-	pqxx::work transaction{*command.connection};
-	auto protected_roles_query = transaction.exec_prepared("protected_roles", std::to_string(command.guild->id));
-	transaction.commit();
-
-	if(!bot_top_role->has_kick_members()) {
-		cancel_operation = true;
-		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check if the bot has Kick Members permission.");
-	}
-
-	shared_vector<dpp::role> protected_roles;
-
-	if(!protected_roles_query.empty()) {
-		auto protected_roles_field = protected_roles_query[0]["protected_roles"];
-		internal::unique_vector<dpp::snowflake> protected_role_snowflakes = parse_psql_array<dpp::snowflake>(protected_roles_field);
-		reactaio::transform(protected_role_snowflakes, protected_roles, [](auto const& role_id) {
-			return std::make_shared<dpp::role>(*dpp::find_role(role_id));
-		});
-	}
-
-
-	for(auto const& member: members) {
+	for(auto const &member: members) {
 		auto member_roles = get_roles_sorted(*member);
-		auto member_top_role = *member_roles.begin();
+		auto const& member_top_role = member_roles.front();
 
-		if(command.author->user_id == member->user_id) { // If for some reason you decided to kick yourself lol
+		if(command.author->user_id == member->user_id) {// iffor some reason you decided to kick yourself lol
 			if(member->is_guild_owner()) {
 				errors.emplace_back("❌ Why are you kicking yourself, server owner? lmfao");
 				is_owner = true;
@@ -78,7 +58,7 @@ void kick_wrapper::check_permissions() {
 		}
 
 
-		if(command.bot->me.id == member->user_id) { // If you decided to kick the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) {// ifyou decided to kick the bot (ReactAIO)
 			errors.emplace_back("❌ Can't kick myself lmfao.");
 			cancel_operation = true;
 		}
@@ -88,10 +68,10 @@ void kick_wrapper::check_permissions() {
 			shared_vector<dpp::role> member_protected_roles;
 			reactaio::set_intersection(protected_roles, member_roles, member_protected_roles);
 
-			if(!member_protected_roles.empty()) { // If member has any of the protected roles.
+			if(!member_protected_roles.empty()) {// ifmember has any of the protected roles.
 				cancel_operation = true;
 				std::vector<std::string> role_mentions;
-				std::ranges::transform(member_protected_roles, std::back_inserter(role_mentions), [](const role_ptr& role){
+				std::ranges::transform(member_protected_roles, std::back_inserter(role_mentions), [](const role_ptr &role) {
 					return role->get_mention();
 				});
 				std::string role_mentions_str = join(role_mentions, " , ");
@@ -112,6 +92,35 @@ void kick_wrapper::check_permissions() {
 			cancel_operation = true;
 		}
 	}
+}
+
+void kick_wrapper::check_permissions() {
+	auto const bot_member = find_guild_member(command.guild->id, command.bot->me.id);
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const &bot_top_role = bot_roles.front();
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const &author_top_role = author_roles.front();
+
+	pqxx::work transaction{*command.connection};
+
+	if(!bot_top_role->has_kick_members()) {
+		cancel_operation = true;
+		errors.emplace_back("❌ Bot lacks the appropriate permissions. Please check ifthe bot has Kick Members permission.");
+	}
+
+	auto const protected_roles = get_protected_roles();
+
+	auto const roles = get_permitted_roles(internal::mod_action_name::KICK);
+
+	bool command_permitted{true};
+
+	if(roles.empty() && !author_top_role->has_kick_members() || (!roles.empty() && !author_top_role->has_kick_members() && !roles.contains(author_top_role))) {
+		cancel_operation = true;
+		command_permitted = false;
+		errors.emplace_back("❌ You do not have permission to run this command.");
+	}
+	if(command_permitted)
+		check_kick_possible(protected_roles);
 
 	if(cancel_operation) {
 		auto organized_errors = join_with_limit(errors, bot_max_embed_chars);
@@ -120,7 +129,7 @@ void kick_wrapper::check_permissions() {
 								  .set_title("Error while kicking member(s): ")
 								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
-		for (auto const &error: organized_errors) {
+		for(auto const &error: organized_errors) {
 			auto embed{base_embed};
 			embed.set_description(error);
 			error_message.add_embed(embed);
@@ -134,44 +143,24 @@ void kick_wrapper::check_permissions() {
 				paginator.start();
 			}
 		}
-		else {
-			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
-			transaction.commit();
-			auto const bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
-			if(!bot_error_webhook_url_field.is_null()) {
-				auto bot_error_webhook_url = bot_error_webhook_url_field.as<std::string>();
-				dpp::webhook bot_error_webhook{bot_error_webhook_url};
-				command.bot->execute_webhook(bot_error_webhook, error_message);
-			}
-			else {
-				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
-										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author->user_id, error_message);
-			}
-		}
+		else
+			invoke_error_webhook();
 	}
 }
 
 void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion, member_ptr const &member) {
-	if (completion.is_error()) {
+	if(completion.is_error()) {
 		auto const error = completion.get_error();
 		errors.emplace_back(std::format("❌ Unable to kick user **{}**. Error code {}: {}.", member->get_user()->format_username(), error.code, error.human_readable));
 		members_with_errors.insert(member);
 	}
-	else {
-		auto transaction = pqxx::work{*command.connection};
-		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-		auto const max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-								  internal::mod_action_name::KICK, std::to_string(command.author->user_id),
-								  std::to_string(member->user_id), command.reason);
-		transaction.commit();
-	}
+	else
+		log_modcase(internal::mod_action_name::KICK);
 }
 
 void kick_wrapper::process_kicks() {
-	for (auto const& member : members) {
-		if (command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
+	for(auto const& member : members) {
+		if(command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
 			command.bot->direct_message_create(
 				member->user_id,
 				dpp::message(std::format("You have been kicked from {} by {}. Reason: {}.", command.guild->name,
@@ -187,7 +176,7 @@ void kick_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
 	auto const* author_user = command.author->get_user();
 
-	if (has_error()) {
+	if(has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed	= dpp::embed()
@@ -200,16 +189,16 @@ void kick_wrapper::process_response() {
 			message.add_embed(base_embed);
 		}
 		else {
-			for (auto const& error : format_split) {
+			for(auto const& error : format_split) {
 				auto embed{base_embed};
 				embed.set_description(error);
 				message.add_embed(embed);
 			}
 		}
 
-		if (command.interaction) {
+		if(command.interaction) {
 			if(are_all_errors())
-				message.set_flags(dpp::m_ephemeral);// If there's no successful kick, no reason to show the errors publicly.
+				message.set_flags(dpp::m_ephemeral);// ifthere's no successful kick, no reason to show the errors publicly.
 			if(format_split.size() == 1 && are_all_errors())
 				(*command.interaction)->edit_response(message);
 			else if(format_split.size() > 1 && are_all_errors()) {
@@ -217,35 +206,10 @@ void kick_wrapper::process_response() {
 				paginator.start();
 			}
 		}
-		else {
-			// Get bot error webhook
-			auto automod_log = dpp::message();
-			auto transaction  = pqxx::work{*command.connection};
-			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
-			transaction.commit();
-			if(webhook_url_query.empty()) { // Bot has no error webhook set.
-				automod_log.set_content("This server hasn't set a channel for bot errors. So the errors are being sent to your DMs:");
-				for (auto const& error : format_split) {
-					auto embed{base_embed};
-					embed.set_description(error);
-					automod_log.add_embed(embed);
-				}
-				command.bot->direct_message_create(command.author->user_id, automod_log);
-			}
-			else {
-				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
-				dpp::webhook automod_webhook{webhook_url};
-				for (auto const& error : format_split) {
-					auto embed{base_embed};
-					embed.set_description(error);
-					automod_log.add_embed(embed);
-				}
-				command.bot->execute_webhook(automod_webhook, automod_log);
-			}
-
-		}
+		else
+			invoke_error_webhook();
 	}
-	if (!are_all_errors()) {
+	if(!are_all_errors()) {
 		shared_vector<dpp::guild_member> kicked_members;
 		std::vector<std::string> kicked_usernames;
 		std::vector<std::string> kicked_mentions;
@@ -270,7 +234,7 @@ void kick_wrapper::process_response() {
 		std::string description;
 		std::string gif_url;
 
-		if (kicked_members.size() == 1) {
+		if(kicked_members.size() == 1) {
 			title		= "Kicked";
 			description = std::format("{} has been kicked.", usernames);
 			gif_url		= "https://tenor.com/view/yeet-lion-king-simba-rafiki-throw-gif-16194362";
@@ -288,11 +252,9 @@ void kick_wrapper::process_response() {
 								.set_description(description)
 								.set_image(gif_url)
 								.set_timestamp(time_now)
-								.set_footer(dpp::embed_footer().set_text(std::format("We're now at {} members.",
-							                                                     non_bot_members(command.guild))));
+								.set_footer(dpp::embed_footer().set_text(std::format("We're now at {} members.", non_bot_members(command.guild))));
 		response.add_field("Moderator: ", author_user->get_mention());
 		response.add_field("Reason: ", command.reason);
-
 		message.add_embed(response);
 	
 		// Modlogs
@@ -366,18 +328,14 @@ void kick_wrapper::process_response() {
 			command.bot->execute_webhook(public_modlog_webhook, log);
 		}
 	}
-	if (command.interaction) {
+	if(command.interaction) {
 		if(message.embeds.size() > 2) {
 			message_paginator paginator{message, command};
 			paginator.start();
 		}
 		else
 			(*command.interaction)->edit_response(message);
-		// Log command call
-		pqxx::work transaction{*command.connection};
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-																 internal::mod_action_name::KICK, dpp::utility::current_date_time());
-		transaction.commit();
+		log_command_invoke(internal::mod_action_name::KICK);
 	}
 	else
 		command.bot->message_create(message);
