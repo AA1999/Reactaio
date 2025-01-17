@@ -71,6 +71,7 @@ shared_vector<dpp::role> command_wrapper::get_protected_roles() const {
 shared_vector<dpp::role> command_wrapper::get_permitted_roles(std::string_view const& command_name) const {
 	pqxx::work transaction{*command.connection};
 	auto const mod_role_query = transaction.exec_prepared("get_mod_perm_roles", std::to_string(command.guild->id), command_name);
+	transaction.commit();
 	if(mod_role_query.empty())
 		return {};
 	shared_vector<dpp::role> roles;
