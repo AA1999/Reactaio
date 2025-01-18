@@ -19,6 +19,12 @@ class hardban_wrapper final: public hybrid_wrapper {
 	void wrapper_function() override;
 
 	/**
+	 * @brief Checks if the members can be hardbanned
+	 * @param protected_roles Protected roles received by the wrapper.
+	 */
+void check_hardban_possible(shared_vector<dpp::role> const& protected_roles);
+
+	/**
 	 * @brief Checks if the harban operation(s) can be performed (bot perms, author being owner etc)
 	 */
 	void check_permissions() override;
