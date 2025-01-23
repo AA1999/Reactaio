@@ -21,12 +21,12 @@ void unban_wrapper::wrapper_function() {
 }
 
 void unban_wrapper::check_permissions() {
-	auto* bot_user = &command.bot->me;
-	auto author_roles = get_roles_sorted(*command.author);
-	auto bot_member = dpp::find_guild_member(command.guild->id, bot_user->id);
-	auto author_top_role = author_roles.front();
-	auto bot_roles = get_roles_sorted(bot_member);
-	auto bot_top_role = bot_roles.front();
+	auto const* bot_user = &command.bot->me;
+	auto const author_roles = get_roles_sorted(*command.author);
+	auto const bot_member = find_guild_member(command.guild->id, bot_user->id);
+	auto const& author_top_role = author_roles.front();
+	auto const bot_roles = get_roles_sorted(bot_member);
+	auto const& bot_top_role = bot_roles.front();
 
 	if(!bot_top_role->has_ban_members()) {
 		cancel_operation = true;
@@ -63,7 +63,7 @@ void unban_wrapper::check_permissions() {
 		auto time_now = std::time(nullptr);
 		auto base_embed = dpp::embed()
 								  .set_title("Error while unbanning user(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 								  .set_timestamp(time_now);
 		for (auto const &error: organized_errors) {
 			auto embed{base_embed};
@@ -79,20 +79,8 @@ void unban_wrapper::check_permissions() {
 				paginator.start();
 			}
 		}
-		else {
-			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
-			transaction.commit();
-			auto bot_error_webhook_url_field = webhook_url_query[0]["bot_error_logs"];
-			if (!bot_error_webhook_url_field.is_null()) {
-				auto bot_error_webhook_url = bot_error_webhook_url_field.as<std::string>();
-				dpp::webhook bot_error_webhook{bot_error_webhook_url};
-				command.bot->execute_webhook(bot_error_webhook, error_message);
-			} else {
-				error_message.set_content("This server hasn't set a channel for bot errors. So the errors are being "
-										  "sent to your DMs:");
-				command.bot->direct_message_create(command.author->user_id, error_message);
-			}
-		}
+		else
+			invoke_error_webhook();
 	}
 }
 
@@ -107,7 +95,7 @@ void unban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completi
 	auto max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
 	auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
 	transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-							  reactaio::internal::mod_action_name::UNBAN, std::to_string(command.author->user_id), std::to_string(user->id),
+							  internal::mod_action_name::UNBAN, std::to_string(command.author->user_id), std::to_string(user->id),
 							  command.reason);
 	transaction.commit();
 }
@@ -129,7 +117,7 @@ void unban_wrapper::process_response() {
 		auto const time_now = std::time(nullptr);
 		auto base_embed	= dpp::embed()
 								  .set_title("Error while unbanning user(s): ")
-								  .set_color(color::ERROR_COLOR)
+								  .set_color(ERROR_COLOR)
 
 								  .set_timestamp(time_now);
 		if(format_split.size() == 1) {
@@ -154,32 +142,8 @@ void unban_wrapper::process_response() {
 				paginator.start();
 			}
 		}
-		else {
-			// Get bot error webhook
-			auto automod_log = dpp::message();
-			auto transaction  = pqxx::work{*command.connection};
-			auto webhook_url_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
-			transaction.commit();
-			if(webhook_url_query.empty()) { // Bot has no error webhook set.
-				automod_log.set_content("This server hasn't set a channel for bot errors. So the errors are being sent to your DMs:");
-				for (auto const& error : format_split) {
-					auto embed{base_embed};
-					embed.set_description(error);
-					automod_log.add_embed(embed);
-				}
-				command.bot->direct_message_create(command.author->user_id, automod_log);
-			}
-			else {
-				auto webhook_url = webhook_url_query[0]["bot_error_logs"].as<std::string>();
-				dpp::webhook automod_webhook{webhook_url};
-				for (auto const& error : format_split) {
-					auto embed{base_embed};
-					embed.set_description(error);
-					automod_log.add_embed(embed);
-				}
-				command.bot->execute_webhook(automod_webhook, automod_log);
-			}
-		}
+		else
+			invoke_error_webhook();
 	}
 	if (!are_all_errors()) {
 		shared_vector<dpp::user> unbanned_users;
@@ -218,7 +182,7 @@ void unban_wrapper::process_response() {
 		auto reason_str = std::string{command.reason};
 
 		auto response = dpp::embed()
-								.set_color(color::RESPONSE_COLOR)
+								.set_color(RESPONSE_COLOR)
 								.set_title(title)
 								.set_description(description)
 								.set_image(gif_url)
@@ -247,7 +211,7 @@ void unban_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-									.set_color(color::LOG_COLOR)
+									.set_color(LOG_COLOR)
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
@@ -271,7 +235,7 @@ void unban_wrapper::process_response() {
 			}
 			time_now = std::time(nullptr);
 			auto kick_log = dpp::embed()
-									.set_color(color::UNBAN_COLOR)
+									.set_color(UNBAN_COLOR)
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
@@ -288,8 +252,8 @@ void unban_wrapper::process_response() {
 			std::string embed_title = unbanned_users.size() > 1 ? "Users unbanned: " : "User unbanned: ";
 			std::string embed_image_url = unbanned_users.size() > 1 ? unbanned_users.at(0)->get_avatar_url() : "";
 			time_now = std::time(nullptr);
-			auto kick_log = dpp::embed()
-									.set_color(color::LOG_COLOR)
+			auto unban_log = dpp::embed()
+									.set_color(LOG_COLOR)
 									.set_title(embed_title)
 									.set_thumbnail(embed_image_url)
 									.set_timestamp(time_now)
@@ -297,7 +261,7 @@ void unban_wrapper::process_response() {
 									.add_field("Moderator: ", command.author->get_mention())
 									.add_field("Reason: ", std::string{command.reason});
 			dpp::message log{command.channel_id, ""};
-			log.add_embed(kick_log);
+			log.add_embed(unban_log);
 			command.bot->execute_webhook(public_modlog_webhook, log);
 		}
 	}
@@ -308,11 +272,7 @@ void unban_wrapper::process_response() {
 		}
 		else
 			(*command.interaction)->edit_response(message);
-		// Log command call
-		pqxx::work transaction{*command.connection};
-		transaction.exec_prepared("command_insert", std::to_string(command.guild->id), std::to_string(command.author->user_id),
-								  reactaio::internal::mod_action_name::UNBAN, dpp::utility::current_date_time());
-		transaction.commit();
+		log_command_invoke(internal::mod_action_name::UNBAN);
 	}
 	else
 		command.bot->message_create(message);
