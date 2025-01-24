@@ -30,10 +30,17 @@ protected:
 
 	/**
 	 * @brief This is a function that's called when an API call is made.
-	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
+	 * @param completion On success, the callback will contain a dpp::confirmation object in confirmation_callback_t::value.
+	 * On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param member Member object that the callback is made on.
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] member_ptr const &member) = 0;
+
+	/**
+	 * @brief Logs the modcase for each of the members in the wrapper.
+	 * @param command_name The command name to include in the log.
+	 */
+	void log_modcase(std::string_view const& command_name) const override;
 
 public:
 	~member_wrapper() override = default;
@@ -43,7 +50,7 @@ public:
 	member_wrapper(member_wrapper &&other) = delete;
 
 	/**
-	 * @brief The main constructor of the class used to fetch data from the
+	 * @brief The main constructor of the class used to fetch data from the command.
 	 * @param members The list of the guild members
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
