@@ -35,10 +35,17 @@ protected:
 
 	/**
 	 * @brief This is a function that's called when an API call is made.
-	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
+	 * @param completion On success, the callback will contain a dpp::confirmation object in confirmation_callback_t::value.
+	 * On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
-	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, user_ptr const &user) = 0;
+	virtual void lambda_callback(dpp::confirmation_callback_t const& completion, user_ptr const& user) = 0;
+
+	/**
+	 * @brief Logs the moderation action in the modcase database.
+	 * @param command_name The command name to log in the modcase.
+	 */
+	void log_modcase(std::string_view const& command_name) const override;
 
 public:
 
