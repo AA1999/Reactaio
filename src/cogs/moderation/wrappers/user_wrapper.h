@@ -9,7 +9,7 @@
 /**
  * @brief A wrapper used to process commands of dpp::user* elements.
  */
-class user_wrapper : public command_wrapper {
+class user_wrapper: public command_wrapper {
 protected:
 	shared_vector<dpp::user> users;
 	shared_vector<dpp::user> users_with_errors;
@@ -26,18 +26,23 @@ protected:
 	 */
 	void wrapper_function() override = 0;
 
-
+	/**
+	 * @brief Logs the moderation action in the database.
+	 * @param command_name The name of the command to log the mod case for.
+	 */
+	void log_modcase(std::string_view const& command_name) const override;
 
 	/**
-	 * @brief This is a function that's called when an API call is made.
-	 * @param completion On success the callback will contain a dpp::confirmation object in confirmation_callback_t::value. On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
+	 * @brief This is a function called when an API call is made.
+	 * @param completion On success, the callback will contain a dpp::confirmation object in confirmation_callback_t::value.
+	 * On failure, the value is undefined and confirmation_callback_t::is_error() method will return true.
 	 * @param user User object that the callback is made on.
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, [[maybe_unused]] user_ptr const &user) = 0;
 
 public:
 	/**
-	 * @brief The constructor used to recive the data from the command.
+	 * @brief The constructor used to receive the data from the command.
 	 * @param users The list of dpp::user* objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
