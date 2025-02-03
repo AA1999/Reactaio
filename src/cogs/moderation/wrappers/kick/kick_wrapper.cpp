@@ -109,7 +109,6 @@ void kick_wrapper::check_permissions() {
 	}
 
 	auto const protected_roles = get_protected_roles();
-
 	auto const roles = get_permitted_roles(internal::mod_action_name::KICK);
 
 	bool command_permitted{true};
@@ -161,10 +160,9 @@ void kick_wrapper::lambda_callback(const dpp::confirmation_callback_t &completio
 void kick_wrapper::process_kicks() {
 	for(auto const& member : members) {
 		if(command.interaction) { // If this is automod, DMing lots of users WILL result in a ratelimit
-			command.bot->direct_message_create(
-				member->user_id,
+			command.bot->direct_message_create(member->user_id,
 				dpp::message(std::format("You have been kicked from {} by {}. Reason: {}.", command.guild->name,
-										 member->get_user()->format_username(), command.reason)));
+				member->get_user()->format_username(), command.reason)));
 		}
 		command.bot->set_audit_reason(std::format("Kicked by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_member_kick(command.guild->id, member->user_id, [this, member](auto const& completion) {
 			lambda_callback(completion, member);
@@ -260,11 +258,10 @@ void kick_wrapper::process_response() {
 		// Modlogs
 
 		auto transaction = pqxx::work{*command.connection};
-		auto query = transaction.exec_prepared("kick_modlog", std::to_string(command.guild->id));
+		auto query = transaction.exec_prepared1("kick_modlog", std::to_string(command.guild->id));
 		transaction.commit();
-		auto const member_kick_webhook_url = query[0]["member_kick"];
-		if(!member_kick_webhook_url.is_null()) {
-			auto member_kick_webhook = dpp::webhook{member_kick_webhook_url.as<std::string>()};
+		if(!query["member_kick"].is_null()) {
+			auto member_kick_webhook = dpp::webhook{query["member_kick"].as<std::string>()};
 			std::string embed_title, embed_image_url;
 			if(kicked_members.size() > 1)
 				embed_title = "Members kicked: ";
@@ -286,9 +283,8 @@ void kick_wrapper::process_response() {
 
 			command.bot->execute_webhook(member_kick_webhook, log);
 		}
-		auto const modlog_webhook_url = query[0]["modlog"];
-		if(!modlog_webhook_url.is_null()) {
-			auto modlog_webhook = dpp::webhook{modlog_webhook_url.as<std::string>()};
+		if(!query["modlog"].is_null()) {
+			auto modlog_webhook = dpp::webhook{query["modlog"].as<std::string>()};
 			std::string embed_title, embed_image_url;
 			if(kicked_members.size() > 1)
 				embed_title = "Members kicked: ";
@@ -309,9 +305,8 @@ void kick_wrapper::process_response() {
 			log.add_embed(kick_log);
 			command.bot->execute_webhook(modlog_webhook, log);
 		}
-		auto public_modlog_webhook_url = query[0]["public_modlog"];
-		if(!public_modlog_webhook_url.is_null()) {
-			auto public_modlog_webhook = dpp::webhook{public_modlog_webhook_url.as<std::string>()};
+		if(!query["public_modlog"].is_null()) {
+			auto public_modlog_webhook = dpp::webhook{query["public_modlog"].as<std::string>()};
 			std::string embed_title = kicked_members.size() > 1 ? "Members kicked: " : "Member kicked: ";
 			std::string embed_image_url = kicked_members.size() > 1 ? kicked_members.at(0)->get_avatar_url() : "";
 			time_now = std::time(nullptr);
