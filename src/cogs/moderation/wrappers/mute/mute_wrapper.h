@@ -17,6 +17,12 @@ class mute_wrapper final: public member_wrapper {
 	void wrapper_function() override;
 
 	/**
+	 * @brief Checks if all the users can be muted.
+	 * @param protected_roles Roles protected from moderation actions.
+	 */
+	void check_mute_possible(const shared_vector<dpp::role>& protected_roles);
+
+	/**
 	 * @brief Checks if the command invoker has the appropriate permissions to perform the operation (including the bot itself).
 	 * @note This is called internally and will return the result via the wrapper_function() function.
 	 */
