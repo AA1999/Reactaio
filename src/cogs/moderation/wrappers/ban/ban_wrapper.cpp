@@ -91,33 +91,8 @@ void ban_wrapper::lambda_callback(const dpp::confirmation_callback_t &completion
 		errors.push_back(std::format("❌ Unable to ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
 		users_with_errors.insert(user);
 	}
-	else {
-		auto transaction = pqxx::work{*command.connection};
-		auto const max_query	 = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		if(duration) {
-			auto const time_now = std::chrono::system_clock::now();
-			auto const time_delta = duration->to_seconds();
-			auto const future = time_now + time_delta;
-			auto const time_now_str = dpp::utility::current_date_time();
-			auto const future_str = std::format("{}", future);
-			transaction.exec_prepared("tempban", std::to_string(user->id), std::to_string(command.guild->id),
-									  std::to_string(command.author->user_id), time_now_str, future_str,
-									  command.reason);
-			transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id,
-									  internal::mod_action_name::BAN, duration->to_string(),
-									  std::to_string(command.author->user_id), std::to_string(user->id),
-									  command.reason);
-		}
-		else {
-			transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id,
-									  internal::mod_action_name::BAN, std::to_string(
-																						  command.author->user_id), std::to_string(user->id), command
-																		.reason);
-		}
-
-		transaction.commit();
-	}
+	else
+		log_modcase(internal::mod_action_name::BAN);
 }
 
 void ban_wrapper::process_bans() {
@@ -418,12 +393,11 @@ void ban_wrapper::check_ban_possible(shared_vector<dpp::role> const& protected_r
 				errors.emplace_back("❌ Why are you banning yourself, server owner? lmfao");
 				is_owner = true;
 			}
-		else {
-				errors.emplace_back("❌ You can't ban yourself lmao.");
+			else {
+					errors.emplace_back("❌ You can't ban yourself lmao.");
 			}
 			cancel_operation = true;
 		}
-
 		if(!is_owner && member->is_guild_owner()) {
 			errors.emplace_back("❌ You can't ban the server owner lmfao.");
 			cancel_operation = true;
