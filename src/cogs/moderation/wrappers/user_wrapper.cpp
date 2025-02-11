@@ -13,6 +13,15 @@ void user_wrapper::log_modcase(std::string_view const& command_name) const {
 	shared_vector<dpp::user> users_with_no_errors;
 
 	reactaio::set_difference(users, users_with_errors, users_with_no_errors);
+
+	if(duration) {
+		for (auto const& user: users_with_no_errors)
+			transaction.exec_prepared("modcase_insert_duration", std::to_string(command.guild->id), max_id, command_name, duration->to_string(),
+							  std::to_string(command.author->user_id), std::to_string(user->id), command.reason);
+		transaction.commit();
+		return;
+	}
+
 	for(auto const& user: users_with_no_errors)
 		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, command_name,
 							  std::to_string(command.author->user_id), std::to_string(user->id), command.reason);
