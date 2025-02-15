@@ -9,6 +9,7 @@
 #include "../../../core/discord/message_paginator.h"
 #include "../../../core/helpers.h"
 #include "guild_bans_wrapper.h"
+#include "../../mod_action.h"
 
 void guild_bans_wrapper::wrapper_function() {
 	check_permissions();
@@ -30,7 +31,43 @@ void guild_bans_wrapper::check_permissions() {
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the Ban Members permission is enabled.");
 	}
 
-	//TODO Check for permission to either Ban Members in discord or a specified role in bot (adding to db soon)
+	auto const roles = get_permitted_roles(internal::mod_action_name::VIEW_BAN_LIST);
+
+	if((roles.empty() && !author_top_role->has_ban_members() || (!roles.empty() && !author_top_role->has_ban_members() && !roles.contains(author_top_role)))) {
+		cancel_operation = true;
+		errors.emplace_back("❌ You do not have permission to run this command.");
+	}
+
+	if(cancel_operation) {
+		auto const organized_errors = join_with_limit(errors, bot_max_embed_chars);
+		auto const time_now = std::time(nullptr);
+		auto base_embed = dpp::embed()
+								  .set_title("Error while banning member(s): ")
+								  .set_color(ERROR_COLOR)
+								  .set_timestamp(time_now);
+		if (organized_errors.size() == 1) {
+			base_embed.set_description(organized_errors[0]);
+			error_message.add_embed(base_embed);
+		}
+		else {
+			for (auto const &error: organized_errors) {
+				auto embed{base_embed};
+				embed.set_description(error);
+				error_message.add_embed(embed);
+			}
+		}
+		if(command.interaction) {
+			error_message.set_flags(dpp::m_ephemeral);
+			if(organized_errors.size() == 1)
+				(*command.interaction)->edit_response(error_message);
+			else {
+				message_paginator paginator{error_message, command};
+				paginator.start();
+			}
+		}
+		else
+			invoke_error_webhook();
+	}
 
 }
 
@@ -88,6 +125,8 @@ void guild_bans_wrapper::process_response() {
 				paginator.start();
 			}
 		}
+		else
+			invoke_error_webhook();
 		return;
 	}
 
@@ -109,6 +148,9 @@ void guild_bans_wrapper::process_response() {
 							  .set_color(INFO_COLOR)
 							  .set_timestamp(time_now);
 
+	if(command.interaction)
+		log_command_invoke(internal::mod_action_name::VIEW_BAN_LIST);
+
 	if(format_split.size() == 1) {
 		base_embed.set_description(format_split.at(0));
 		message.add_embed(base_embed);
@@ -127,4 +169,6 @@ void guild_bans_wrapper::process_response() {
 		message_paginator paginator{message, command};
 		paginator.start();
 	}
+	else
+		invoke_error_webhook();
 }
