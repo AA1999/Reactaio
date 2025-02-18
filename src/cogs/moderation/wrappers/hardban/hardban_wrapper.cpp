@@ -194,14 +194,8 @@ void hardban_wrapper::lambda_callback(const dpp::confirmation_callback_t &comple
 		errors.push_back(std::format("❌ Unable to hard ban user **{}**. Error code {}: {}.", user->format_username(), error.code, error.human_readable));
 		users_with_errors.insert(user);
 	}
-	else {
-		auto transaction = pqxx::work{*command.connection};
-		auto const max_query = transaction.exec_prepared1("casecount", std::to_string(command.guild->id));
-		auto max_id = std::get<0>(max_query.as<case_t>()) + 1;
-		transaction.exec_prepared("modcase_insert", std::to_string(command.guild->id), max_id, internal::mod_action_name::HARD_BAN,
-								  std::to_string(command.author->user_id), std::to_string(user->id), command.reason);
-		transaction.commit();
-	}
+	else
+		log_modcase(internal::mod_action_name::HARD_BAN);
 }
 
 void hardban_wrapper::process_hardbans() {
@@ -227,7 +221,7 @@ void hardban_wrapper::process_hardbans() {
 										 author_user->format_username(), command.reason);
 			command.bot->direct_message_create(user->id,dpp::message(dm_message));
 		}
-		command.bot->set_audit_reason(std::format("Hardbanned by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
+		command.bot->set_audit_reason(std::format("Hard banned by {} for reason: {}", command.author->get_user()->format_username(), command.reason)).guild_ban_add(command.guild->id, user->id, ban_remove_days , [this, user](auto const& completion) {
 			lambda_callback(completion, user);
 		});
 	}
