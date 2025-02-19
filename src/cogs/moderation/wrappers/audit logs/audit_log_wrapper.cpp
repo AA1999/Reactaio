@@ -2,13 +2,12 @@
 // Created by arshia on 3/4/24.
 //
 
-#include <execution>
-
 #include "../../../core/colors.h"
 #include "../../../core/consts.h"
 #include "../../../core/discord/message_paginator.h"
 #include "../../../core/helpers.h"
 #include "../../audit_log_actions.h"
+#include "../../mod_action.h"
 #include "audit_log_wrapper.h"
 
 #include <memory>
@@ -25,14 +24,18 @@ void audit_log_wrapper::check_permissions() {
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const& author_top_role = author_roles.begin();
+	auto const& author_top_role = author_roles.front();
 
-	if (!bot_top_role->has_view_audit_log()) {
+	if(!bot_top_role->has_view_audit_log()) {
 		cancel_operation = true;
 		errors.emplace_back("❌ Bot doesn't have the appropriate permissions. Please make sure the View Audit Log permission is enabled.");
 	}
 
-	//TODO Check for permission to either Ban Members in discord or a specified role in bot (adding to db soon)
+	auto const roles = get_permitted_roles(internal::mod_action_name::VIEW_AUDIT_LOG);
+	if(roles.empty() && !author_top_role->has_view_audit_log() || (!roles.empty() && !author_top_role->has_view_audit_log() && !contains(roles, author_top_role))) {
+		cancel_operation = true;
+		errors.emplace_back("❌ You do not have permission to run this command.");
+	}
 }
 
 void audit_log_wrapper::recursive_call(dpp::snowflake after) {
@@ -45,7 +48,7 @@ void audit_log_wrapper::recursive_call(dpp::snowflake after) {
 		auto audit_map = callback.get<dpp::auditlog>();
 		auto new_after{after};
 		for(auto const& entry: audit_map.entries) {
-			audit_entries_.insert(std::make_shared<dpp::audit_entry>(entry));
+			m_audit_entries.insert(std::make_shared<dpp::audit_entry>(entry));
 			if(entry.user_id > new_after)
 				new_after = entry.user_id;
 		}
@@ -55,7 +58,7 @@ void audit_log_wrapper::recursive_call(dpp::snowflake after) {
 
 void audit_log_wrapper::process_response() {
 	auto message = dpp::message(command.channel_id, "");
-	if (has_error()) {
+	if(has_error()) {
 		auto format_split = join_with_limit(errors, bot_max_embed_chars);
 		auto const time_now = std::time(nullptr);
 		auto base_embed	= dpp::embed()
@@ -67,7 +70,7 @@ void audit_log_wrapper::process_response() {
 			message.add_embed(base_embed);
 		}
 		else {
-			for (auto const& error : format_split) {
+			for(auto const& error : format_split) {
 				auto embed{base_embed};
 				embed.set_description(error);
 				message.add_embed(embed);
@@ -85,11 +88,11 @@ void audit_log_wrapper::process_response() {
 		}
 		return;
 	}
-
+	log_command_invoke(internal::mod_action_name::VIEW_AUDIT_LOG);
 	message.set_flags(dpp::m_ephemeral);
 
 	std::vector<std::string> audit_logs;
-	for(auto const& entry: audit_entries_ ) {
+	for(auto const& entry: m_audit_entries ) {
 		auto const user_id = entry->user_id;
 		auto type_string = audit_log_events.find_key(entry->type);
 		replace_all(type_string, "_", " ");
@@ -129,4 +132,6 @@ void audit_log_wrapper::process_response() {
 		message_paginator paginator{message, command};
 		paginator.start();
 	}
+	else
+		invoke_error_webhook();
 }
