@@ -69,7 +69,6 @@ public:
 	 * @param snowflakes The list of dpp::user* and dpp::guild_member objects.
 	 * @param command This is a command moderation_command object that includes every detail about the command that was invoked (whether it was a slash command or an automod response)
 	 */
-	hybrid_wrapper(const internal::unique_vector<member_user_variant> &snowflakes, moderation_command& command)
-		: command_wrapper(std::move(command)), snowflakes(snowflakes) {}
+	hybrid_wrapper(internal::unique_vector<member_user_variant> const& snowflakes, moderation_command& command): command_wrapper(std::move(command)), snowflakes(snowflakes) {}
 
 };
