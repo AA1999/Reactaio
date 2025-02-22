@@ -87,17 +87,16 @@ void hardban_wrapper::check_hardban_possible(shared_vector<dpp::role> const& pro
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const& author_top_role = author_roles.front();
 
 	for(auto const &member: members) {
 		auto const member_roles = get_roles_sorted(*member);
 		auto const &member_top_role = member_roles.front();
 
-		if(member->is_guild_owner()) {// If for some reason you felt like hardbanning yourself, being the server owner.
+		if(member->is_guild_owner()) { // If for some reason you felt like hardbanning yourself, being the server owner.
 			cancel_operation = true;
 			errors.emplace_back("❌ Why are you trying to hard ban yourself, server owner? lmfao");
 		}
-		if(command.bot->me.id == member->user_id) {// If you decided to ban the bot (ReactAIO)
+		if(command.bot->me.id == member->user_id) { // If you decided to ban the bot (ReactAIO)
 			errors.emplace_back("❌ Can't hard ban myself lmfao.");
 			cancel_operation = true;
 		}
@@ -145,7 +144,6 @@ void hardban_wrapper::check_permissions() {
 	auto const bot_roles = get_roles_sorted(bot_member);
 	auto const& bot_top_role = bot_roles.front();
 	auto const author_roles = get_roles_sorted(*command.author);
-	auto const& author_top_role = author_roles.front();
 
 	auto const protected_roles = get_protected_roles();
 
