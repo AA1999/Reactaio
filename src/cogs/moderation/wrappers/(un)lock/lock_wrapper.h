@@ -33,12 +33,6 @@ class lock_wrapper final: public channel_wrapper {
 	void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) override;
 
 	/**
-	 * @brief Logs a modcase of the action happening.
-	 * @param command_name Command name to log the modcase for.
-	 */
-	void log_modcase(std::string_view const &command_name) const override;
-
-	/**
 	 * @brief Locks all the given channels. On error the errors will be sent to the errors vector.
 	 */
 	void process_locks();
