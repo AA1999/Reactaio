@@ -29,12 +29,6 @@ class guild_wrapper: public command_wrapper {
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const& completion) = 0;
 
-	/**
-	 * @brief Logs the modcase action.
-	 * @param command_name Command name to add to the modlog.
-	 */
-	void log_modcase(std::string_view const& command_name) const override;
-
 public:
 	guild_wrapper() = delete;
 	~guild_wrapper() override = default;
