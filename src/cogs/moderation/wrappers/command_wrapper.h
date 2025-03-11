@@ -68,13 +68,6 @@ protected:
 	 */
 	[[nodiscard]] shared_vector<dpp::role> get_permitted_roles(std::string_view const &command_name) const;
 
-	/**
-	 * @brief Logs the action inside the modcase.
-	 * @param command_name The command name that the modcase is being invoked for.
-	 * @note This is an abstract method.
-	 */
-	virtual void log_modcase(std::string_view const& command_name) const = 0;
-
 public:
 	virtual ~command_wrapper() = default;
 
