@@ -37,12 +37,6 @@ protected:
 	 */
 	virtual void lambda_callback(dpp::confirmation_callback_t const &completion, channel_ptr const &channel) = 0;
 
-	/**
-	 * @brief Logs a modcase of the action happening.
-	 * @param command_name Command name to log the modcase for.
-	 */
-	void log_modcase(std::string_view const &command_name) const override;
-
 public:
 	channel_wrapper() = delete;
 	~channel_wrapper() override = default;
