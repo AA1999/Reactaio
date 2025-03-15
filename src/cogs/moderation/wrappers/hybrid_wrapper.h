@@ -45,7 +45,7 @@ protected:
 	 * @brief Logs the moderation action in the modcase database.
 	 * @param command_name The command name to log in the modcase.
 	 */
-	void log_modcase(std::string_view const& command_name) const override;
+	void log_modcase(std::string_view const& command_name) const;
 
 public:
 
