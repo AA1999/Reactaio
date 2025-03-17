@@ -40,7 +40,7 @@ protected:
 	 * @brief Logs the modcase for each of the members in the wrapper.
 	 * @param command_name The command name to include in the log.
 	 */
-	void log_modcase(std::string_view const& command_name) const override;
+	void log_modcase(std::string_view const& command_name) const;
 
 public:
 	~member_wrapper() override = default;
