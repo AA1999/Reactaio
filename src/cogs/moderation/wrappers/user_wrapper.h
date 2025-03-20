@@ -30,7 +30,7 @@ protected:
 	 * @brief Logs the moderation action in the database.
 	 * @param command_name The name of the command to log the mod case for.
 	 */
-	void log_modcase(std::string_view const& command_name) const override;
+	void log_modcase(std::string_view const& command_name) const;
 
 	/**
 	 * @brief This is a function called when an API call is made.
