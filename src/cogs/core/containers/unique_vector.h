@@ -28,7 +28,13 @@ namespace reactaio::internal {
 		using value_type = T;
 
 		~unique_vector() = default;
-		unique_vector(): m_container(){}
+		unique_vector() : m_container() {}
+
+		/**
+		 *
+		 * @param size Initial size of the vector.
+		 */
+		explicit unique_vector(std::size_t size): m_container(size){}
 
 		/**
 		 * @brief Copy constructor.

@@ -59,8 +59,8 @@ shared_vector<dpp::role> command_wrapper::get_protected_roles() const {
 	auto const protected_roles_row = transaction.exec_prepared1("protected_roles", std::to_string(command.guild->id));
 	if (protected_roles_row["protected_roles"].is_null())
 		return {};
-	shared_vector<dpp::role> roles;
 	auto const protected_roles_array = protected_roles_row["protected_roles"].as_sql_array<dpp::snowflake>();
+	shared_vector<dpp::role> roles{protected_roles_array.size()};
 	reactaio::transform(protected_roles_array, roles, [](dpp::snowflake const &role_id) {
 		return std::make_shared<dpp::role>(*find_role(role_id));
 	});
@@ -74,7 +74,7 @@ shared_vector<dpp::role> command_wrapper::get_permitted_roles(std::string_view c
 	transaction.commit();
 	if(mod_role_query.empty())
 		return {};
-	shared_vector<dpp::role> roles;
+	shared_vector<dpp::role> roles(mod_role_query.size());
 	reactaio::transform(mod_role_query, roles, [](pqxx::row const& row) {
 		return std::make_shared<dpp::role>(*find_role(row["role_id"].as<dpp::snowflake>()));
 	});
