@@ -28,46 +28,74 @@ void message_paginator::remove_page(std::size_t page) {
 }
 
 void message_paginator::start() {
+	if(is_started)
+		return;
+	is_started = true;
 
 	buttons[SKIP_FIRST].set_emoji("⏮️")
-	        .set_id(skip_first_id)
-	        .set_style(dpp::cos_primary);
-
+		.set_id(skip_first_id)
+		.set_style(dpp::cos_primary);
 	buttons[BACKWARD].set_emoji("◀️")
-		.set_id(backward_id)
-		.set_style(dpp::cos_primary);
+			.set_id(backward_id).set_style(dpp::cos_primary);
+	buttons[FORWARD].set_emoji("▶️").set_id(forward_id).set_style(dpp::cos_primary);
+	buttons[SKIP_LAST].set_emoji("⏭️").set_id(skip_last_id).set_style(dpp::cos_primary);
 
-	buttons[FORWARD].set_emoji("▶️")
-	        .set_id(forward_id)
-	        .set_style(dpp::cos_primary);
-
-	buttons[SKIP_LAST].set_emoji("⏭️")
-		.set_id(skip_last_id)
-		.set_style(dpp::cos_primary);
-
-	for(auto const& button: buttons)
+	for (auto const& button: buttons)
 		action_row.add_component(button);
 
 	m_message.components.clear();
 	m_message.add_component(action_row);
 
-	if(m_command.interaction) {
+	if (m_command.interaction) {
 		(*m_command.interaction)->reply(m_message);
-	}
-	else {
+	} else {
 		m_command.bot->message_create(m_message);
 	}
-	m_command.bot->on_button_click([this](const dpp::button_click_t& event) {
-		if(event.custom_id == forward_id) {
+	m_command.bot->on_button_click([this](const dpp::button_click_t &event) {
+		if (event.custom_id == forward_id) {
 			forward();
 		}
-		else if(event.custom_id == backward_id) {
+		else if (event.custom_id == backward_id) {
 			backward();
 		}
-		else if(event.custom_id == skip_first_id) {
+		else if (event.custom_id == skip_first_id) {
 			skip_first();
 		}
-		else if(event.custom_id == skip_last_id) {
+		else if (event.custom_id == skip_last_id) {
+			skip_last();
+		}
+	});
+}
+
+void message_paginator::start(const user_ptr& user){
+	if(is_started)
+		return;
+	is_started = true;
+
+	buttons[SKIP_FIRST].set_emoji("⏮️").set_id(skip_first_id).set_style(dpp::cos_primary);
+	buttons[BACKWARD].set_emoji("◀️").set_id(backward_id).set_style(dpp::cos_primary);
+	buttons[FORWARD].set_emoji("▶️").set_id(forward_id).set_style(dpp::cos_primary);
+	buttons[SKIP_LAST].set_emoji("⏭️").set_id(skip_last_id).set_style(dpp::cos_primary);
+
+	for (auto const& button: buttons)
+		action_row.add_component(button);
+
+	m_message.components.clear();
+	m_message.add_component(action_row);
+
+	m_command.bot->direct_message_create(user->id, m_message);
+
+	m_command.bot->on_button_click([this](const dpp::button_click_t &event) {
+		if (event.custom_id == forward_id) {
+			forward();
+		}
+		else if (event.custom_id == backward_id) {
+			backward();
+		}
+		else if (event.custom_id == skip_first_id) {
+			skip_first();
+		}
+		else if (event.custom_id == skip_last_id) {
 			skip_last();
 		}
 	});
