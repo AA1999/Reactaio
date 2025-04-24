@@ -17,7 +17,7 @@
 
 
 void ban_wrapper::wrapper_function() {
-	for(auto& member_or_user: snowflakes) {
+	for(auto const& member_or_user: snowflakes) {
 		if(auto const member_pointer = std::get_if<member_ptr>(&member_or_user)) {
 			members.insert(*member_pointer);
 			users.insert((*member_pointer)->get_user());
@@ -60,20 +60,8 @@ void ban_wrapper::wrapper_function() {
 				paginator.start();
 			}
 		}
-		else { // It's an auto mod action
-			auto transaction = pqxx::work{*command.connection};
-			auto error_channel_query = transaction.exec_prepared("botlog", std::to_string(command.guild->id));
-			if(error_channel_query.empty()) {
-				error_message.set_content("This server hasn't set a channel forbot errors. So the errors are being "
-				                          "sent to your DMs:");
-				command.bot->direct_message_create(command.author->user_id, error_message);
-			}
-			else {
-				const auto webhook_url = error_channel_query[0]["bot_error_logs"].as<std::string>();
-				const auto webhook = dpp::webhook{webhook_url};
-				command.bot->execute_webhook(webhook, error_message);
-			}
-		}
+		else // Automod
+			invoke_error_webhook();
 		return;
 	}
 
